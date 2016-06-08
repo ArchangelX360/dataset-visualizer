@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YCSB Visualisation</title>
+    <link rel="icon" type="image/jpg" href="icon/presentation.svg"/>
+
+    <link rel="stylesheet" href="lib/angular-material.min.css">
+    <link rel="stylesheet" href="lib/angular-chart.min.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
+
+
+
+</head>
+<body ng-app="visualisationYCSB" flex>
+
+<div layout="column" flex layout-fill>
+    <md-toolbar md-whiteframe="3" layout-align="center center">
+        <h1 class="md-display-3">YCSB Visualisation</h1>
+    </md-toolbar>
+    <div style="position: relative" flex layout="column">
+        <div layout="column" class="base-view" ng-class="classView" ng-view></div>
+    </div>
+    <div class="footer" layout="row" layout-align="center center">
+    </div>
+</div>
+
+</body>
+
+<script src="lib/Chart.min.js"></script>
+<script src="lib/angular.min.js"></script>
+<script src="lib/angular-chart.min.js"></script>
+<script src="lib/angular-animate.min.js"></script>
+<script src="lib/angular-route.min.js"></script>
+<script src="lib/angular-aria.min.js"></script>
+<script src="lib/angular-messages.min.js"></script>
+<script src="lib/angular-material.min.js"></script>
+
+<script src="stats/stats.js"></script>
+<script src="frontpage/frontpage.js"></script>
+<script src="services/benchmarks.js"></script>
+<script src="core.js"></script> <!-- load our main application -->
+
+</html>
