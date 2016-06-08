@@ -6,7 +6,7 @@ A web application which communicate with the visualisation part of Yahoo! Cloud 
 
 You will need MongoDB to use this application :
 
-   sudo apt-get install mongodb
+    sudo apt-get install mongodb
 
 You will also need YCSB visualisation version :
 
