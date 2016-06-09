@@ -1,4 +1,5 @@
 // set up ======================================================================
+var http = require('http');
 var express = require('express');
 var app = express(); 						// create our app w/ express
 var mongoose = require('mongoose'); 				// mongoose for mongodb
@@ -7,6 +8,12 @@ var database = require('./config/database'); 			// load the database config
 var morgan = require('morgan');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
+var server = http.createServer(app);
+io = require('socket.io').listen(server);
+
+io.on('connection', function (socket) {
+    console.log('Client connected.');
+});
 
 // configuration ===============================================================
 mongoose.connect(database.localUrl); 	// Connect to local MongoDB instance. A remoteUrl is also available (modulus.io)
@@ -23,5 +30,5 @@ app.use(methodOverride('X-HTTP-Method-Override')); // override with the X-HTTP-M
 require('./app/routes.js')(app);
 
 // listen (start app with node server.js) ======================================
-app.listen(port);
+server.listen(port);
 console.log("App listening on port " + port);
