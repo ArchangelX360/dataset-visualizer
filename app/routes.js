@@ -1,8 +1,11 @@
 var benchmarkSchema = require('./models/benchmark');
 var mongoose = require('mongoose');
+var database = require('../config/database'); 			// load the database config
 var child_process = require('child_process');
 
-function getBenchmarks(res, benchmarkName) {
+var clients = {};
+
+function getBenchmarkByName(res, benchmarkName) {
     var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
     Benchmark.find(function (err, benchmarks) {
 
@@ -34,38 +37,45 @@ function launchBenchmark(req, res) {
             cmd += '-s';
         }
 
-        executeCommandStr(cmd);
+        executeCommandStr(cmd, params.benchmarkname);
         res.send('[SUCCESS] Benchmarking "' + params.target + '" in progress...\n');
     } else {
         res.send('[ERROR] Please enter a valid Benchmark Name.\n');
     }
 }
 
-function executeCommandStr(cmd) {
+function executeCommandStr(cmd, benchmarkName) {
     var child = child_process.exec(cmd);
+    var client = clients[benchmarkName]; // Only emitting on the right client
+
+    client.emit('begin');
     child.stdout.on('data', function (data) {
-        console.log('stdout: ' + data + '\n');
-        io.emit('stdout', {message: data + '\n'});
+        client.emit('stdout', {message: data + '\n'});
     });
 
     child.stderr.on('data', function (data) {
-        console.log('stderr: ' + data + '\n');
-        io.emit('stderr', {message: data + '\n'});
+        console.log('stderr emitted.');
+        client.emit('stderr', {message: data + '\n'});
     });
 
     child.on('exit', function (code) {
-        console.log('child process exited with code ' + code + '\n');
-        io.emit('exit', {message: 'child process exited with code ' + code + '\n'});
+        //console.log('child process exited with code ' + code + '\n');
+        client.emit('exit', {message: 'child process exited with code ' + code + '\n'});
     });
 }
 
-module.exports = function (app) {
+module.exports = function (app, io) {
 
     // api ---------------------------------------------------------------------
     // get one benchmark by name
     app.get('/api/benchmarks/:benchmark_name', function (req, res) {
-        // use mongoose to get all benchmarks in the database
-        getBenchmarks(res, req.params.benchmark_name);
+        // use mongoose to get one benchmark in the database by name
+        getBenchmarkByName(res, req.params.benchmark_name);
+    });
+
+    app.get('/api/benchmarks/names', function (req, res) {
+        console.log("fu");
+        res.send([1.2, 2, 3]);
     });
 
     app.post('/cmd/launch', function (req, res) {
@@ -84,7 +94,7 @@ module.exports = function (app) {
      res.send(err);
 
      // get and return all the benchmarks after you create another
-     getBenchmarks(res);
+     getBenchmarkByName(res);
      });
 
      });*/
@@ -97,7 +107,7 @@ module.exports = function (app) {
      if (err)
      res.send(err);
 
-     getBenchmarks(res);
+     getBenchmarkByName(res);
      });
      });*/
 
@@ -105,4 +115,20 @@ module.exports = function (app) {
     app.get('*', function (req, res) {
         res.sendFile(__dirname + '/public/index.html'); // load the single view file (angular will handle the page changes on the front-end)
     });
+
+    // socket ------------------------------------------------------------------
+    io.sockets.on('connection', function (socket) {
+        console.log('Client connected with id : ' + socket.id);
+
+        socket.on('authentication', function (benchmarkName) {
+            console.log("Authenticate with : " + benchmarkName);
+            clients[benchmarkName] = socket;
+        });
+
+        socket.on('disconnect', function (socket) {
+            console.log('Client disconnected with id : ' + socket.id);
+        });
+    });
+
+
 };

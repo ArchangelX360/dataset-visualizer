@@ -8,13 +8,14 @@ var app = angular.module('visualisationYCSB', [
     'cmdController',
     'frontpageController',
     'benchmarkService',
-    'cmdService'
+    'cmdService',
 ]);
 
 app.config(function($routeProvider) {
     $routeProvider.when('/', {templateUrl: 'frontpage/frontpage.html', controller:''})
         .when('/stats/:benchmarkName', {templateUrl: 'stats/stats.html', controller: 'BenchmarkController'})
         .when('/cmd', {templateUrl: 'cmd/cmd.html', controller: 'CmdController'})
+        .when('/stats', {templateUrl: 'stats/list.html', controller: 'BenchmarkListController'})
     ;
 });
 
@@ -27,6 +28,9 @@ app.factory('socket', ['$rootScope', function ($rootScope) {
         },
         emit: function (eventName, data) {
             socket.emit(eventName, data);
+        },
+        getSocket: function () {
+            return socket;
         }
     };
 }]);

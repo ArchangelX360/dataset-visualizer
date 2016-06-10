@@ -2,6 +2,10 @@ angular.module('cmdController', ['ngMessages'])
 // inject the Benchmark service factory into our controller
     .controller('CmdController', ['$scope', '$http', 'Cmds', 'socket', function ($scope, $http, Cmds, socket) {
 
+        $scope.$on('$destroy', function (event) {
+            socket.getSocket().removeAllListeners();
+        });
+
         $scope.isLaunched = false;
         $scope.isFinished = true;
 
@@ -24,20 +28,22 @@ angular.module('cmdController', ['ngMessages'])
             }
         };
 
-        socket.on('stderr', function (data) {
+        socket.on('begin', function () {
             $scope.$apply(function () {
-                // TODO : find a better way to handle these variables, this is ridiculous...
+                console.log("test");
                 $scope.isLaunched = true;
                 $scope.isFinished = false;
+            });
+        });
+
+        socket.on('stderr', function (data) {
+            $scope.$apply(function () {
                 document.getElementById('std-container').innerHTML += "<span class='stderr'>" + data.message + "</span>";
             });
         });
 
         socket.on('stdout', function (data) {
             $scope.$apply(function () {
-                // TODO : find a better way to handle these variables, this is ridiculous...
-                $scope.isLaunched = true;
-                $scope.isFinished = false;
                 document.getElementById('std-container').innerHTML += "<span class='stdout'>" + data.message + "</span>";
             });
         });
@@ -50,9 +56,10 @@ angular.module('cmdController', ['ngMessages'])
         });
 
         $scope.launchCmd = function () {
+            socket.emit('authentication', $scope.params.benchmarkname);
             Cmds.post($scope.params)
                 .success(function (data) {
-                    document.getElementById('stderr-container').innerHTML += data;
+                    document.getElementById('std-container').innerHTML += data;
                 });
         };
     }]);

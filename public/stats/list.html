@@ -1,0 +1,27 @@
+<div flex layout="row" layout-align="center center">
+    <h1 class="md-display-1">Benchmark list</h1>
+</div>
+
+<div flex layout="row" layout-align="center center">
+    <md-list>
+        <md-list-item ng-repeat="(key, value) in benchmarkNames" tabindex="-1" role="listitem"
+                      class="secondary-button-padding _md-button-wrap md-with-secondary _md md-clickable">
+            <div class="md-button _md-no-style">
+                <button aria-label="Benchmark {{value}}" class="_md-no-style md-button md-ink-ripple" type="button">
+                    <div style="" class="md-ripple-container"></div>
+                </button>
+                <div class="_md-list-item-inner">
+                    <p>Benchmark {{value}}</p>
+
+                </div>
+                <div class="_md-secondary-container">
+                    <a ng-href="#/stats/{{value}}">
+                        <md-button aria-label="Observe Latency"
+                                   class="md-raised md-accent md-button md-ink-ripple md-button" type="button"><span
+                                class="ng-scope">Observe Latency</span></md-button>
+                    </a>
+                </div>
+            </div>
+        </md-list-item>
+    </md-list>
+</div>
