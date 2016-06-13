@@ -50,17 +50,17 @@ function executeCommandStr(cmd, benchmarkName) {
 
     client.emit('begin');
     child.stdout.on('data', function (data) {
-        client.emit('stdout', {message: data + '\n'});
+        client.emit('stdout', {message: data});
     });
 
     child.stderr.on('data', function (data) {
         console.log('stderr emitted.');
-        client.emit('stderr', {message: data + '\n'});
+        client.emit('stderr', {message: data});
     });
 
     child.on('exit', function (code) {
         //console.log('child process exited with code ' + code + '\n');
-        client.emit('exit', {message: 'child process exited with code ' + code + '\n'});
+        client.emit('exit', {message: 'child process exited with code ' + code});
     });
 }
 

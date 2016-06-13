@@ -9,12 +9,29 @@
     <!--<link rel="stylesheet" href="lib/angular-chart.min.css">-->
     <link rel="stylesheet" href="css/app.css">
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 </head>
 <body ng-app="visualisationYCSB" flex>
 
 <div layout="column" flex layout-fill>
-    <md-toolbar md-whiteframe="3" layout-align="center center">
-        <h1 class="md-display-3">YCSB Visualisation</h1>
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <a ng-href="#/">
+                <md-button class="md-icon-button" aria-label="Home">
+                    <md-icon md-svg-icon="icon/ic_home_white_48px.svg"></md-icon>
+                </md-button>
+            </a>
+            <h2>
+                <span>{{pageTitle}}</span>
+            </h2>
+            <span flex></span>
+            <!--<md-button class="md-icon-button" aria-label="Favorite">
+                <md-icon md-svg-icon="img/icons/favorite.svg" style="color: greenyellow;"></md-icon>
+            </md-button>
+            <md-button class="md-icon-button" aria-label="More">
+                <md-icon md-svg-icon="img/icons/more_vert.svg"></md-icon>
+            </md-button>-->
+        </div>
     </md-toolbar>
     <div style="position: relative" flex layout="column">
         <div layout="column" class="base-view" ng-class="classView" ng-view></div>
@@ -34,7 +51,6 @@
 <script src="lib/angular-aria.min.js"></script>
 <script src="lib/angular-messages.min.js"></script>
 <script src="lib/angular-material.min.js"></script>
-<script src="lib/socket.io.js"></script>
 <script src="lib/socket.min.js"></script>
 
 <script src="lib/highcharts-ng.min.js"></script>

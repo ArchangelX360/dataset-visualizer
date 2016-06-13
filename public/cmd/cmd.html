@@ -8,8 +8,8 @@
     }
 
     .console-container {
-        width: 800px;
-        height: 230px;
+        width: 700px;
+        height: 75vh;
         border: 1px solid #757575;
         background-color: #e0e0e0;
         overflow: scroll;
@@ -22,114 +22,120 @@
     .form-column {
         margin-left: 10px;
         margin-right: 10px;
+        min-width: 200px;
     }
 </style>
 
+<div ng-controller="CmdController">
+    <div flex layout="column" layout-align="center center">
 
-<div flex layout="column" layout-align="center center">
+        <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
 
-    <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
+        <div flex layout="row" layout-xs="column" layout-md="column" layout-sm="column">
+            <div flex layout="column">
+                <h1 class="md-headline">YCSB Parameters</h1>
+                <form name="paramsForm">
 
-    <div flex layout="row">
-        <h1 class="md-display-1">YCSB Parameters</h1>
-    </div>
+                    <div flex layout="row" layout-xs="column">
 
-    <div ng-controller="CmdController">
-        <form>
+                        <div flex layout="column" class="form-column">
+                            <div>
+                                <p>YCSB Target</p>
+                                <md-radio-group id="target-input" ng-model="params.target" aria-label="Target">
+                                    <md-radio-button value="load" aria-label="load">Load</md-radio-button>
+                                    <md-radio-button value="run" aria-label="run">Run</md-radio-button>
+                                </md-radio-group>
+                            </div>
+                            <md-switch aria-label="DB Hook" ng-model="params.pParams.frontendhook"
+                                       ng-disabled="params.pParams.frontendhook">
+                                DB Hook
+                            </md-switch>
+                            <md-switch aria-label="Status report (stderr)" ng-model="params.status">
+                                Status report (stderr)
+                            </md-switch>
+                            <md-input-container>
+                                <label for="ycsbrootpath-input">YCSB Root Filepath</label>
+                                <input id="ycsbrootpath-input" type="text" ng-model="params.ycsbrootpath"
+                                       name="ycsbrootpath" required/>
+                                <div ng-messages="paramsForm.ycsbrootpath.$error">
+                                    <div ng-message="required">This is required!</div>
+                                </div>
+                            </md-input-container>
+                        </div>
 
-            <div flex layout="row" layout-align="space-between start">
+                        <div flex layout="column" class="form-column">
+                            <md-input-container>
+                                <label for="benchmarkname-input">Benchmark name</label>
+                                <input id="benchmarkname-input" type="text" ng-model="params.benchmarkname"
+                                       name="benchmarkname" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
+                                <div ng-messages="paramsForm.benchmarkname.$error" role="alert">
+                                    <div ng-message="required">This is required!</div>
+                                    <div ng-message="pattern">No special chars allowed!</div>
+                                </div>
+                            </md-input-container>
+                            <md-input-container>
+                                <label for="workloadfilepath-input">Workload Filepath</label>
+                                <input id="workloadfilepath-input" type="text" name="workloadfilepath"
+                                       ng-model="params.workloadfilepath"
+                                       required/>
+                                <div ng-messages="paramsForm.workloadfilepath.$error">
+                                    <div ng-message="required">This is required!</div>
+                                </div>
+                            </md-input-container>
+                        </div>
 
-                <div flex layout="column" class="form-column">
-                    <div>
-                        <p>YCSB Target</p>
-                        <md-radio-group id="target-input" ng-model="params.target" aria-label="Target">
-                            <md-radio-button value="load" aria-label="load">Load</md-radio-button>
-                            <md-radio-button value="run" aria-label="run">Run</md-radio-button>
-                        </md-radio-group>
+                        <div flex layout="column" class="form-column">
+                            <md-input-container>
+                                <label for="db-input">Database Class</label>
+                                <md-select id="db-input" ng-model="params.db" required>
+                                    <md-option ng-value="db" ng-repeat="db in dbs">{{db}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label for="measurementtype-input">Measurement Type</label>
+                                <md-select id="measurementtype-input" ng-model="params.pParams.measurementtype"
+                                           required>
+                                    <md-option ng-value="measurementtype"
+                                               ng-repeat="measurementtype in measurementtypes">{{
+                                        measurementtype }} measurement
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                            <div ng-show="(params.pParams.measurementtype == 'timeseries')">
+                                <label for="timeseriesgranularity-slider">Timeseries granularity</label>
+                                <md-slider-container>
+                                    <md-slider id="timeseriesgranularity-slider" aria-label="Timeseries granularity"
+                                               ng-model="params.timeseries.granularity" min="1" max="1000">
+                                    </md-slider>
+                                </md-slider-container>
+                            </div>
+                        </div>
+
                     </div>
-                    <md-switch aria-label="DB Hook" ng-model="params.pParams.frontendhook"
-                               ng-disabled="params.pParams.frontendhook">
-                        DB Hook
-                    </md-switch>
-                    <md-switch aria-label="Status report (stderr)" ng-model="params.status">
-                        Status report (stderr)
-                    </md-switch>
-                    <md-input-container>
-                        <label for="ycsbrootpath-input">YCSB Root Filepath</label>
-                        <input id="ycsbrootpath-input" type="text" ng-model="params.ycsbrootpath" required/>
-                        <div ng-messages="params.ycsbrootpath.$error">
-                            <div ng-message="required">This is required!</div>
-                        </div>
-                    </md-input-container>
-                </div>
 
-                <div flex layout="column" class="form-column">
-                    <md-input-container>
-                        <label for="benchmarkname-input">Benchmark name</label>
-                        <input id="benchmarkname-input" type="text" ng-model="params.benchmarkname"
-                               ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
-                        <div ng-messages="params.benchmarkname.$error">
-                            <div ng-message="required">This is required!</div>
-                            <div ng-message="ng-pattern">No special chars allowed!</div>
-                        </div>
-                    </md-input-container>
-                    <md-input-container>
-                        <label for="workloadfilepath-input">Workload Filepath</label>
-                        <input id="workloadfilepath-input" type="text" ng-model="params.workloadfilepath" required/>
-                        <div ng-messages="params.workloadfilepath.$error">
-                            <div ng-message="required">This is required!</div>
-                        </div>
-                    </md-input-container>
-                </div>
-
-                <div flex layout="column" class="form-column">
-                    <md-input-container>
-                        <label for="db-input">Database Class</label>
-                        <md-select id="db-input" ng-model="params.db" required>
-                            <md-option ng-value="db" ng-repeat="db in dbs">{{db}}</md-option>
-                        </md-select>
-                    </md-input-container>
-                    <md-input-container>
-                        <label for="measurementtype-input">Measurement Type</label>
-                        <md-select id="measurementtype-input" ng-model="params.pParams.measurementtype" required>
-                            <md-option ng-value="measurementtype" ng-repeat="measurementtype in measurementtypes">{{
-                                measurementtype }} measurement
-                            </md-option>
-                        </md-select>
-                    </md-input-container>
-                    <div ng-show="(params.pParams.measurementtype == 'timeseries')">
-                        <label for="timeseriesgranularity-slider">Timeseries granularity</label>
-                        <md-slider-container>
-                            <md-slider id="timeseriesgranularity-slider" aria-label="Timeseries granularity"
-                                       ng-model="params.timeseries.granularity" min="1" max="1000">
-                            </md-slider>
-                        </md-slider-container>
+                    <div flex layout="row" layout-align="center center">
+                        <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
+                                   ng-click="launchCmd()">Launch Benchmark
+                        </md-button>
+                        <md-button class="md-raised md-accent md-primary md-button md-ink-ripple"
+                                   aria-label="Observe Latency"
+                                   ng-href="#/stats/{{params.benchmarkname}}" ng-if="isLaunched">Observe Latency
+                        </md-button>
                     </div>
+
+                </form>
+            </div>
+
+            <div flex layout="column">
+                <h1 class="md-headline">Standard output</h1>
+                <div class="console-container">
+                    <pre id="std-container"></pre>
                 </div>
-
             </div>
-
-            <div flex layout="row" layout-align="center center">
-                <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
-                           ng-click="launchCmd()">Launch Benchmark
-                </md-button>
-                <md-button class="md-raised md-accent md-primary md-button md-ink-ripple" aria-label="Observe Latency"
-                           ng-href="#/stats/{{params.benchmarkname}}" ng-if="isLaunched">Observe Latency
-                </md-button>
-            </div>
-
-        </form>
-    </div>
-
-    <div layout="row" layout-align="center center" ng-show="isLaunched">
-        <div flex layout="column">
-            <h1 class="md-headline">Standard output</h1>
-            <div class="console-container">
-                <pre id="std-container"></pre>
-            </div>
+            <!--<pre>params = {{params | json}}</pre>-->
         </div>
-        <!--<pre>params = {{params | json}}</pre>-->
     </div>
+
 </div>
 
 <!-- TODO : custom form with custom field for advanced users -->

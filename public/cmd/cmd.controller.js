@@ -1,12 +1,14 @@
-angular.module('cmdController', ['ngMessages'])
+angular.module('cmdController', [])
 // inject the Benchmark service factory into our controller
-    .controller('CmdController', ['$scope', '$http', 'Cmds', 'socket', function ($scope, $http, Cmds, socket) {
+    .controller('CmdController', ['$scope', '$rootScope', '$http', 'Cmds', 'socket', function ($scope, $rootScope, $http, Cmds, socket) {
 
+        $rootScope.pageTitle = "Launch Benchmark";
+
+        socket.removeAllListeners();
         $scope.$on('$destroy', function (event) {
-            socket.getSocket().removeAllListeners();
+            socket.removeAllListeners();
         });
 
-        $scope.isLaunched = false;
         $scope.isFinished = true;
 
         // TODO : only timeseries are supported for now
@@ -29,37 +31,29 @@ angular.module('cmdController', ['ngMessages'])
         };
 
         socket.on('begin', function () {
-            $scope.$apply(function () {
-                console.log("test");
-                $scope.isLaunched = true;
-                $scope.isFinished = false;
-            });
+            console.log("test");
+            $scope.isFinished = false;
         });
 
         socket.on('stderr', function (data) {
-            $scope.$apply(function () {
-                document.getElementById('std-container').innerHTML += "<span class='stderr'>" + data.message + "</span>";
-            });
+            document.getElementById('std-container').innerHTML += "<span class='stderr'>" + data.message + "</span>";
         });
 
         socket.on('stdout', function (data) {
-            $scope.$apply(function () {
-                document.getElementById('std-container').innerHTML += "<span class='stdout'>" + data.message + "</span>";
-            });
+            document.getElementById('std-container').innerHTML += "<span class='stdout'>" + data.message + "</span>";
         });
 
         socket.on('exit', function (data) {
-            $scope.$apply(function () {
-                $scope.isFinished = true;
-                document.getElementById('std-container').innerHTML += data.message;
-            });
+            $scope.isFinished = true;
+            document.getElementById('std-container').innerHTML += data.message;
         });
 
         $scope.launchCmd = function () {
-            socket.emit('authentication', $scope.params.benchmarkname);
-            Cmds.post($scope.params)
-                .success(function (data) {
-                    document.getElementById('std-container').innerHTML += data;
-                });
+            socket.emit('authentication', $scope.params.benchmarkname,
+                Cmds.post($scope.params)
+                    .success(function (data) {
+                        document.getElementById('std-container').innerHTML += data;
+                    })
+            );
         };
     }]);

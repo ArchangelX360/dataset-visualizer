@@ -1,41 +1,31 @@
 var app = angular.module('visualisationYCSB', [
-    'btford.socket-io',
-    'ngAnimate',
+    'ngMaterial',
     'ngAria',
     'ngRoute',
-    'ngMaterial',
+    'ngMessages',
+    'ngAnimate',
     'benchmarkController',
     'cmdController',
     'frontpageController',
     'benchmarkService',
     'cmdService',
+    'btford.socket-io'
 ]);
 
 app.config(function($routeProvider) {
-    $routeProvider.when('/', {templateUrl: 'frontpage/frontpage.html', controller:''})
+    $routeProvider.when('/', {templateUrl: 'frontpage/frontpage.html', controller: 'FrontpageController'})
         .when('/stats/:benchmarkName', {templateUrl: 'stats/stats.html', controller: 'BenchmarkController'})
-        .when('/cmd', {templateUrl: 'cmd/cmd.html', controller: 'CmdController'})
         .when('/stats', {templateUrl: 'stats/list.html', controller: 'BenchmarkListController'})
+        .when('/cmd', {templateUrl: 'cmd/cmd.html', controller: 'CmdController'})
     ;
 });
 
-app.factory('socket', ['$rootScope', function ($rootScope) {
-    var socket = io.connect();
-
-    return {
-        on: function (eventName, callback) {
-            socket.on(eventName, callback);
-        },
-        emit: function (eventName, data) {
-            socket.emit(eventName, data);
-        },
-        getSocket: function () {
-            return socket;
-        }
-    };
-}]);
+app.factory('socket', function (socketFactory) {
+    return socketFactory();
+});
 
 app.run(function($rootScope, $location){
     $rootScope.classView = 'view';
+    $rootScope.pageTitle = 'YCSB Visualisation';
 });
 
