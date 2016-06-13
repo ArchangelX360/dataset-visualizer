@@ -46,19 +46,42 @@
                                     <md-radio-button value="run" aria-label="run">Run</md-radio-button>
                                 </md-radio-group>
                             </div>
-                            <md-switch aria-label="DB Hook" ng-model="params.pParams.frontendhook"
-                                       ng-disabled="params.pParams.frontendhook">
-                                DB Hook
-                            </md-switch>
-                            <md-switch aria-label="Status report (stderr)" ng-model="params.status">
-                                Status report (stderr)
-                            </md-switch>
+                            <div>
+                                <md-switch aria-label="DB Hook" ng-model="params.pParams.frontendhook"
+                                           ng-disabled="params.pParams.frontendhook">
+                                    DB Hook
+                                </md-switch>
+                                <md-tooltip md-direction="bottom">
+                                    Activate the frontend DB hook to draw charts
+                                </md-tooltip>
+                            </div>
+                            <div>
+                                <md-switch aria-label="Status report (stderr)" ng-model="params.status">
+                                    Status report (stderr)
+                                </md-switch>
+                                <md-tooltip md-direction="bottom">
+                                    Activate YCSB status report
+                                </md-tooltip>
+                            </div>
                             <md-input-container>
                                 <label for="ycsbrootpath-input">YCSB Root Filepath</label>
                                 <input id="ycsbrootpath-input" type="text" ng-model="params.ycsbrootpath"
                                        name="ycsbrootpath" required/>
                                 <div ng-messages="paramsForm.ycsbrootpath.$error">
                                     <div ng-message="required">This is required!</div>
+                                </div>
+                                <md-tooltip md-direction="bottom">
+                                    YCSB executable must be in ./bin/ relatively to this path
+                                </md-tooltip>
+                                <div class="hint" ng-if="showHints">
+                                    Path to the YCSB root
+                                </div>
+                            </md-input-container>
+
+                            <md-input-container>
+                                <label>Number of client threads</label>
+                                <input type="number" ng-model="params.pParams.threadcount" name="threadcount">
+                                <div class="hint" ng-if="showHints">Number of YCSB client threads
                                 </div>
                             </md-input-container>
                         </div>
@@ -72,6 +95,13 @@
                                     <div ng-message="required">This is required!</div>
                                     <div ng-message="pattern">No special chars allowed!</div>
                                 </div>
+                                <md-tooltip md-direction="bottom" class="tt-multiline">
+                                    BE CAREFUL : if you use the same name two times, <br> it will refer to the same
+                                    benchmark for YCSB Visualisation
+                                </md-tooltip>
+                                <div class="hint" ng-if="showHints">
+                                    Benchmark UNIQUE name for DB
+                                </div>
                             </md-input-container>
                             <md-input-container>
                                 <label for="workloadfilepath-input">Workload Filepath</label>
@@ -81,10 +111,14 @@
                                 <div ng-messages="paramsForm.workloadfilepath.$error">
                                     <div ng-message="required">This is required!</div>
                                 </div>
+                                <md-tooltip md-direction="bottom">
+                                    This path is relative to YSCB root
+                                </md-tooltip>
+                                <div class="hint" ng-if="showHints">
+                                    Path to the workload to use
+                                </div>
                             </md-input-container>
-                        </div>
 
-                        <div flex layout="column" class="form-column">
                             <md-input-container>
                                 <label for="db-input">Database Class</label>
                                 <md-select id="db-input" ng-model="params.db" required>

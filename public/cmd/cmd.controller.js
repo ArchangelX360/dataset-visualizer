@@ -4,6 +4,8 @@ angular.module('cmdController', [])
 
         $rootScope.pageTitle = "Launch Benchmark";
 
+        $scope.showHints = true;
+
         socket.removeAllListeners();
         $scope.$on('$destroy', function (event) {
             socket.removeAllListeners();
@@ -26,7 +28,8 @@ angular.module('cmdController', [])
             timeseries: {granularity: 1},
             pParams: {
                 frontendhook: true,
-                measurementtype: "timeseries"
+                measurementtype: "timeseries",
+                threadcount: 1
             }
         };
 

@@ -7,6 +7,7 @@ var app = angular.module('visualisationYCSB', [
     'benchmarkController',
     'cmdController',
     'frontpageController',
+    'workloadsController',
     'benchmarkService',
     'cmdService',
     'btford.socket-io'
@@ -17,6 +18,7 @@ app.config(function($routeProvider) {
         .when('/stats/:benchmarkName', {templateUrl: 'stats/stats.html', controller: 'BenchmarkController'})
         .when('/stats', {templateUrl: 'stats/list.html', controller: 'BenchmarkListController'})
         .when('/cmd', {templateUrl: 'cmd/cmd.html', controller: 'CmdController'})
+        .when('/workloads', {templateUrl: 'workloads/workloads.html', controller: 'WorkloadsController'})
     ;
 });
 
