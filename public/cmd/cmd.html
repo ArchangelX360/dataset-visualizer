@@ -8,7 +8,7 @@
     }
 
     .console-container {
-        width: 700px;
+        min-width: 620px;
         height: 75vh;
         border: 1px solid #757575;
         background-color: #e0e0e0;
@@ -22,7 +22,10 @@
     .form-column {
         margin-left: 10px;
         margin-right: 10px;
-        min-width: 200px;
+    }
+
+    md-input-container {
+        width: 290px;
     }
 </style>
 
@@ -31,7 +34,7 @@
 
         <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
 
-        <div flex layout="row" layout-xs="column" layout-md="column" layout-sm="column">
+        <div flex layout-gt-md="row" layout="column">
             <div flex layout="column">
                 <h1 class="md-headline">YCSB Parameters</h1>
                 <form name="paramsForm">

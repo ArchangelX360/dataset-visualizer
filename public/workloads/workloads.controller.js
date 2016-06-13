@@ -5,6 +5,7 @@ angular.module('workloadsController', [])
         $scope.showHints = true;
 
         $scope.requestdistributions = ["uniform", "zipfian", "latest"];
+        $scope.fieldlengthdistributions = ["constant", "uniform", "zipfian"];
 
         $scope.workloadParams = {
             workloadname: "",
@@ -14,6 +15,8 @@ angular.module('workloadsController', [])
             fieldcount: 10,
             fieldlength: 100,
             readallfields: true,
+            writeallfields: false,
+            fieldlengthdistribution: "constant",
             readproportion: 0.95,
             updateproportion: 0.05,
             insertproportion: 0,
@@ -25,7 +28,8 @@ angular.module('workloadsController', [])
             insertorder: "hashed",
             operationcount: 1000,
             table: "usertable",
-            recordcount: 0
+            recordcount: 1000
+            // TODO : add missing parameters
         }
 
         function saveWorkload() {

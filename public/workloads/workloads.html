@@ -11,422 +11,428 @@
 </script>
 
 <div flex layout="column" layout-align="center center">
-    <h1 class="md-headline">Create a workload</h1>
+    <div flex layout="row" layout-align="center center">
+        <h1 class="md-display-1">Create a workload</h1>
+    </div>
     <form name="workloadForm">
+        <div flex layout="column" layout-gt-lg="row" layout-align="center start">
+            <div flex layout="column" layout-align="center center">
+                <h2 class="md-headline">Workload specifications</h2>
 
-        <md-input-container>
-            <label for="workloadname-input">Workload name</label>
-            <input id="workloadname-input" type="text" ng-model="workloadParams.workloadname"
-                   name="workloadname" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.workloadname.$error.required && !workloadForm.workloadname.$error.pattern)">
-                The custom name you want for your workload
+                <md-input-container>
+                    <label for="workloadname-input">Workload name</label>
+                    <input id="workloadname-input" type="text" ng-model="workloadParams.workloadname"
+                           name="workloadname" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.workloadname.$error.required && !workloadForm.workloadname.$error.pattern)">
+                        The custom name you want for your workload
+                    </div>
+                    <div ng-messages="workloadForm.workloadname.$error" role="alert">
+                        <div ng-message="required">This is required!</div>
+                        <div ng-message="pattern">No special chars allowed!</div>
+                    </div>
+                </md-input-container>
+
+
+                <md-input-container>
+                    <label for="workload-input">Workload Class</label>
+                    <input id="workload-input" type="text" ng-model="workloadParams.workload"
+                           name="workload"/>
+                    <div class="hint" ng-if="showHints">The name of the workload class to use</div>
+                </md-input-container>
             </div>
-            <div ng-messages="workloadForm.workloadname.$error" role="alert">
-                <div ng-message="required">This is required!</div>
-                <div ng-message="pattern">No special chars allowed!</div>
+
+            <div flex layout="column" layout-align="center center">
+                <h2 class="md-headline">Export specifications</h2>
+
+                <md-input-container>
+                    <!-- TODO : go fetch available exporter class automatically ? -->
+                    <label for="exporter-input">Exporter Class</label>
+                    <input id="exporter-input" type="text" ng-model="workloadParams.exporter"
+                           name="exporter"/>
+                    <div class="hint" ng-if="showHints">
+                        Measurements exporter class to use
+                    </div>
+                </md-input-container>
+
+                <md-input-container ng-if="workloadParams.exporter">
+                    <label for="exportfile-input">Export filename path</label>
+                    <input id="exportfile-input" type="text" ng-model="workloadParams.exportfile"
+                           name="exportfile" ng-pattern="/^[a-zA-Z0-9]*$/"
+                           ng-required="workloadParams.exporter.length"/>
+                    <md-tooltip md-direction="bottom" class="tt-multiline">
+                        If not set, output is written to stdout <br>
+                        (default: undefined/write to stdout)
+                    </md-tooltip>
+                    <div class="hint" ng-if="showHints">
+                        File where output should be written
+                    </div>
+                    <div ng-messages="paramsForm.exportfile.$error" role="alert">
+                        <div ng-message="pattern">No special chars allowed!</div>
+                    </div>
+                </md-input-container>
+
             </div>
-        </md-input-container>
 
+            <div flex layout="column" layout-align="center center">
+                <h2 class="md-headline">Field specifications</h2>
 
-        <md-input-container>
-            <label for="workload-input">Workload Class</label>
-            <input id="workload-input" type="text" ng-model="workloadParams.workload"
-                   name="workload"/>
-            <div class="hint" ng-if="showHints">Workload class to use</div>
-        </md-input-container>
+                <md-input-container>
+                    <label>Field count</label>
+                    <input type="number" ng-model="workloadParams.fieldcount" name="fieldcount" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.fieldcount.$error.required && !workloadForm.fieldcount.$error.number)">
+                        The number of fields in a record (default: 10)
+                    </div>
+                    <div ng-messages="workloadForm.fieldcount.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
 
-        <md-input-container>
-            <!-- TODO : go fetch available exporter class automatically ? -->
-            <label for="exporter-input">Exporter Class</label>
-            <input id="exporter-input" type="text" ng-model="workloadParams.exporter"
-                   name="exporter"/>
-            <div class="hint" ng-if="showHints">
-                Measurements exporter class to use
+                <md-input-container>
+                    <label>Field length</label>
+                    <input type="number" ng-model="workloadParams.fieldlength" name="fieldlength" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.fieldlength.$error.required && !workloadForm.fieldlength.$error.number)">
+                        The size of each field in bytes (default: 100)
+                    </div>
+                    <div ng-messages="workloadForm.fieldlength.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
+
+                <md-switch aria-label="Read all fields" ng-model="workloadParams.readallfields">
+                    Read all fields
+                    <md-tooltip md-direction="bottom">
+                        Should read all fields (true) or just one (false) (default: true)
+                    </md-tooltip>
+                </md-switch>
+                <md-switch aria-label="Read all fields" ng-model="workloadParams.writeallfields">
+                    Write all fields on update
+                    <md-tooltip md-direction="bottom">
+                        Should write all fields on update (true) or just one (false) (default: false)
+                    </md-tooltip>
+                </md-switch>
+                <md-switch aria-label="Insert order" ng-model="workloadParams.insertorder" ng-true-value="'hashed'"
+                           ng-false-value="'ordered'">
+                    Insert order : {{ workloadParams.insertorder }}
+                    <md-tooltip md-direction="bottom" class="tt-multiline">
+                        Should records be inserted in order or pseudo-randomly
+                    </md-tooltip>
+                </md-switch>
+
             </div>
-        </md-input-container>
 
-        <md-input-container ng-if="workloadParams.exporter">
-            <label for="exportfile-input">Export filename path</label>
-            <input id="exportfile-input" type="text" ng-model="workloadParams.exportfile"
-                   name="exportfile" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="workloadParams.exporter.length"/>
-            <md-tooltip md-direction="bottom" class="tt-multiline">
-                If not set, output is written to stdout <br>
-                (default: undefined/write to stdout)
-            </md-tooltip>
-            <div class="hint" ng-if="showHints">
-                File where output should be written
+            <div flex layout="column" layout-align="center center">
+                <h2 class="md-headline">DB specifications</h2>
+                <md-input-container>
+                    <label for="table-input">Table</label>
+                    <input id="table-input" type="text" ng-model="workloadParams.table"
+                           name="table"/>
+                    <div class="hint" ng-if="showHints">
+                        The name of the database table to run queries against (default: usertable)
+                    </div>
+                </md-input-container>
+
+                <md-input-container>
+                    <label for="columnfamily-input">Column Family</label>
+                    <input id="columnfamily-input" type="text" ng-model="workloadParams.columnfamily"
+                           name="columnfamily"/>
+                    <div class="hint" ng-if="showHints">
+                        The column family of fields (required by some databases)
+                    </div>
+                </md-input-container>
             </div>
-            <div ng-messages="paramsForm.exportfile.$error" role="alert">
-                <div ng-message="pattern">No special chars allowed!</div>
+
+        </div>
+
+        <div flex layout="column" layout-gt-lg="row" layout-align="center start">
+            <div flex layout="column" layout-align="center center">
+                <h2 class="md-headline">Proportion specifications</h2>
+                <md-input-container>
+                    <label>Read proportion</label>
+                    <input type="number" ng-model="workloadParams.readproportion" name="readproportion" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.readproportion.$error.required && !workloadForm.readproportion.$error.number)">
+                        What proportion of operations should be reads (default: 0.95)
+                    </div>
+                    <div ng-messages="workloadForm.readproportion.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
+                <md-input-container>
+                    <label>Update proportion</label>
+                    <input type="number" ng-model="workloadParams.updateproportion" name="updateproportion" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.updateproportion.$error.required && !workloadForm.updateproportion.$error.number)">
+                        What proportion of operations should be updates (default: 0.05)
+                    </div>
+                    <div ng-messages="workloadForm.updateproportion.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
+                <md-input-container>
+                    <label>Insert proportion</label>
+                    <input type="number" ng-model="workloadParams.insertproportion" name="insertproportion" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.insertproportion.$error.required && !workloadForm.insertproportion.$error.number)">
+                        What proportion of operations should be inserts (default: 0)
+                    </div>
+                    <div ng-messages="workloadForm.insertproportion.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
+                <md-input-container>
+                    <label>Scan proportion</label>
+                    <input type="number" ng-model="workloadParams.scanproportion" name="scanproportion" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.scanproportion.$error.required && !workloadForm.scanproportion.$error.number)">
+                        What proportion of operations should be scans (default: 0)
+                    </div>
+                    <div ng-messages="workloadForm.scanproportion.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
+                <md-input-container>
+                    <label>Read/Modify/Write proportion</label>
+                    <input type="number" ng-model="workloadParams.readmodifywriteproportion"
+                           name="readmodifywriteproportion"
+                           required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.readmodifywriteproportion.$error.required && !workloadForm.readmodifywriteproportion.$error.number)">
+                        What proportion of operations should be read a record, modify it, write
+                        it back (default: 0)
+                    </div>
+                    <div ng-messages="workloadForm.readmodifywriteproportion.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
             </div>
-        </md-input-container>
 
-
-        <md-input-container>
-            <label>Field count</label>
-            <input type="number" ng-model="workloadParams.fieldcount" name="fieldcount" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.fieldcount.$error.required && !workloadForm.fieldcount.$error.number)">
-                The number of fields in a record (default: 10)
+            <div flex layout="column" layout-align="center center">
+                <h2 class="md-headline">Distribution specifications</h2>
+                <md-input-container>
+                    <label for="fieldlengthdistribution-input">Field length Distribution</label>
+                    <md-select id="fieldlengthdistribution-input" ng-model="workloadParams.fieldlengthdistribution"
+                               required>
+                        <md-option ng-value="fieldlengthdistribution"
+                                   ng-repeat="fieldlengthdistribution in fieldlengthdistributions">
+                            {{fieldlengthdistribution}}
+                        </md-option>
+                        <md-tooltip md-direction="bottom" class="tt-multiline">
+                            The distribution used to choose the length of a field (default: constant)
+                        </md-tooltip>
+                    </md-select>
+                </md-input-container>
+                <md-input-container>
+                    <label for="requestdistribution-input">Request Distribution</label>
+                    <md-select id="requestdistribution-input" ng-model="workloadParams.requestdistribution" required>
+                        <md-option ng-value="requestdistribution"
+                                   ng-repeat="requestdistribution in requestdistributions">
+                            {{requestdistribution}}
+                        </md-option>
+                        <md-tooltip md-direction="bottom" class="tt-multiline">
+                            What distribution should be used to select the records to operate on <br> – uniform, zipfian
+                            or
+                            latest (default: uniform)
+                        </md-tooltip>
+                    </md-select>
+                </md-input-container>
+                <md-input-container>
+                    <label for="scanlengthdistribution-input">Scan length Distribution</label>
+                    <md-select id="scanlengthdistribution-input" ng-model="workloadParams.scanlengthdistribution"
+                               required>
+                        <md-option ng-value="scanlengthdistribution"
+                                   ng-repeat="scanlengthdistribution in requestdistributions">
+                            {{scanlengthdistribution}}
+                        </md-option>
+                        <md-tooltip md-direction="bottom" class="tt-multiline">
+                            For scans, what distribution should be used to choose the number of <br> records to scan,
+                            for
+                            each
+                            scan,
+                            between 1 and maxscanlength (default: uniform)
+                        </md-tooltip>
+                    </md-select>
+                </md-input-container>
             </div>
-            <div ng-messages="workloadForm.fieldcount.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
+
+            <div flex layout="column" layout-align="center center">
+                <h2 class="md-headline">Processing specifications</h2>
+
+                <md-input-container>
+                    <label>Operation count</label>
+                    <input type="number" ng-model="workloadParams.operationcount" name="operationcount" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.operationcount.$error.required && !workloadForm.operationcount.$error.number)">
+                        The number of operations to use during the run phase
+                    </div>
+                    <div ng-messages="workloadForm.operationcount.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
+                <md-input-container>
+                    <label>Record count</label>
+                    <input type="number" ng-model="workloadParams.recordcount" name="recordcount" required>
+                    <md-tooltip md-direction="bottom" class="tt-multiline">
+                        The number of records in the table to be inserted in
+                        <br> the load phase or the number of records already in the
+                        <br> table before the run phase.
+                    </md-tooltip>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.recordcount.$error.required && !workloadForm.recordcount.$error.number)">
+                        Number of records to initially load into the database (default: 0)
+                    </div>
+                    <div ng-messages="workloadForm.recordcount.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
+                <md-input-container>
+                    <label>Max execution time</label>
+                    <input type="number" ng-model="workloadParams.maxexecutiontime" name="maxexecutiontime">
+                    <md-tooltip md-direction="bottom" class="tt-multiline">
+                        The benchmark runs until either the operation count has exhausted <br> or the maximum specified
+                        time
+                        has
+                        elapsed, whichever is earlier.
+                    </md-tooltip>
+                    <div class="hint" ng-if="(showHints && !workloadForm.maxexecutiontime.$error.number)">Maximum
+                        execution
+                        time
+                        in seconds.
+                    </div>
+                    <div ng-messages="workloadForm.maxexecutiontime.$error">
+                        <div ng-message="number">This should be a number!</div>
+                    </div>
+                </md-input-container>
+                <md-input-container>
+                    <label>Max scan length</label>
+                    <input type="number" ng-model="workloadParams.maxscanlength" name="maxscanlength" required>
+                    <div class="hint"
+                         ng-if="(showHints && !workloadForm.maxscanlength.$error.required && !workloadForm.maxscanlength.$error.number)">
+                        On a single scan, the maximum number of records to access (default:
+                        1000)
+                    </div>
+                    <div ng-messages="workloadForm.maxscanlength.$error">
+                        <div ng-messages-include="error-messages-number-input"></div>
+                    </div>
+                </md-input-container>
             </div>
-        </md-input-container>
 
-        <md-input-container>
-            <label>Field length</label>
-            <input type="number" ng-model="workloadParams.fieldlength" name="fieldlength" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.fieldlength.$error.required && !workloadForm.fieldlength.$error.number)">
-                The size of each field (default: 100)
-            </div>
-            <div ng-messages="workloadForm.fieldlength.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
+        </div>
 
-        <md-switch aria-label="Read all fields" ng-model="workloadParams.readallfields">
-            Read all fields
-            <md-tooltip md-direction="bottom">
-                Should reads read all fields (true) or just one (false) (default: true)
-            </md-tooltip>
-        </md-switch>
-
-        <md-input-container>
-            <label>Read proportion</label>
-            <input type="number" ng-model="workloadParams.readproportion" name="readproportion" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.readproportion.$error.required && !workloadForm.readproportion.$error.number)">
-                What proportion of operations should be reads (default: 0.95)
-            </div>
-            <div ng-messages="workloadForm.readproportion.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-        <md-input-container>
-            <label>Update proportion</label>
-            <input type="number" ng-model="workloadParams.updateproportion" name="updateproportion" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.updateproportion.$error.required && !workloadForm.updateproportion.$error.number)">
-                What proportion of operations should be updates (default: 0.05)
-            </div>
-            <div ng-messages="workloadForm.updateproportion.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-        <md-input-container>
-            <label>Insert proportion</label>
-            <input type="number" ng-model="workloadParams.insertproportion" name="insertproportion" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.insertproportion.$error.required && !workloadForm.insertproportion.$error.number)">
-                What proportion of operations should be inserts (default: 0)
-            </div>
-            <div ng-messages="workloadForm.insertproportion.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-        <md-input-container>
-            <label>Scan proportion</label>
-            <input type="number" ng-model="workloadParams.scanproportion" name="scanproportion" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.scanproportion.$error.required && !workloadForm.scanproportion.$error.number)">
-                What proportion of operations should be scans (default: 0)
-            </div>
-            <div ng-messages="workloadForm.scanproportion.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-        <md-input-container>
-            <label>Read/Modify/Write proportion</label>
-            <input type="number" ng-model="workloadParams.readmodifywriteproportion" name="readmodifywriteproportion"
-                   required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.readmodifywriteproportion.$error.required && !workloadForm.readmodifywriteproportion.$error.number)">
-                What proportion of operations should be read a record, modify it, write
-                it back (default: 0)
-            </div>
-            <div ng-messages="workloadForm.readmodifywriteproportion.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-        <md-input-container>
-            <label for="requestdistribution-input">Request Distribution</label>
-            <md-select id="requestdistribution-input" ng-model="workloadParams.requestdistribution" required>
-                <md-option ng-value="requestdistribution" ng-repeat="requestdistribution in requestdistributions">
-                    {{requestdistribution}}
-                </md-option>
-                <md-tooltip md-direction="bottom" class="tt-multiline">
-                    What distribution should be used to select the records to operate on <br> – uniform, zipfian or
-                    latest (default: uniform)
-                </md-tooltip>
-            </md-select>
-        </md-input-container>
-        <md-input-container>
-            <label>Max scan length</label>
-            <input type="number" ng-model="workloadParams.maxscanlength" name="maxscanlength" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.maxscanlength.$error.required && !workloadForm.maxscanlength.$error.number)">
-                For scans, what is the maximum number of records to scan (default:
-                1000)
-            </div>
-            <div ng-messages="workloadForm.maxscanlength.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-
-        <md-input-container>
-            <label for="scanlengthdistribution-input">Scan length Distribution</label>
-            <md-select id="scanlengthdistribution-input" ng-model="workloadParams.scanlengthdistribution" required>
-                <md-option ng-value="scanlengthdistribution" ng-repeat="scanlengthdistribution in requestdistributions">
-                    {{scanlengthdistribution}}
-                </md-option>
-                <md-tooltip md-direction="bottom" class="tt-multiline">
-                    For scans, what distribution should be used to choose the number of <br> records to scan, for each
-                    scan,
-                    between 1 and maxscanlength (default: uniform)
-                </md-tooltip>
-            </md-select>
-        </md-input-container>
-        <span>
-            <md-switch aria-label="Insert order" ng-model="workloadParams.insertorder" ng-true-value="'hashed'"
-                       ng-false-value="'ordered'">
-                Insert order : {{ workloadParams.insertorder }}
-                <md-tooltip md-direction="bottom" class="tt-multiline">
-                    Should records be inserted in order by key (“ordered”), <br>or in hashed order (“hashed”) (default: hashed)
-                </md-tooltip>
-            </md-switch>
-        </span>
-        <md-input-container>
-            <label>Operation count</label>
-            <input type="number" ng-model="workloadParams.operationcount" name="operationcount" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.operationcount.$error.required && !workloadForm.operationcount.$error.number)">
-                Number of operations to perform
-            </div>
-            <div ng-messages="workloadForm.operationcount.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-        <md-input-container>
-            <label>Max execution time</label>
-            <input type="number" ng-model="workloadParams.maxexecutiontime" name="maxexecutiontime">
-            <md-tooltip md-direction="bottom" class="tt-multiline">
-                The benchmark runs until either the operation count has exhausted <br> or the maximum specified time has
-                elapsed, whichever is earlier.
-            </md-tooltip>
-            <div class="hint" ng-if="(showHints && !workloadForm.maxexecutiontime.$error.number)">Maximum execution time
-                in seconds.
-            </div>
-            <div ng-messages="workloadForm.maxexecutiontime.$error">
-                <div ng-message="number">This should be a number!</div>
-            </div>
-        </md-input-container>
-
-        <md-input-container>
-            <label for="table-input">Table</label>
-            <input id="table-input" type="text" ng-model="workloadParams.table"
-                   name="table"/>
-            <div class="hint" ng-if="showHints">
-                Name of the table (default: usertable)
-            </div>
-        </md-input-container>
-
-        <md-input-container>
-            <label>Record count</label>
-            <input type="number" ng-model="workloadParams.recordcount" name="recordcount" required>
-            <div class="hint"
-                 ng-if="(showHints && !workloadForm.recordcount.$error.required && !workloadForm.recordcount.$error.number)">
-                Number of records to initially load into the database (default: 0)
-            </div>
-            <div ng-messages="workloadForm.recordcount.$error">
-                <div ng-messages-include="error-messages-number-input"></div>
-            </div>
-        </md-input-container>
-
-        <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
-                   ng-click="saveWorkload()">Save Workload
-        </md-button>
-
-
-        <!-- TODO : ajouter les paramètres manquants :
-
-        # The name of the workload class to use
-        workload=com.yahoo.ycsb.workloads.CoreWorkload
-
-        # There is no default setting for recordcount but it is
-        # required to be set.
-        # The number of records in the table to be inserted in
-        # the load phase or the number of records already in the
-        # table before the run phase.
-        recordcount=1000000
-
-        # There is no default setting for operationcount but it is
-        # required to be set.
-        # The number of operations to use during the run phase.
-        operationcount=3000000
-
-        # The number of insertions to do, if different from recordcount.
-        # Used with insertstart to grow an existing table.
-        #insertcount=
-
-        # The offset of the first insertion
-        insertstart=0
-
-        # The number of fields in a record
-        fieldcount=10
-
-        # The size of each field (in bytes)
-        fieldlength=100
-
-        # Should read all fields
-        readallfields=true
-
-        # Should write all fields on update
-        writeallfields=false
-
-        # The distribution used to choose the length of a field
-        fieldlengthdistribution=constant
-        #fieldlengthdistribution=uniform
-        #fieldlengthdistribution=zipfian
-
-        # What proportion of operations are reads
-        readproportion=0.95
-
-        # What proportion of operations are updates
-        updateproportion=0.05
-
-        # What proportion of operations are inserts
-        insertproportion=0
-
-        # What proportion of operations read then modify a record
-        readmodifywriteproportion=0
-
-        # What proportion of operations are scans
-        scanproportion=0
-
-        # On a single scan, the maximum number of records to access
-        maxscanlength=1000
-
-        # The distribution used to choose the number of records to access on a scan
-        scanlengthdistribution=uniform
-        #scanlengthdistribution=zipfian
-
-        # Should records be inserted in order or pseudo-randomly
-        insertorder=hashed
-        #insertorder=ordered
-
-        # The distribution of requests across the keyspace
-        requestdistribution=zipfian
-        #requestdistribution=uniform
-        #requestdistribution=latest
-
-        # Percentage of data items that constitute the hot set
-        hotspotdatafraction=0.2
-
-        # Percentage of operations that access the hot set
-        hotspotopnfraction=0.8
-
-        # Maximum execution time in seconds
-        #maxexecutiontime=
-
-        # The name of the database table to run queries against
-        table=usertable
-
-        # The column family of fields (required by some databases)
-        #columnfamily=
-
-        # How the latency measurements are presented
-        measurementtype=histogram
-        #measurementtype=timeseries
-        #measurementtype=raw
-        # When measurementtype is set to raw, measurements will be output
-        # as RAW datapoints in the following csv format:
-        # "operation, timestamp of the measurement, latency in us"
-        #
-        # Raw datapoints are collected in-memory while the test is running. Each
-        # data point consumes about 50 bytes (including java object overhead).
-        # For a typical run of 1 million to 10 million operations, this should
-        # fit into memory most of the time. If you plan to do 100s of millions of
-        # operations per run, consider provisioning a machine with larger RAM when using
-        # the RAW measurement type, or split the run into multiple runs.
-        #
-        # Optionally, you can specify an output file to save raw datapoints.
-        # Otherwise, raw datapoints will be written to stdout.
-        # The output file will be appended to if it already exists, otherwise
-        # a new output file will be created.
-        #measurement.raw.output_file = /tmp/your_output_file_for_this_run
-
-        # JVM Reporting.
-        #
-        # Measure JVM information over time including GC counts, max and min memory
-        # used, max and min thread counts, max and min system load and others. This
-        # setting must be enabled in conjunction with the "-s" flag to run the status
-        # thread. Every "status.interval", the status thread will capture JVM
-        # statistics and record the results. At the end of the run, max and mins will
-        # be recorded.
-        # measurement.trackjvm = false
-
-        # The range of latencies to track in the histogram (milliseconds)
-        histogram.buckets=1000
-
-        # Granularity for time series (in milliseconds)
-        timeseries.granularity=1000
-
-        # Latency reporting.
-        #
-        # YCSB records latency of failed operations separately from successful ones.
-        # Latency of all OK operations will be reported under their operation name,
-        # such as [READ], [UPDATE], etc.
-        #
-        # For failed operations:
-        # By default we don't track latency numbers of specific error status.
-        # We just report latency of all failed operation under one measurement name
-        # such as [READ-FAILED]. But optionally, user can configure to have either:
-        # 1. Record and report latency for each and every error status code by
-        #    setting reportLatencyForEachError to true, or
-        # 2. Record and report latency for a select set of error status codes by
-        #    providing a CSV list of Status codes via the "latencytrackederrors"
-        #    property.
-        # reportlatencyforeacherror=false
-        # latencytrackederrors="<comma separated strings of error codes>"
-
-        # Insertion error retry for the core workload.
-        #
-        # By default, the YCSB core workload does not retry any operations.
-        # However, during the load process, if any insertion fails, the entire
-        # load process is terminated.
-        # If a user desires to have more robust behavior during this phase, they can
-        # enable retry for insertion by setting the following property to a positive
-        # number.
-        # core_workload_insertion_retry_limit = 0
-        #
-        # the following number controls the interval between retries (in seconds):
-        # core_workload_insertion_retry_interval = 3
-
-        # Distributed Tracing via Apache HTrace (http://htrace.incubator.apache.org/)
-        #
-        # Defaults to blank / no tracing
-        # Below sends to a local file, sampling at 0.1%
-        #
-        # htrace.sampler.classes=ProbabilitySampler
-        # htrace.sampler.fraction=0.001
-        # htrace.span.receiver.classes=org.apache.htrace.core.LocalFileSpanReceiver
-        # htrace.local.file.span.receiver.path=/some/path/to/local/file
-        #
-        # To capture all spans, use the AlwaysSampler
-        #
-        # htrace.sampler.classes=AlwaysSampler
-        #
-        # To send spans to an HTraced receiver, use the below and ensure
-        # your classpath contains the htrace-htraced jar (i.e. when invoking the ycsb
-        # command add -cp /path/to/htrace-htraced.jar)
-        #
-        # htrace.span.receiver.classes=org.apache.htrace.impl.HTracedSpanReceiver
-        # htrace.htraced.receiver.address=example.com:9075
-        # htrace.htraced.error.log.period.ms=10000
-
--->
+        <div flex layout="row" layout-align="center center">
+            <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
+                       ng-click="saveWorkload()">Save Workload
+            </md-button>
+        </div>
     </form>
 </div>
+
+
+<!-- TODO : ajouter les paramètres manquants :
+
+# The number of insertions to do, if different from recordcount.
+# Used with insertstart to grow an existing table.
+#insertcount=
+
+# The offset of the first insertion
+insertstart=0
+
+# Percentage of data items that constitute the hot set
+hotspotdatafraction=0.2
+
+# Percentage of operations that access the hot set
+hotspotopnfraction=0.8
+
+# How the latency measurements are presented
+measurementtype=histogram
+#measurementtype=timeseries
+#measurementtype=raw
+# When measurementtype is set to raw, measurements will be output
+# as RAW datapoints in the following csv format:
+# "operation, timestamp of the measurement, latency in us"
+#
+# Raw datapoints are collected in-memory while the test is running. Each
+# data point consumes about 50 bytes (including java object overhead).
+# For a typical run of 1 million to 10 million operations, this should
+# fit into memory most of the time. If you plan to do 100s of millions of
+# operations per run, consider provisioning a machine with larger RAM when using
+# the RAW measurement type, or split the run into multiple runs.
+#
+# Optionally, you can specify an output file to save raw datapoints.
+# Otherwise, raw datapoints will be written to stdout.
+# The output file will be appended to if it already exists, otherwise
+# a new output file will be created.
+#measurement.raw.output_file = /tmp/your_output_file_for_this_run
+
+# JVM Reporting.
+#
+# Measure JVM information over time including GC counts, max and min memory
+# used, max and min thread counts, max and min system load and others. This
+# setting must be enabled in conjunction with the "-s" flag to run the status
+# thread. Every "status.interval", the status thread will capture JVM
+# statistics and record the results. At the end of the run, max and mins will
+# be recorded.
+# measurement.trackjvm = false
+
+# The range of latencies to track in the histogram (milliseconds)
+histogram.buckets=1000
+
+# Granularity for time series (in milliseconds)
+timeseries.granularity=1000
+
+# Latency reporting.
+#
+# YCSB records latency of failed operations separately from successful ones.
+# Latency of all OK operations will be reported under their operation name,
+# such as [READ], [UPDATE], etc.
+#
+# For failed operations:
+# By default we don't track latency numbers of specific error status.
+# We just report latency of all failed operation under one measurement name
+# such as [READ-FAILED]. But optionally, user can configure to have either:
+# 1. Record and report latency for each and every error status code by
+#    setting reportLatencyForEachError to true, or
+# 2. Record and report latency for a select set of error status codes by
+#    providing a CSV list of Status codes via the "latencytrackederrors"
+#    property.
+# reportlatencyforeacherror=false
+# latencytrackederrors="<comma separated strings of error codes>"
+
+# Insertion error retry for the core workload.
+#
+# By default, the YCSB core workload does not retry any operations.
+# However, during the load process, if any insertion fails, the entire
+# load process is terminated.
+# If a user desires to have more robust behavior during this phase, they can
+# enable retry for insertion by setting the following property to a positive
+# number.
+# core_workload_insertion_retry_limit = 0
+#
+# the following number controls the interval between retries (in seconds):
+# core_workload_insertion_retry_interval = 3
+
+# Distributed Tracing via Apache HTrace (http://htrace.incubator.apache.org/)
+#
+# Defaults to blank / no tracing
+# Below sends to a local file, sampling at 0.1%
+#
+# htrace.sampler.classes=ProbabilitySampler
+# htrace.sampler.fraction=0.001
+# htrace.span.receiver.classes=org.apache.htrace.core.LocalFileSpanReceiver
+# htrace.local.file.span.receiver.path=/some/path/to/local/file
+#
+# To capture all spans, use the AlwaysSampler
+#
+# htrace.sampler.classes=AlwaysSampler
+#
+# To send spans to an HTraced receiver, use the below and ensure
+# your classpath contains the htrace-htraced jar (i.e. when invoking the ycsb
+# command add -cp /path/to/htrace-htraced.jar)
+#
+# htrace.span.receiver.classes=org.apache.htrace.impl.HTracedSpanReceiver
+# htrace.htraced.receiver.address=example.com:9075
+# htrace.htraced.error.log.period.ms=10000
+
+-->
