@@ -1,18 +1,25 @@
-<div flex="10" layout="row" layout-align="center center">
+<md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="!loading"></md-progress-linear>
+
+<div flex layout="row" layout-align="center center">
     <h1 class="md-display-1">Benchmark {{benchmarkName}}</h1>
 </div>
 
-<div flex="90" layout="column" layout-align="center center">
-    <!--<div class="chart-container" ng-repeat="(operationName, infos) in operations">
-        <div style="width: 800px">
-            <highchart id="{{operationName}}-chart" config="chartConfig.{{operationName}}"></highchart>-->
-    <!--<canvas id="{{operationName}}-chart" class="chart chart-line" chart-data="infos.data"
-            chart-labels="infos.labels" chart-legend="true" chart-series="infos.series"
-            chart-click="onClick">
-    </canvas>-->
-    <!-- </div>
- </div>-->
-    <div style="height: 100%; width: 100%;">
-        <highchart id="chart" config="chartConfig"></highchart>
+<div id="highcharts-container" flex layout="column" layout-align="center center">
+    <!-- TODO : replace with Angular ng-repeat but it doesn't seem to work for config attribute -->
+    <div flex layout="column" layout-gt-md="row" layout-align="center center">
+        <highchart id="all-chart" config="highchartConfigs.allChartConfig"
+                   ng-if="highchartConfigs.allChartConfig.title.text !== 'default config'"></highchart>
+        <highchart id="insert-chart" config="highchartConfigs.insertChartConfig"
+                   ng-if="highchartConfigs.insertChartConfig.title.text !== 'default config'"></highchart>
+        <highchart id="read-chart" config="highchartConfigs.readChartConfig"
+                   ng-if="highchartConfigs.readChartConfig.title.text !== 'default config'"></highchart>
+    </div>
+    <div flex layout="column" layout-gt-md="row" layout-align="center center">
+        <highchart id="update-chart" config="highchartConfigs.updateChartConfig"
+                   ng-if="highchartConfigs.updateChartConfig.title.text !== 'default config'"></highchart>
+        <highchart id="cleanup-chart" config="highchartConfigs.cleanupChartConfig"
+                   ng-if="highchartConfigs.cleanupChartConfig.title.text !== 'default config'"></highchart>
+        <highchart id="scan-chart" config="highchartConfigs.scanChartConfig"
+                   ng-if="highchartConfigs.scanChartConfig.title.text !== 'default config'"></highchart>
     </div>
 </div>
