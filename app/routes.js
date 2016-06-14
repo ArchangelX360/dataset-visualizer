@@ -5,15 +5,38 @@ var child_process = require('child_process');
 
 var clients = {};
 
+// TODO : query pour une operation en particulier
+// TODO : query pour toutes les operations en même temps sous formes d'une map
+// TODO : query pour les valeurs au dessus d'une date
+// TODO : query pour les valeurs au dessus d'une date pour une operation en particulier
+// TODO : query pour les valeurs au dessus d'une date pour toutes les operations sous forme de map
+
+function apiReturnResult(res, err, benchmarks) {
+    // if there is an error retrieving, send the error. nothing after res.send(err) will execute
+    if (err) {
+        res.send(err);
+    }
+    res.json(benchmarks);
+}
+
 function getBenchmarkByName(res, benchmarkName) {
     var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
-    Benchmark.find(function (err, benchmarks) {
+    Benchmark.sort('createdAt').find(function (err, benchmarks) {
+        apiReturnResult(res, err, benchmarks)
+    });
+}
 
-        // if there is an error retrieving, send the error. nothing after res.send(err) will execute
-        if (err) {
-            res.send(err);
-        }
-        res.json(benchmarks);
+function getBenchmarkByNameByOperationType(res, benchmarkName, operationType) {
+    var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
+    Benchmark.where('operationType', operationType).sort('createdAt').find(function (err, benchmarks) {
+        apiReturnResult(res, err, benchmarks)
+    });
+}
+
+function getBenchmarkByNameByOperationTypeByFromDate(res, benchmarkName, operationType, dateFromTimestamp) {
+    var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
+    Benchmark.where('operationType', operationType).where('createdAt').gt(dateFromTimestamp).sort('createdAt').find(function (err, benchmarks) {
+        apiReturnResult(res, err, benchmarks)
     });
 }
 
@@ -71,6 +94,17 @@ module.exports = function (app, io) {
     app.get('/api/benchmarks/:benchmark_name', function (req, res) {
         // use mongoose to get one benchmark in the database by name
         getBenchmarkByName(res, req.params.benchmark_name);
+    });
+
+    app.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
+        // use mongoose to get one specific operation type results from a benchmark in the database identified by name
+        getBenchmarkByNameByOperationType(res, req.params.benchmark_name, req.params.operation_type);
+    });
+
+    app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp', function (req, res) {
+        // use mongoose to get one specific operation type results from a benchmark in the database identified by name
+        // from a specific date
+        getBenchmarkByNameByOperationTypeByFromDate(res, req.params.benchmark_name, req.params.operation_type, parseInt(req.params.from_date_timestamp));
     });
 
     app.get('/api/benchmarks/names', function (req, res) {

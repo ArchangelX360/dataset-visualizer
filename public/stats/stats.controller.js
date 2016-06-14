@@ -1,8 +1,16 @@
 angular.module('benchmarkController', ["highcharts-ng"])
 // inject the Benchmark service factory into our controller
     .controller('BenchmarkController', ['$scope', '$http', 'Benchmarks', '$routeParams', function ($scope, $http, Benchmarks, $routeParams) {
+
+        /**
+         * VARIABLES DEFINITION BLOCK
+         */
+
         $scope.loading = true;
         $scope.benchmarkName = $routeParams.benchmarkName;
+
+        // Map for updating only new points on charts
+        $scope.operationTypeToLastValueTimestamp = {};
 
         var highchartConfigDefault = {
             options: {
@@ -47,11 +55,36 @@ angular.module('benchmarkController', ["highcharts-ng"])
             title: {
                 text: 'default config'
             },
+            /*func: function(chart) {
+             $timeout(function() {
+             chart.reflow();
+             $scope.highchart = chart;
+             }, 300);
+
+             // TODO : accrocher un event different pour chaque type de graph
+             socket.on('ati_sensordata', function(data) {
+             if (data) {
+             var splited = data.split('|');
+
+             if (splited.length >= 6) {
+             var val = parseFloat(splited[5]);
+             var shift = chart.series[0].data.length > 100;
+             chart.series[0].addPoint(val, true, shift, false);
+
+             }
+             }
+             });
+
+
+             },*/
             useHighStocks: true
         };
 
+        $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP"];
+
+        // Initializing charts configurations to the default one
         $scope.highchartConfigs = {
-            allChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
+            //allChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
             insertChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
             readChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
             updateChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
@@ -60,12 +93,16 @@ angular.module('benchmarkController', ["highcharts-ng"])
         };
 
         /**
-         * Format stored raw values from YCSB to Highchart formatting
+         * FONCTION DEFINITION BLOCK
+         */
+
+        /**
+         * Convert stored raw values from YCSB to Highchart formatting
          * @param rawValues YCSB raw DB values
          * @returns {*} Highchart formatted data
          */
-        function formatSerie(rawValues) {
-            var firstOperationTimestamp = new Date(rawValues[0].createdAt).getTime();
+        function convertToSerie(rawValues) {
+            var firstOperationTimestamp = rawValues[0].createdAt;
             return rawValues.map(function (measureObj) {
                 return [firstOperationTimestamp + measureObj.time, measureObj.latency]
             });
@@ -83,76 +120,106 @@ angular.module('benchmarkController', ["highcharts-ng"])
             });
 
             return {
-                id: originalSerie.id + '_average',
                 name: 'Average ' + originalSerie.name,
                 data: averageDataSerie
             };
         }
 
-        function rawDataToSeriesMap(dataObject) {
-            var operationToSerieMap = {};
+        function updateCharts() {
+            $scope.operationArray.forEach(function (operationType) {
+                var fromDateTimestamp = 0;
+                if ($scope.operationTypeToLastValueTimestamp.hasOwnProperty(operationType)) {
+                    fromDateTimestamp = $scope.operationTypeToLastValueTimestamp[operationType];
 
-            var i = 0;
-            var lastValueDate = new Date("01-01-1970").getTime();
-            for (var operationType in dataObject) {
-                if (dataObject.hasOwnProperty(operationType)) {
-
-                    if (operationType.indexOf('_TOTAL_AVERAGE') <= -1) {
-                        // variable initialisation
-                        var rawValues = dataObject[operationType]['values'];
-                        operationToSerieMap[operationType] = {};
-
-                        // formating raw values into Highchart's format
-                        var serieData = formatSerie(rawValues);
-
-                        // we are looking for the last value inserted of the sample we display
-                        var lastOperationTimestamp = new Date(rawValues[rawValues.length - 1].createdAt).getTime();
-                        if (lastOperationTimestamp > lastValueDate)
-                            lastValueDate = lastOperationTimestamp;
-
-                        var serie = {
-                            id: i,
-                            name: operationType + " latency",
-                            data: serieData
-                        };
-
-                        var averageSerie = createAverageSerie(dataObject[operationType + '_TOTAL_AVERAGE'].values[0].latency, serie);
-
-                        operationToSerieMap[operationType] = [serie, averageSerie];
-                        ++i;
-                    }
-
+                } else {
+                    var timestamps = Object.keys($scope.operationTypeToLastValueTimestamp).map(function (key) {
+                        return $scope.operationTypeToLastValueTimestamp[key];
+                    });
+                    fromDateTimestamp = Math.max.apply(null, timestamps);
                 }
-            }
-            return operationToSerieMap;
+                Benchmarks.getByNameByOperationTypeByFromDate($scope.benchmarkName, operationType, fromDateTimestamp)
+                    .success(function (records) {
+                        if (records.length > 0) {
+                            console.log(records);
+                            var firstOperationTimestamp = records[0].createdAt;
+                            var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
+
+                            // TODO : update graph smoothly with addPoint workaround
+                            /*records.forEach(function (point) {
+                             $scope.highchartConfigs[chartConfigVariableName].series[0].data
+                             .push([firstOperationTimestamp + point.time, point.latency]);
+                             // TODO : check if the average if updating as well or 
+                             // TODO : calculate average
+                             });
+                             */
+                            // updating timestamps
+                            $scope.operationTypeToLastValueTimestamp[operationType]
+                                = records[records.length - 1].createdAt;
+                            console.log(operationType + " chart updated !");
+                        }
+                    });
+            });
         }
 
-        Benchmarks.get($scope.benchmarkName)
-            .success(function (data) {
-                $scope.loading = false;
+        function displayChart(operationType, series) {
+            var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
+            // Defining the chart title will activate its visualisation on the view
+            $scope.highchartConfigs[chartConfigVariableName].title.text = operationType + " operations";
 
-                var dataObject = {};
-                data.forEach(function (obj) {
-                    dataObject[obj.operationType] = obj;
-                });
+            // Adding series to the specific operation chart and to the all operations chart
+            series.forEach(function (serie) {
+                //$scope.highchartConfigs.allChartConfig.series.push(serie);
+                $scope.highchartConfigs[chartConfigVariableName].series.push(serie);
+            })
+        }
 
-                $scope.operationToSerieMap = rawDataToSeriesMap(dataObject);
-                $scope.highchartConfigs.allChartConfig.title.text = "All operations";
-                for (var operationType in $scope.operationToSerieMap) {
-                    console.log($scope.highchartConfigs);
-                    if ($scope.operationToSerieMap.hasOwnProperty(operationType)) {
-                        console.log(operationType.toLowerCase() + 'ChartConfig');
-                        $scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig'].title.text = operationType + " operations";
-                        $scope.operationToSerieMap[operationType].forEach(function (serie) {
-                            $scope.highchartConfigs.allChartConfig.series.push(serie);
-                            $scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig'].series.push(serie);
-                        })
+        $scope.stopUpdate = function () {
+            clearInterval($scope.updateChartInterval)
+        };
+
+        $scope.operationTypeToSerieMap = {};
+        //$scope.highchartConfigs.allChartConfig.title.text = "All operations";
+        // For each operation
+        var operationLeft = $scope.operationArray.length;
+        $scope.operationArray.forEach(function (operationType) {
+            // We fetch YCSB results
+            Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
+                .success(function (records) {
+                    // if there is at least one result for this operation in YCSB
+                    if (records.length > 0) {
+                        // We fectch the average of this operation
+                        Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType + '_TOTAL_AVERAGE')
+                            .success(function (recordsAverage) {
+                                // We create our HighChart serie
+                                var serie = {
+                                    name: operationType + " latency",
+                                    data: convertToSerie(records)
+                                };
+                                // We create the HighChart average serie of the operationType
+                                var averageSerie = createAverageSerie(recordsAverage[0].latency, serie);
+                                $scope.operationTypeToSerieMap[operationType] = [serie, averageSerie];
+
+                                // We save the last operation timestamp for future updates
+                                $scope.operationTypeToLastValueTimestamp[operationType]
+                                    = records[records.length - 1].createdAt;
+
+                                // We display result in the corresponding chart
+                                displayChart(operationType, [serie, averageSerie]);
+                                --operationLeft;
+                                if (operationLeft <= 0) {
+                                    $scope.updateChartInterval = setInterval(updateCharts, 2000);
+                                }
+                            });
+                    } else {
+                        --operationLeft;
+                        if (operationLeft <= 0) {
+                            $scope.updateChartInterval = setInterval(updateCharts, 2000);
+                        }
                     }
-
-                }
-            });
-    }
-    ])
+                });
+            $scope.loading = false;
+        });
+    }])
     .controller('BenchmarkListController', ['$scope', '$http', 'Benchmarks', function ($scope, $http, Benchmarks) {
         Benchmarks.getNames().success(function (data) {
             console.log(data);
