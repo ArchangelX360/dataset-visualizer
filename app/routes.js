@@ -5,12 +5,6 @@ var child_process = require('child_process');
 
 var clients = {};
 
-// TODO : query pour une operation en particulier
-// TODO : query pour toutes les operations en même temps sous formes d'une map
-// TODO : query pour les valeurs au dessus d'une date
-// TODO : query pour les valeurs au dessus d'une date pour une operation en particulier
-// TODO : query pour les valeurs au dessus d'une date pour toutes les operations sous forme de map
-
 function apiReturnResult(res, err, benchmarks) {
     // if there is an error retrieving, send the error. nothing after res.send(err) will execute
     if (err) {
@@ -19,23 +13,33 @@ function apiReturnResult(res, err, benchmarks) {
     res.json(benchmarks);
 }
 
+// TODO : verify this sorting thing
+
 function getBenchmarkByName(res, benchmarkName) {
     var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
-    Benchmark.sort('createdAt').find(function (err, benchmarks) {
+    Benchmark
+        .find(function (err, benchmarks) {
         apiReturnResult(res, err, benchmarks)
     });
 }
 
 function getBenchmarkByNameByOperationType(res, benchmarkName, operationType) {
     var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
-    Benchmark.where('operationType', operationType).sort('createdAt').find(function (err, benchmarks) {
+    Benchmark
+        .where('operationType', operationType)
+        .sort('createdAt')
+        .find(function (err, benchmarks) {
         apiReturnResult(res, err, benchmarks)
     });
 }
 
 function getBenchmarkByNameByOperationTypeByFromDate(res, benchmarkName, operationType, dateFromTimestamp) {
     var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
-    Benchmark.where('operationType', operationType).where('createdAt').gt(dateFromTimestamp).sort('createdAt').find(function (err, benchmarks) {
+    Benchmark
+        .where('operationType', operationType)
+        .where('createdAt').gt(dateFromTimestamp)
+        .sort('createdAt')
+        .find(function (err, benchmarks) {
         apiReturnResult(res, err, benchmarks)
     });
 }
@@ -102,9 +106,11 @@ module.exports = function (app, io) {
     });
 
     app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp', function (req, res) {
-        // use mongoose to get one specific operation type results from a benchmark in the database identified by name
+        // use mongoose to get one specific operation type results 
+        // from a benchmark in the database identified by name
         // from a specific date
-        getBenchmarkByNameByOperationTypeByFromDate(res, req.params.benchmark_name, req.params.operation_type, parseInt(req.params.from_date_timestamp));
+        getBenchmarkByNameByOperationTypeByFromDate(res, req.params.benchmark_name,
+            req.params.operation_type, parseInt(req.params.from_date_timestamp));
     });
 
     app.get('/api/benchmarks/names', function (req, res) {
@@ -147,7 +153,8 @@ module.exports = function (app, io) {
 
     // application -------------------------------------------------------------
     app.get('*', function (req, res) {
-        res.sendFile(__dirname + '/public/index.html'); // load the single view file (angular will handle the page changes on the front-end)
+        res.sendFile(__dirname + '/public/index.html'); // load the single view file 
+        // (angular will handle the page changes on the front-end)
     });
 
     // socket ------------------------------------------------------------------
