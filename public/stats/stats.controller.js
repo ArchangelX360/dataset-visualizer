@@ -16,7 +16,8 @@ angular.module('benchmarkController', ["highcharts-ng"])
         function convertToSerie(rawValues) {
             var firstOperationTimestamp = rawValues[0].createdAt;
             return rawValues.map(function (measureObj) {
-                return [firstOperationTimestamp + measureObj.time, measureObj.latency]
+                //return [firstOperationTimestamp + measureObj.time, measureObj.latency] TODO : TEST
+                return [measureObj.createdAt, measureObj.latency]
             });
         }
 
@@ -49,33 +50,36 @@ angular.module('benchmarkController', ["highcharts-ng"])
 
         function updateChart(operationType, fromDateTimestamp, callback) {
             $scope.updateSemaphore[operationType] = true;
+            $scope.loading = true;
             Benchmarks.getByNameByOperationTypeByFromDate($scope.benchmarkName, operationType, fromDateTimestamp)
                 .success(function (records) {
                     if (records.length > 0) {
-                        var firstOperationTimestamp = records[0].createdAt;
                         var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
                         records.forEach(function (point) {
                             addPoint($scope.highchartConfigs[chartConfigVariableName],
-                                [firstOperationTimestamp + point.time, point.latency]);
+                                [point.createdAt, point.latency]);
                         });
                         // updating average serie
-                        $scope.highchartConfigs[chartConfigVariableName].series[1] = createAverageSerie($scope.highchartConfigs[chartConfigVariableName].series[0]);
+                        $scope.highchartConfigs[chartConfigVariableName].series[1]
+                            = createAverageSerie($scope.highchartConfigs[chartConfigVariableName].series[0]);
                         // updating timestamps
-                        $scope.operationTypeToLastValueTimestamp[operationType]
-                            = records[records.length - 1].createdAt;
+                        $scope.operationTypeToLastValueDisplayed[operationType] = records[records.length - 1];
                         console.log(operationType + " chart updated !");
                     }
+                })
+                .then(function () {
+                    $scope.loading = false;
+                    if (callback)
+                        callback(operationType);
                 });
-            if (callback)
-                callback(operationType);
         }
 
         function updateCharts() {
             $scope.operationArray.forEach(function (operationType) {
-                var fromDateTimestamp = $scope.operationTypeToLastValueTimestamp[operationType];
+                var lastValueDisplayed = $scope.operationTypeToLastValueDisplayed[operationType];
                 if (!$scope.updateSemaphore[operationType])
-                    fromDateTimestamp <= 0 ? initChart(operationType, freeSemaphore)
-                        : updateChart(operationType, fromDateTimestamp, freeSemaphore);
+                    !lastValueDisplayed.hasOwnProperty("createdAt") ? initChart(operationType, freeSemaphore)
+                        : updateChart(operationType, lastValueDisplayed.createdAt, freeSemaphore);
             });
         }
 
@@ -99,6 +103,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
         function initChart(operationType, callback) {
             $scope.updateSemaphore[operationType] = true;
             // We fetch YCSB results
+            $scope.loading = true;
             Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
                 .success(function (records) {
                     // if there is at least one result for this operation in YCSB
@@ -112,34 +117,32 @@ angular.module('benchmarkController', ["highcharts-ng"])
                         var averageSerie = createAverageSerie(serie);
 
                         // We save the last operation timestamp for future updates
-                        $scope.operationTypeToLastValueTimestamp[operationType]
-                            = records[records.length - 1].createdAt;
+                        $scope.operationTypeToLastValueDisplayed[operationType] = records[records.length - 1];
 
                         // We display result in the corresponding chart
                         displayChart(operationType, [serie, averageSerie]);
-                    } else {
+                        console.log(operationType + " chart init !");
                     }
+                })
+                .then(function () {
+                    $scope.loading = false;
+                    if (callback)
+                        callback(operationType);
                 });
-            if (callback)
-                callback(operationType);
         }
 
-        function initCharts(callback) {
+        function initCharts() {
             $scope.operationArray.forEach(function (operationType) {
                 initChart(operationType, freeSemaphore)
             });
-            // TODO : $scope.loading = false; au bon endroit
-            $scope.loading = false;
-            if (callback)
-                callback();
         }
 
         function launchChartUpdating() {
-            $scope.updateChartInterval = setInterval(updateCharts, 6000);
+            $scope.updateChartInterval = setInterval(updateCharts, 200);
         }
 
         function initVariables(operationType) {
-            $scope.operationTypeToLastValueTimestamp[operationType] = 0;
+            $scope.operationTypeToLastValueDisplayed[operationType] = {};
             $scope.updateSemaphore[operationType] = false;
             $scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig']
                 = JSON.parse(JSON.stringify(highchartConfigDefault));
@@ -148,8 +151,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
         /**
          * VARIABLES DEFINITION BLOCK
          */
-
-
+        
         var highchartConfigDefault = {
             options: {
                 chart: {
@@ -189,6 +191,33 @@ angular.module('benchmarkController', ["highcharts-ng"])
                     enabled: true
                 }
             },
+            xAxis: {
+                units: [[
+                    'millisecond', // unit name
+                    [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
+                ], [
+                    'second',
+                    [1, 2, 5, 10, 15, 30]
+                ], [
+                    'minute',
+                    [1, 2, 5, 10, 15, 30]
+                ], [
+                    'hour',
+                    [1, 2, 3, 4, 6, 8, 12]
+                ], [
+                    'day',
+                    [1]
+                ], [
+                    'week',
+                    [1]
+                ], [
+                    'month',
+                    [1, 3, 6]
+                ], [
+                    'year',
+                    null
+                ]]
+            },
             series: [],
             title: {
                 text: 'default config'
@@ -197,7 +226,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
         };
 
         $scope.benchmarkName = $routeParams.benchmarkName;
-        $scope.operationTypeToLastValueTimestamp = {}; // Map for updating only new points on charts
+        $scope.operationTypeToLastValueDisplayed = {}; // Map for updating only new points on charts
         $scope.highchartConfigs = {}; // Map for chart configs
         $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
         $scope.updateChartInterval = null;
@@ -214,7 +243,8 @@ angular.module('benchmarkController', ["highcharts-ng"])
             $scope.operationArray.forEach(initVariables);
         });
 
-        initCharts(launchChartUpdating);
+        initCharts();
+        launchChartUpdating();
     }])
     .controller('BenchmarkListController', ['$scope', '$http', 'Benchmarks', function ($scope, $http, Benchmarks) {
         Benchmarks.getNames().success(function (data) {
