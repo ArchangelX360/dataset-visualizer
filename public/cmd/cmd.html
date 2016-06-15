@@ -77,7 +77,7 @@
                                 <md-tooltip md-direction="bottom">
                                     YCSB executable must be in ./bin/ relatively to this path
                                 </md-tooltip>
-                                <div class="hint" ng-if="showHints">
+                                <div class="hint" ng-if="(showHints && !paramsForm.ycsbrootpath.$error.required)">
                                     Path to the YCSB root
                                 </div>
                             </md-input-container>
@@ -103,7 +103,8 @@
                                     BE CAREFUL : if you use the same name two times, <br> it will refer to the same
                                     benchmark for YCSB Visualisation
                                 </md-tooltip>
-                                <div class="hint" ng-if="showHints">
+                                <div class="hint"
+                                     ng-if="(showHints && !paramsForm.benchmarkname.$error.required && !paramsForm.benchmarkname.$error.pattern)">
                                     Benchmark UNIQUE name for DB
                                 </div>
                             </md-input-container>
@@ -118,7 +119,7 @@
                                 <md-tooltip md-direction="bottom">
                                     This path is relative to YSCB root
                                 </md-tooltip>
-                                <div class="hint" ng-if="showHints">
+                                <div class="hint" ng-if="(showHints && !paramsForm.workloadfilepath.$error.required)">
                                     Path to the workload to use
                                 </div>
                             </md-input-container>
