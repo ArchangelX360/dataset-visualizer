@@ -12,6 +12,7 @@ angular.module('cmdController', [])
         });
 
         $scope.isFinished = true;
+        $scope.isLaunched = false;
 
         // TODO : only timeseries are supported for now
         $scope.measurementtypes = ["timeseries"];
@@ -52,6 +53,7 @@ angular.module('cmdController', [])
         });
 
         $scope.launchCmd = function () {
+            $scope.isLaunched = true;
             socket.emit('authentication', $scope.params.benchmarkname,
                 Cmds.post($scope.params)
                     .success(function (data) {
