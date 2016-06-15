@@ -2,6 +2,8 @@ angular.module('benchmarkController', ["highcharts-ng"])
 // inject the Benchmark service factory into our controller
     .controller('BenchmarkController', ['$scope', '$http', 'Benchmarks', '$routeParams', function ($scope, $http, Benchmarks, $routeParams) {
 
+        $scope.loading = true;
+
         /**
          * FONCTION DEFINITION BLOCK
          */
@@ -20,54 +22,60 @@ angular.module('benchmarkController', ["highcharts-ng"])
 
         /**
          * Create an average serie from a value and an original serie
-         * @param averageLatency the average value of the serie from YCSB
-         * @param originalSerie the original serie of which we want an average serie
+         * @param serie the original serie of which we want an average serie
          * @returns {{name: string, data: *}} the average Highchart serie
          */
-        function createAverageSerie(averageLatency, originalSerie) {
-            var averageDataSerie = originalSerie.data.map(function (measure) {
-                return [measure[0], averageLatency];
+        function createAverageSerie(serie) {
+            var total = serie.data.reduce(function (previous, current) {
+                return previous + current[1];
+            }, 0);
+            var average = total / serie.data.length;
+            var averageSerieData = serie.data.map(function (point) {
+                return [point[0], average];
             });
-
             return {
-                name: 'Average ' + originalSerie.name,
-                data: averageDataSerie
+                name: 'Average ' + serie.name,
+                data: averageSerieData
             };
+        }
+
+        function addPoint(chartOption, point) {
+            chartOption.series[0].data.push(point);
+        }
+
+        function freeSemaphore(operationType) {
+            $scope.updateSemaphore[operationType] = false;
+        }
+
+        function updateChart(operationType, fromDateTimestamp, callback) {
+            $scope.updateSemaphore[operationType] = true;
+            Benchmarks.getByNameByOperationTypeByFromDate($scope.benchmarkName, operationType, fromDateTimestamp)
+                .success(function (records) {
+                    if (records.length > 0) {
+                        var firstOperationTimestamp = records[0].createdAt;
+                        var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
+                        records.forEach(function (point) {
+                            addPoint($scope.highchartConfigs[chartConfigVariableName],
+                                [firstOperationTimestamp + point.time, point.latency]);
+                        });
+                        // updating average serie
+                        $scope.highchartConfigs[chartConfigVariableName].series[1] = createAverageSerie($scope.highchartConfigs[chartConfigVariableName].series[0]);
+                        // updating timestamps
+                        $scope.operationTypeToLastValueTimestamp[operationType]
+                            = records[records.length - 1].createdAt;
+                        console.log(operationType + " chart updated !");
+                    }
+                });
+            if (callback)
+                callback(operationType);
         }
 
         function updateCharts() {
             $scope.operationArray.forEach(function (operationType) {
-                var fromDateTimestamp = 0;
-                if ($scope.operationTypeToLastValueTimestamp.hasOwnProperty(operationType)) {
-                    fromDateTimestamp = $scope.operationTypeToLastValueTimestamp[operationType];
-
-                } else {
-                    var timestamps = Object.keys($scope.operationTypeToLastValueTimestamp).map(function (key) {
-                        return $scope.operationTypeToLastValueTimestamp[key];
-                    });
-                    fromDateTimestamp = Math.max.apply(null, timestamps);
-                }
-                Benchmarks.getByNameByOperationTypeByFromDate($scope.benchmarkName, operationType, fromDateTimestamp)
-                    .success(function (records) {
-                        if (records.length > 0) {
-                            console.log(records);
-                            var firstOperationTimestamp = records[0].createdAt;
-                            var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
-
-                            // TODO : update graph smoothly with addPoint workaround
-                            /*records.forEach(function (point) {
-                             $scope.highchartConfigs[chartConfigVariableName].series[0].data
-                             .push([firstOperationTimestamp + point.time, point.latency]);
-                             // TODO : check if the average if updating as well or 
-                             // TODO : calculate average
-                             });
-                             */
-                            // updating timestamps
-                            $scope.operationTypeToLastValueTimestamp[operationType]
-                                = records[records.length - 1].createdAt;
-                            console.log(operationType + " chart updated !");
-                        }
-                    });
+                var fromDateTimestamp = $scope.operationTypeToLastValueTimestamp[operationType];
+                if (!$scope.updateSemaphore[operationType])
+                    fromDateTimestamp <= 0 ? initChart(operationType, freeSemaphore)
+                        : updateChart(operationType, fromDateTimestamp, freeSemaphore);
             });
         }
 
@@ -88,58 +96,59 @@ angular.module('benchmarkController', ["highcharts-ng"])
             })
         }
 
-        function initCharts() {
-            //$scope.highchartConfigs.allChartConfig.title.text = "All operations";
-            // For each operation
-            var operationLeft = $scope.operationArray.length;
+        function initChart(operationType, callback) {
+            $scope.updateSemaphore[operationType] = true;
+            // We fetch YCSB results
+            Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
+                .success(function (records) {
+                    // if there is at least one result for this operation in YCSB
+                    if (records.length > 0) {
+                        // We create our HighChart serie
+                        var serie = {
+                            name: operationType + " latency",
+                            data: convertToSerie(records)
+                        };
+                        // We create the HighChart average serie of the operationType
+                        var averageSerie = createAverageSerie(serie);
+
+                        // We save the last operation timestamp for future updates
+                        $scope.operationTypeToLastValueTimestamp[operationType]
+                            = records[records.length - 1].createdAt;
+
+                        // We display result in the corresponding chart
+                        displayChart(operationType, [serie, averageSerie]);
+                    } else {
+                    }
+                });
+            if (callback)
+                callback(operationType);
+        }
+
+        function initCharts(callback) {
             $scope.operationArray.forEach(function (operationType) {
-                // We fetch YCSB results
-                Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
-                    .success(function (records) {
-                        // if there is at least one result for this operation in YCSB
-                        if (records.length > 0) {
-                            // We fectch the average of this operation
-                            Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType + '_TOTAL_AVERAGE')
-                                .success(function (recordsAverage) {
-                                    // We create our HighChart serie
-                                    var serie = {
-                                        name: operationType + " latency",
-                                        data: convertToSerie(records)
-                                    };
-                                    // We create the HighChart average serie of the operationType
-                                    var averageSerie = createAverageSerie(recordsAverage[0].latency, serie);
-
-                                    // We save the last operation timestamp for future updates
-                                    $scope.operationTypeToLastValueTimestamp[operationType]
-                                        = records[records.length - 1].createdAt;
-
-                                    // We display result in the corresponding chart
-                                    displayChart(operationType, [serie, averageSerie]);
-                                    --operationLeft;
-                                    if (operationLeft <= 0) {
-                                        $scope.updateChartInterval = setInterval(updateCharts, 2000);
-                                    }
-                                });
-                        } else {
-                            --operationLeft;
-                            if (operationLeft <= 0) {
-                                $scope.updateChartInterval = setInterval(updateCharts, 2000);
-                            }
-                        }
-                    });
-                $scope.loading = false;
+                initChart(operationType, freeSemaphore)
             });
+            // TODO : $scope.loading = false; au bon endroit
+            $scope.loading = false;
+            if (callback)
+                callback();
+        }
+
+        function launchChartUpdating() {
+            $scope.updateChartInterval = setInterval(updateCharts, 6000);
+        }
+
+        function initVariables(operationType) {
+            $scope.operationTypeToLastValueTimestamp[operationType] = 0;
+            $scope.updateSemaphore[operationType] = false;
+            $scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig']
+                = JSON.parse(JSON.stringify(highchartConfigDefault));
         }
 
         /**
          * VARIABLES DEFINITION BLOCK
          */
 
-        $scope.loading = true;
-        $scope.benchmarkName = $routeParams.benchmarkName;
-        $scope.operationTypeToLastValueTimestamp = {}; // Map for updating only new points on charts
-        $scope.updateChartInterval = null;
-        $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP"];
 
         var highchartConfigDefault = {
             options: {
@@ -184,49 +193,28 @@ angular.module('benchmarkController', ["highcharts-ng"])
             title: {
                 text: 'default config'
             },
-            /*func: function(chart) {
-             $timeout(function() {
-             chart.reflow();
-             $scope.highchart = chart;
-             }, 300);
-
-             // TODO : accrocher un event different pour chaque type de graph
-             socket.on('ati_sensordata', function(data) {
-             if (data) {
-             var splited = data.split('|');
-
-             if (splited.length >= 6) {
-             var val = parseFloat(splited[5]);
-             var shift = chart.series[0].data.length > 100;
-             chart.series[0].addPoint(val, true, shift, false);
-
-             }
-             }
-             });
-
-
-             },*/
             useHighStocks: true
         };
 
-        $scope.highchartConfigs = {
-            //allChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
-            insertChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
-            readChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
-            updateChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
-            scanChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault)),
-            cleanupChartConfig: JSON.parse(JSON.stringify(highchartConfigDefault))
-        }; // charts configurations initilized to the default one
+        $scope.benchmarkName = $routeParams.benchmarkName;
+        $scope.operationTypeToLastValueTimestamp = {}; // Map for updating only new points on charts
+        $scope.highchartConfigs = {}; // Map for chart configs
+        $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
+        $scope.updateChartInterval = null;
+        $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP"];
 
-        $scope.stopUpdate = function () {
+        $scope.operationArray.forEach(initVariables);
+
+        $scope.stopChartUpdating = function () {
             clearInterval($scope.updateChartInterval)
         };
 
         $scope.$on('$destroy', function () {
-            $scope.stopUpdate();
+            $scope.stopChartUpdating();
+            $scope.operationArray.forEach(initVariables);
         });
 
-        initCharts();
+        initCharts(launchChartUpdating);
     }])
     .controller('BenchmarkListController', ['$scope', '$http', 'Benchmarks', function ($scope, $http, Benchmarks) {
         Benchmarks.getNames().success(function (data) {
