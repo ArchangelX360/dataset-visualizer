@@ -1,9 +1,17 @@
 var benchmarkSchema = require('./models/benchmark');
+var nameSchema = require('./models/name');
 var mongoose = require('mongoose');
 var database = require('../config/database'); 			// load the database config
 var child_process = require('child_process');
 
 var clients = {};
+
+function getCollections(res) {
+    var Name = mongoose.model('Name', nameSchema);
+    Name.find(function (err, names) {
+        apiReturnResult(res, err, names)
+    });
+}
 
 function apiReturnResult(res, err, benchmarks) {
     // if there is an error retrieving, send the error. nothing after res.send(err) will execute
@@ -17,8 +25,8 @@ function getBenchmarkByName(res, benchmarkName) {
     var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
     Benchmark
         .find(function (err, benchmarks) {
-        apiReturnResult(res, err, benchmarks)
-    });
+            apiReturnResult(res, err, benchmarks)
+        });
 }
 
 function getBenchmarkByNameByOperationType(res, benchmarkName, operationType) {
@@ -27,8 +35,8 @@ function getBenchmarkByNameByOperationType(res, benchmarkName, operationType) {
         .where('operationType', operationType)
         .sort('createdAt')
         .find(function (err, benchmarks) {
-        apiReturnResult(res, err, benchmarks)
-    });
+            apiReturnResult(res, err, benchmarks)
+        });
 }
 
 function getBenchmarkByNameByOperationTypeByFromDate(res, benchmarkName, operationType, dateFromTimestamp) {
@@ -38,8 +46,8 @@ function getBenchmarkByNameByOperationTypeByFromDate(res, benchmarkName, operati
         .where('createdAt').gt(dateFromTimestamp)
         .sort('createdAt')
         .find(function (err, benchmarks) {
-        apiReturnResult(res, err, benchmarks)
-    });
+            apiReturnResult(res, err, benchmarks)
+        });
 }
 
 function launchBenchmark(req, res) {
@@ -112,8 +120,7 @@ module.exports = function (app, io) {
     });
 
     app.get('/api/benchmarks/names', function (req, res) {
-        console.log("fu");
-        res.send([1.2, 2, 3]);
+        getCollections(res);
     });
 
     app.post('/cmd/launch', function (req, res) {

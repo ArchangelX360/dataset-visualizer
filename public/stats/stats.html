@@ -1,5 +1,10 @@
 <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="!loading"></md-progress-linear>
 
+<md-nav-bar md-selected-nav-item="currentNavItem" nav-bar-aria-label="navigation links" class="benchmark-nav">
+    <md-nav-item md-nav-href="#/stats/{{name}}" name="nav-{{name}}" ng-repeat="name in benchmarkNames">{{name}}
+    </md-nav-item>
+</md-nav-bar>
+
 <div flex layout="row" layout-align="center center">
     <h1 class="md-display-1">Benchmark results of "{{benchmarkName}}"</h1>
 </div>

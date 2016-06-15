@@ -1,6 +1,6 @@
 angular.module('benchmarkController', ["highcharts-ng"])
 // inject the Benchmark service factory into our controller
-    .controller('BenchmarkController', ['$scope', '$http', 'Benchmarks', '$routeParams', function ($scope, $http, Benchmarks, $routeParams) {
+    .controller('BenchmarkController', ['$scope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$location', function ($scope, $http, Benchmarks, $routeParams, $mdSidenav, $location) {
 
         $scope.loading = true;
 
@@ -48,7 +48,6 @@ angular.module('benchmarkController', ["highcharts-ng"])
 
         function updateChart(operationType, fromDateTimestamp, callback) {
             $scope.updateSemaphore[operationType] = true;
-            $scope.loading = true;
             Benchmarks.getByNameByOperationTypeByFromDate($scope.benchmarkName, operationType, fromDateTimestamp)
                 .success(function (records) {
                     if (records.length > 0) {
@@ -66,7 +65,6 @@ angular.module('benchmarkController', ["highcharts-ng"])
                     }
                 })
                 .then(function () {
-                    $scope.loading = false;
                     if (callback)
                         callback(operationType);
                 });
@@ -101,7 +99,6 @@ angular.module('benchmarkController', ["highcharts-ng"])
         function initChart(operationType, callback) {
             $scope.updateSemaphore[operationType] = true;
             // We fetch YCSB results
-            $scope.loading = true;
             Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
                 .success(function (records) {
                     // if there is at least one result for this operation in YCSB
@@ -130,6 +127,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
         }
 
         function initCharts() {
+            $scope.loading = true;
             $scope.operationArray.forEach(function (operationType) {
                 initChart(operationType, freeSemaphore)
             });
@@ -146,6 +144,14 @@ angular.module('benchmarkController', ["highcharts-ng"])
                 = JSON.parse(JSON.stringify(highchartConfigDefault));
         }
 
+        function getBenchmarkList() {
+            Benchmarks.getNames().success(function (nameObjects) {
+                $scope.benchmarkNames = nameObjects.map(function (nameObject) {
+                    return nameObject.name;
+                });
+            });
+        }
+
         /**
          * VARIABLES DEFINITION BLOCK
          */
@@ -154,7 +160,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
             options: {
                 chart: {
                     zoomType: 'x',
-                    height: 700
+                    height: 650
                 },
                 rangeSelector: {
                     enabled: true,
@@ -224,6 +230,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
         };
 
         $scope.benchmarkName = $routeParams.benchmarkName;
+        $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
         $scope.operationTypeToLastValueDisplayed = {}; // Map for updating only new points on charts
         $scope.highchartConfigs = {}; // Map for chart configs
         $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
@@ -241,13 +248,23 @@ angular.module('benchmarkController', ["highcharts-ng"])
             $scope.operationArray.forEach(initVariables);
         });
 
+        $scope.openLeftMenu = function () {
+            $mdSidenav('benchmarkList').toggle();
+        };
+
+        $scope.goto = function (path) {
+            $location.path(path);
+        };
+
+        getBenchmarkList();
         initCharts();
         launchChartUpdating();
     }])
     .controller('BenchmarkListController', ['$scope', '$http', 'Benchmarks', function ($scope, $http, Benchmarks) {
-        Benchmarks.getNames().success(function (data) {
-            console.log(data);
-            $scope.benchmarkNames = data;
+        Benchmarks.getNames().success(function (nameObjects) {
+            $scope.benchmarkNames = nameObjects.map(function (nameObject) {
+                return nameObject.name;
+            });
         });
     }]);
 

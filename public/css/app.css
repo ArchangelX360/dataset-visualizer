@@ -32,3 +32,9 @@ a.nostyle:visited {
 .tt-multiline ._md-content {
     height: auto;
 }
+
+.benchmark-nav {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%
+}
