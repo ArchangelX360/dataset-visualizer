@@ -14,9 +14,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
          * @returns {*} Highchart formatted data
          */
         function convertToSerie(rawValues) {
-            var firstOperationTimestamp = rawValues[0].createdAt;
             return rawValues.map(function (measureObj) {
-                //return [firstOperationTimestamp + measureObj.time, measureObj.latency] TODO : TEST
                 return [measureObj.createdAt, measureObj.latency]
             });
         }
@@ -151,7 +149,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
         /**
          * VARIABLES DEFINITION BLOCK
          */
-        
+
         var highchartConfigDefault = {
             options: {
                 chart: {
@@ -164,16 +162,16 @@ angular.module('benchmarkController', ["highcharts-ng"])
                     buttons: [{
                         // TODO : infere this scale from datas
                         type: 'millisecond',
-                        count: 200,
-                        text: '200ms'
+                        count: 50,
+                        text: '50ms'
                     }, {
                         type: 'millisecond',
-                        count: 400,
-                        text: '400ms'
+                        count: 100,
+                        text: '100ms'
                     }, {
                         type: 'millisecond',
-                        count: 600,
-                        text: '600ms'
+                        count: 300,
+                        text: '300ms'
                     }, {
                         type: 'millisecond',
                         count: 800,

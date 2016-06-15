@@ -13,8 +13,6 @@ function apiReturnResult(res, err, benchmarks) {
     res.json(benchmarks);
 }
 
-// TODO : verify this sorting thing
-
 function getBenchmarkByName(res, benchmarkName) {
     var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
     Benchmark
