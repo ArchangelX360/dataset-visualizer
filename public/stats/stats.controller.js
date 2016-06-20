@@ -38,14 +38,30 @@ angular.module('benchmarkController', ["highcharts-ng"])
             };
         }
 
-        function addPoint(chartOption, point) {
-            chartOption.series[0].data.push(point);
+        /**
+         * Add a point to the chart's serie
+         * @param chartOption option of the chart to access the serie
+         * @param point couple to add [timestamp, value]
+         * @param serieIndex index of the serie
+         */
+        function addPoint(chartOption, point, serieIndex) {
+            chartOption.series[serieIndex].data.push(point);
         }
 
+        /**
+         * Free update semaphore of a specific operationType chart
+         * @param operationType the operationType string
+         */
         function freeSemaphore(operationType) {
             $scope.updateSemaphore[operationType] = false;
         }
 
+        /**
+         * Update the chart points with new points in DB from the fromDateTimestamp to now
+         * @param operationType the operationType string
+         * @param fromDateTimestamp the timestamp of the date from which we should update points
+         * @param callback a callback function
+         */
         function updateChart(operationType, fromDateTimestamp, callback) {
             $scope.updateSemaphore[operationType] = true;
             Benchmarks.getByNameByOperationTypeByFromDate($scope.benchmarkName, operationType, fromDateTimestamp)
@@ -54,7 +70,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
                         var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
                         records.forEach(function (point) {
                             addPoint($scope.highchartConfigs[chartConfigVariableName],
-                                [point.createdAt, point.latency]);
+                                [point.createdAt, point.latency], 0);
                         });
                         // updating average serie
                         $scope.highchartConfigs[chartConfigVariableName].series[1]
@@ -70,6 +86,9 @@ angular.module('benchmarkController', ["highcharts-ng"])
                 });
         }
 
+        /**
+         * Updates all charts or initialize not initialized charts
+         */
         function updateCharts() {
             $scope.operationArray.forEach(function (operationType) {
                 var lastValueDisplayed = $scope.operationTypeToLastValueDisplayed[operationType];
@@ -96,6 +115,12 @@ angular.module('benchmarkController', ["highcharts-ng"])
             })
         }
 
+        /**
+         * Initialize chart of an specified operationType creating its series and displaying it
+         * If there is no data for the specified operationType, its graph is not initialized.
+         * @param operationType the operationType string
+         * @param callback a callback function
+         */
         function initChart(operationType, callback) {
             $scope.updateSemaphore[operationType] = true;
             // We fetch YCSB results
@@ -126,6 +151,9 @@ angular.module('benchmarkController', ["highcharts-ng"])
                 });
         }
 
+        /**
+         * Initialize all operationType charts
+         */
         function initCharts() {
             $scope.loading = true;
             $scope.operationArray.forEach(function (operationType) {
@@ -133,10 +161,17 @@ angular.module('benchmarkController', ["highcharts-ng"])
             });
         }
 
+        /**
+         * Launch the charts updating process
+         */
         function launchChartUpdating() {
             $scope.updateChartInterval = setInterval(updateCharts, 1000);
         }
 
+        /**
+         * Initialize all variables of an operationType including maps' keys, chart options and update semaphore.
+         * @param operationType the operationType string
+         */
         function initVariables(operationType) {
             $scope.operationTypeToLastValueDisplayed[operationType] = {};
             $scope.updateSemaphore[operationType] = false;
@@ -228,6 +263,9 @@ angular.module('benchmarkController', ["highcharts-ng"])
             };
         }
 
+        /**
+         * Get all benchmarks names and stores it into $scope
+         */
         function getBenchmarkList() {
             Benchmarks.getNames().success(function (nameObjects) {
                 $scope.benchmarkNames = nameObjects.map(function (nameObject) {
