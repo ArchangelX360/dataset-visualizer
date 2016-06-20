@@ -88,10 +88,22 @@ module.exports = function (app, io) {
         }
     });
 
+    app.get('/cmd/memcached', function (req, res) {
+        var cmd = "/usr/local/memcached/bin/memcached -m 10240 -p 11211 -u titouan -l 127.0.0.1";
+        child_process.exec(cmd);
+        res.send('[SUCCESS] Memcached is running on 127.0.0.1:11211.\n');
+    });
+
+    app.delete('/cmd/memcached', function (req, res) {
+        var cmd = "killall memcached";
+        child_process.exec(cmd);
+        res.send('[SUCCESS] All Memcached instances are killed.\n');
+    });
+
     // get one benchmark by name
     app.get('/api/benchmarks/:benchmark_name', function (req, res) {
         // use mongoose to get one benchmark in the database by name
-        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.parameters.benchmark_name);
+        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
         Benchmark
             .find(function (err, benchmarks) {
                 apiReturnResult(res, err, benchmarks)
@@ -101,9 +113,9 @@ module.exports = function (app, io) {
     app.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
         // use mongoose to get one specific operation type 
         // results from a benchmark in the database identified by name
-        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.parameters.benchmark_name);
+        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
         Benchmark
-            .where('operationType', req.parameters.operation_type)
+            .where('operationType', req.params.operation_type)
             .sort('createdAt')
             .find(function (err, benchmarks) {
                 apiReturnResult(res, err, benchmarks)
@@ -114,10 +126,10 @@ module.exports = function (app, io) {
         // use mongoose to get one specific operation type results 
         // from a benchmark in the database identified by name
         // from a specific date
-        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.parameters.benchmark_name);
+        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
         Benchmark
-            .where('operationType', req.parameters.operation_type)
-            .where('createdAt').gt(parseInt(req.parameters.from_date_timestamp))
+            .where('operationType', req.params.operation_type)
+            .where('createdAt').gt(parseInt(req.params.from_date_timestamp))
             .sort('createdAt')
             .find(function (err, benchmarks) {
                 apiReturnResult(res, err, benchmarks)
@@ -133,14 +145,14 @@ module.exports = function (app, io) {
 
     app.delete('/api/benchmarks/:benchmark_name', function (req, res) {
         var Name = mongoose.model('Name', nameSchema);
-        Name.db.db.dropCollection(req.parameters.benchmark_name, function (err, result) {
+        Name.db.db.dropCollection(req.params.benchmark_name, function (err, result) {
             if (err) {
                 res.send(err);
             }
             res.send(result);
         });
         Name.remove({
-            name: req.parameters.benchmark_name
+            name: req.params.benchmark_name
         }, function (err) {
             if (err) {
                 res.send(err);

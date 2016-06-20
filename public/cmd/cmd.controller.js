@@ -35,7 +35,6 @@ angular.module('cmdController', [])
         };
 
         socket.on('begin', function () {
-            console.log("test");
             $scope.isFinished = false;
         });
 
@@ -49,7 +48,7 @@ angular.module('cmdController', [])
 
         socket.on('exit', function (data) {
             $scope.isFinished = true;
-            document.getElementById('std-container').innerHTML += data.message;
+            document.getElementById('std-container').innerHTML += "<span class='exit'>" + data.message + "</span>";
         });
 
         $scope.launchCmd = function () {
@@ -60,5 +59,19 @@ angular.module('cmdController', [])
                         document.getElementById('std-container').innerHTML += data;
                     })
             );
+        };
+
+        $scope.startMemcached = function () {
+            Cmds.startMemcached()
+                .success(function (data) {
+                    document.getElementById('std-container').innerHTML += data;
+                })
+        };
+
+        $scope.killMemcached = function () {
+            Cmds.killMemcached($scope.params.benchmarkname)
+                .success(function (data) {
+                    document.getElementById('std-container').innerHTML += data;
+                })
         };
     }]);
