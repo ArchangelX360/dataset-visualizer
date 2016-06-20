@@ -134,14 +134,98 @@ angular.module('benchmarkController', ["highcharts-ng"])
         }
 
         function launchChartUpdating() {
-            $scope.updateChartInterval = setInterval(updateCharts, 200);
+            $scope.updateChartInterval = setInterval(updateCharts, 1000);
         }
 
         function initVariables(operationType) {
             $scope.operationTypeToLastValueDisplayed[operationType] = {};
             $scope.updateSemaphore[operationType] = false;
-            $scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig']
-                = JSON.parse(JSON.stringify(highchartConfigDefault));
+            $scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig'] = {
+                options: {
+                    chart: {
+                        zoomType: 'x',
+                        height: 650
+                    },
+                    exporting: {
+                        csv: {
+                            dateFormat: '%Y-%m-%dT%H:%M:%S.%L'
+                        }
+                    },
+                    rangeSelector: {
+                        enabled: true,
+                        allButtonsEnabled: true,
+                        buttons: [{
+                            // TODO : infere this scale from datas
+                            type: 'millisecond',
+                            count: 50,
+                            text: '50ms'
+                        }, {
+                            type: 'millisecond',
+                            count: 100,
+                            text: '100ms'
+                        }, {
+                            type: 'millisecond',
+                            count: 300,
+                            text: '300ms'
+                        }, {
+                            type: 'millisecond',
+                            count: 800,
+                            text: '800ms'
+                        }, {
+                            type: 'all',
+                            text: 'All'
+                        }],
+                        buttonTheme: {
+                            width: 50
+                        },
+                        selected: 5
+                    },
+                    navigator: {
+                        enabled: true,
+                        series: {
+                            includeInCSVExport: false
+                        }
+                    }
+                },
+                xAxis: {
+                    type: "datetime",
+                    units: [[
+                        'millisecond', // unit name
+                        [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
+                    ], [
+                        'second',
+                        [1, 2, 5, 10, 15, 30]
+                    ], [
+                        'minute',
+                        [1, 2, 5, 10, 15, 30]
+                    ], [
+                        'hour',
+                        [1, 2, 3, 4, 6, 8, 12]
+                    ], [
+                        'day',
+                        [1]
+                    ], [
+                        'week',
+                        [1]
+                    ], [
+                        'month',
+                        [1, 3, 6]
+                    ], [
+                        'year',
+                        null
+                    ]]
+                },
+                // Stores the chart object into a scope variable to use Highcharts functionnalities
+                // not implemented by highchart-ng
+                func: function (chart) {
+                    $scope.highchartCharts[operationType.toLowerCase() + 'Chart'] = chart;
+                },
+                series: [],
+                title: {
+                    text: 'default config'
+                },
+                useHighStocks: true
+            };
         }
 
         function getBenchmarkList() {
@@ -156,83 +240,11 @@ angular.module('benchmarkController', ["highcharts-ng"])
          * VARIABLES DEFINITION BLOCK
          */
 
-        var highchartConfigDefault = {
-            options: {
-                chart: {
-                    zoomType: 'x',
-                    height: 650
-                },
-                rangeSelector: {
-                    enabled: true,
-                    allButtonsEnabled: true,
-                    buttons: [{
-                        // TODO : infere this scale from datas
-                        type: 'millisecond',
-                        count: 50,
-                        text: '50ms'
-                    }, {
-                        type: 'millisecond',
-                        count: 100,
-                        text: '100ms'
-                    }, {
-                        type: 'millisecond',
-                        count: 300,
-                        text: '300ms'
-                    }, {
-                        type: 'millisecond',
-                        count: 800,
-                        text: '800ms'
-                    }, {
-                        type: 'all',
-                        text: 'All'
-                    }],
-                    buttonTheme: {
-                        width: 50
-                    },
-                    selected: 5
-                },
-                navigator: {
-                    enabled: true
-                }
-            },
-            xAxis: {
-                units: [[
-                    'millisecond', // unit name
-                    [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
-                ], [
-                    'second',
-                    [1, 2, 5, 10, 15, 30]
-                ], [
-                    'minute',
-                    [1, 2, 5, 10, 15, 30]
-                ], [
-                    'hour',
-                    [1, 2, 3, 4, 6, 8, 12]
-                ], [
-                    'day',
-                    [1]
-                ], [
-                    'week',
-                    [1]
-                ], [
-                    'month',
-                    [1, 3, 6]
-                ], [
-                    'year',
-                    null
-                ]]
-            },
-            series: [],
-            title: {
-                text: 'default config'
-            },
-            useHighStocks: true
-        };
-
         $scope.benchmarkName = $routeParams.benchmarkName;
         $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
         $scope.operationTypeToLastValueDisplayed = {}; // Map for updating only new points on charts
         $scope.highchartConfigs = {}; // Map for chart configs
+        $scope.highchartCharts = {}; // Map for charts
         $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
         $scope.updateChartInterval = null;
         $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP"];
@@ -241,6 +253,11 @@ angular.module('benchmarkController', ["highcharts-ng"])
 
         $scope.stopChartUpdating = function () {
             clearInterval($scope.updateChartInterval)
+        };
+
+        $scope.exportCSV = function (operationType) {
+            //$scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig']
+            console.log($scope.highchartCharts[operationType.toLowerCase() + 'Chart'].getCSV());
         };
 
         $scope.$on('$destroy', function () {

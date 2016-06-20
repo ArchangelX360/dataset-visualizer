@@ -31,9 +31,9 @@
 </style>
 
 <div ng-controller="CmdController">
-    <div flex layout="column" layout-align="center center">
+    <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
 
-        <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
+    <div flex layout="column" layout-align="center center">
 
         <div flex layout-gt-md="row" layout="column">
             <div flex layout="column">
