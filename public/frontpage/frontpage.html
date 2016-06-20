@@ -1,47 +1,43 @@
-<div flex layout="column" layout-fill>
+<div layout="column" layout-gt-md="row" layout-align="center center">
 
-    <div flex layout="row" layout-align="center center">
+    <div flex="33" layout-fill>
+        <a ng-href="#/cmd/" class="nostyle">
+            <md-card md-whiteframe="3" class="frontpage-card">
+                <md-icon class="material-icons frontpage-icon" md-svg-src="icons/rocket.svg"></md-icon>
+                <md-card-title>
+                    <md-card-title-text class="plan-titre-part">
+                        <span class="md-display-1">Launch Benchmark</span>
+                    </md-card-title-text>
+                </md-card-title>
+            </md-card>
+        </a>
+    </div>
 
-        <div flex>
-            <a ng-href="#/cmd/" class="nostyle">
-                <md-card md-whiteframe="3" class="frontpage-card">
-                    <md-icon class="material-icons frontpage-icon" md-svg-src="icons/rocket.svg"></md-icon>
-                    <md-card-title>
-                        <md-card-title-text class="plan-titre-part">
-                            <span class="md-display-1">Launch Benchmark</span>
-                        </md-card-title-text>
-                    </md-card-title>
-                </md-card>
-            </a>
-        </div>
+    <div flex="33" layout-fill>
+        <a ng-href="#/stats" class="nostyle">
+            <md-card md-whiteframe="3" class="frontpage-card">
+                <md-icon class="material-icons frontpage-icon" md-svg-src="icons/presentation.svg"></md-icon>
 
-        <div flex>
-            <a ng-href="#/stats" class="nostyle">
-                <md-card md-whiteframe="3" class="frontpage-card">
-                    <md-icon class="material-icons frontpage-icon" md-svg-src="icons/presentation.svg"></md-icon>
+                <md-card-title>
+                    <md-card-title-text class="plan-titre-part">
+                        <span class="md-display-1">Watch Benchmark results</span>
+                    </md-card-title-text>
+                </md-card-title>
+            </md-card>
+        </a>
+    </div>
 
-                    <md-card-title>
-                        <md-card-title-text class="plan-titre-part">
-                            <span class="md-display-1">Watch Benchmark results</span>
-                        </md-card-title-text>
-                    </md-card-title>
-                </md-card>
-            </a>
-        </div>
-
-        <div flex>
-            <a ng-href="#/workloads" class="nostyle">
-                <md-card md-whiteframe="3" class="frontpage-card">
-                    <md-icon class="material-icons frontpage-icon" md-svg-src="icons/settings.svg"></md-icon>
-                    <md-card-title>
-                        <md-card-title-text>
-                            <span class="md-display-1">Manage Workloads</span>
-                        </md-card-title-text>
-                    </md-card-title>
-                </md-card>
-            </a>
-        </div>
-
+    <div flex="33" layout-fill>
+        <a ng-href="#/workloads" class="nostyle">
+            <md-card md-whiteframe="3" class="frontpage-card">
+                <md-icon class="material-icons frontpage-icon" md-svg-src="icons/settings.svg"></md-icon>
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-display-1">Manage Workloads</span>
+                    </md-card-title-text>
+                </md-card-title>
+            </md-card>
+        </a>
     </div>
 
 </div>
