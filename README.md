@@ -10,7 +10,11 @@ You will need MongoDB to use this application :
 
 You will also need YCSB visualisation version :
 
-TODO
+**TODO**
+
+And of course a DB to benchmark, we are going to use memcached :
+
+    sudo apt-get install memcached
 
 ## Installation
 
