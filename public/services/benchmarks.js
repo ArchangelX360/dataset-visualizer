@@ -20,6 +20,9 @@ angular.module('benchmarkService', [])
 			},
 			getNames: function () {
 				return $http.get('/api/benchmarks/names');
+			},
+			delete: function (benchmarkName) {
+				return $http.delete('/api/benchmarks/' + benchmarkName);
 			}
 		}
 	}]);

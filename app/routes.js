@@ -6,78 +6,55 @@ var child_process = require('child_process');
 
 var clients = {};
 
-function getCollections(res) {
-    var Name = mongoose.model('Name', nameSchema);
-    Name.find(function (err, names) {
-        apiReturnResult(res, err, names)
-    });
-}
-
-function apiReturnResult(res, err, benchmarks) {
+/**
+ * Default return fonction of the API for Mongoose queries
+ * @param res result of the request
+ * @param err errors of the mongoose query
+ * @param objects the objects receive by the mongoose query
+ */
+function apiReturnResult(res, err, objects) {
     // if there is an error retrieving, send the error. nothing after res.send(err) will execute
     if (err) {
-        res.send(err);
+        res.send('[ERROR] ' + err + '.\n');
     }
-    res.json(benchmarks);
+    res.json(objects);
 }
 
-function getBenchmarkByName(res, benchmarkName) {
-    var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
-    Benchmark
-        .find(function (err, benchmarks) {
-            apiReturnResult(res, err, benchmarks)
-        });
-}
-
-function getBenchmarkByNameByOperationType(res, benchmarkName, operationType) {
-    var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
-    Benchmark
-        .where('operationType', operationType)
-        .sort('createdAt')
-        .find(function (err, benchmarks) {
-            apiReturnResult(res, err, benchmarks)
-        });
-}
-
-function getBenchmarkByNameByOperationTypeByFromDate(res, benchmarkName, operationType, dateFromTimestamp) {
-    var Benchmark = mongoose.model('Benchmark', benchmarkSchema, benchmarkName);
-    Benchmark
-        .where('operationType', operationType)
-        .where('createdAt').gt(dateFromTimestamp)
-        .sort('createdAt')
-        .find(function (err, benchmarks) {
-            apiReturnResult(res, err, benchmarks)
-        });
-}
-
-function launchBenchmark(req, res) {
-    var params = req.body;
-
-    // TODO : do a better params handling
-    var paramsStr = '-P ' + params.workloadfilepath + ' ';
-    for (var key in params.pParams) {
-        paramsStr += '-p ' + key + '=' + params.pParams[key] + ' ';
+/**
+ * Parse benchmark parameters and return the corresponding command line
+ * @param parameters object that contains all parameters
+ * @returns {string} ycsb command line to execute
+ */
+function parseParameters(parameters) {
+    // TODO : do a better parameters handling
+    var parametersStr = '-P ' + parameters.workloadfilepath + ' ';
+    for (var key in parameters.pParams) {
+        parametersStr += '-p ' + key + '=' + parameters.pParams[key] + ' ';
     }
-    paramsStr += "-p timeseries.granularity=" + params.timeseries.granularity + ' ';
+    parametersStr += "-p timeseries.granularity=" + parameters.timeseries.granularity + ' ';
 
-    if (typeof params.benchmarkname != "undefined" && params.benchmarkname !== "") {
-        var benchmarkName = params.benchmarkname.replace(/[^\w\s]/gi, '');
-        paramsStr += "-p benchmarkname=" + benchmarkName + ' ';
+    var cmd = "";
 
-        var cmd = 'cd ' + params.ycsbrootpath + ' && ./bin/ycsb ' + params.target + ' ' + params.db + ' ' + paramsStr;
+    if (typeof parameters.benchmarkname != "undefined" && parameters.benchmarkname !== "") {
+        var benchmarkName = parameters.benchmarkname.replace(/[^\w\s]/gi, '');
+        parametersStr += "-p benchmarkname=" + benchmarkName + ' ';
 
-        if (params.status) {
+        cmd = 'cd ' + parameters.ycsbrootpath + ' && ./bin/ycsb ' + parameters.target + ' ' + parameters.db + ' ' + parametersStr;
+
+        if (parameters.status) {
             cmd += '-s';
         }
-
-        executeCommandStr(cmd, params.benchmarkname);
-        res.send('[SUCCESS] Benchmarking "' + params.target + '" in progress...\n');
-    } else {
-        res.send('[ERROR] Please enter a valid Benchmark Name.\n');
     }
+
+    return cmd;
 }
 
-function executeCommandStr(cmd, benchmarkName) {
+/**
+ * Execute a command on the server and send result only to the user that need the console feedback
+ * @param cmd the command line to execute
+ * @param benchmarkName the benchmark name (identify only users that need the console feedback)
+ */
+function executeCommand(cmd, benchmarkName) {
     var child = child_process.exec(cmd);
     var client = clients[benchmarkName]; // Only emitting on the right client
 
@@ -100,61 +77,76 @@ function executeCommandStr(cmd, benchmarkName) {
 module.exports = function (app, io) {
 
     // api ---------------------------------------------------------------------
+    app.post('/cmd/launch', function (req, res) {
+        var parameters = req.body;
+        var cmd = parseParameters(parameters);
+        if (cmd !== "") {
+            executeCommand(cmd, parameters.benchmarkname);
+            res.send('[SUCCESS] Benchmarking "' + parameters.target + '" in progress...\n');
+        } else {
+            res.send('[ERROR] Please enter a valid Benchmark Name.\n');
+        }
+    });
+
     // get one benchmark by name
     app.get('/api/benchmarks/:benchmark_name', function (req, res) {
         // use mongoose to get one benchmark in the database by name
-        getBenchmarkByName(res, req.params.benchmark_name);
+        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.parameters.benchmark_name);
+        Benchmark
+            .find(function (err, benchmarks) {
+                apiReturnResult(res, err, benchmarks)
+            });
     });
 
     app.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
-        // use mongoose to get one specific operation type results from a benchmark in the database identified by name
-        getBenchmarkByNameByOperationType(res, req.params.benchmark_name, req.params.operation_type);
+        // use mongoose to get one specific operation type 
+        // results from a benchmark in the database identified by name
+        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.parameters.benchmark_name);
+        Benchmark
+            .where('operationType', req.parameters.operation_type)
+            .sort('createdAt')
+            .find(function (err, benchmarks) {
+                apiReturnResult(res, err, benchmarks)
+            });
     });
 
     app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp', function (req, res) {
         // use mongoose to get one specific operation type results 
         // from a benchmark in the database identified by name
         // from a specific date
-        getBenchmarkByNameByOperationTypeByFromDate(res, req.params.benchmark_name,
-            req.params.operation_type, parseInt(req.params.from_date_timestamp));
+        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.parameters.benchmark_name);
+        Benchmark
+            .where('operationType', req.parameters.operation_type)
+            .where('createdAt').gt(parseInt(req.parameters.from_date_timestamp))
+            .sort('createdAt')
+            .find(function (err, benchmarks) {
+                apiReturnResult(res, err, benchmarks)
+            });
     });
 
     app.get('/api/benchmarks/names', function (req, res) {
-        getCollections(res);
+        var Name = mongoose.model('Name', nameSchema);
+        Name.find(function (err, names) {
+            apiReturnResult(res, err, names)
+        });
     });
 
-    app.post('/cmd/launch', function (req, res) {
-        launchBenchmark(req, res);
+    app.delete('/api/benchmarks/:benchmark_name', function (req, res) {
+        var Name = mongoose.model('Name', nameSchema);
+        Name.db.db.dropCollection(req.parameters.benchmark_name, function (err, result) {
+            if (err) {
+                res.send(err);
+            }
+            res.send(result);
+        });
+        Name.remove({
+            name: req.parameters.benchmark_name
+        }, function (err) {
+            if (err) {
+                res.send(err);
+            }
+        });
     });
-
-    // create todo and send back all benchmarks after creation
-    /*app.post('/api/benchmarks', function (req, res) {
-
-     // create a todo, information comes from AJAX request from Angular
-     Benchmark.create({
-     text: req.body.text,
-     done: false
-     }, function (err, todo) {
-     if (err)
-     res.send(err);
-
-     // get and return all the benchmarks after you create another
-     getBenchmarkByName(res);
-     });
-
-     });*/
-
-    // delete a todo
-    /*app.delete('/api/benchmarks/:todo_id', function (req, res) {
-     Benchmark.remove({
-     _id: req.params.todo_id
-     }, function (err, todo) {
-     if (err)
-     res.send(err);
-
-     getBenchmarkByName(res);
-     });
-     });*/
 
     // application -------------------------------------------------------------
     app.get('*', function (req, res) {

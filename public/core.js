@@ -26,7 +26,7 @@ app.factory('socket', function (socketFactory) {
     return socketFactory();
 });
 
-app.run(function($rootScope, $location){
+app.run(function ($rootScope) {
     $rootScope.classView = 'view';
     $rootScope.pageTitle = 'YCSB Visualisation';
 });

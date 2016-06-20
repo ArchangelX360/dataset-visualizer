@@ -1,6 +1,6 @@
 angular.module('benchmarkController', ["highcharts-ng"])
 // inject the Benchmark service factory into our controller
-    .controller('BenchmarkController', ['$scope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$location', function ($scope, $http, Benchmarks, $routeParams, $mdSidenav, $location) {
+    .controller('BenchmarkController', ['$scope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$mdDialog', '$mdToast', '$location', function ($scope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location) {
 
         $scope.loading = true;
 
@@ -87,9 +87,10 @@ angular.module('benchmarkController', ["highcharts-ng"])
         }
 
         /**
-         * Updates all charts or initialize not initialized charts
+         * Updates all charts or initialize not initialized charts and update the benchmarks list
          */
-        function updateCharts() {
+        function updateChartView() {
+            getBenchmarkList();
             $scope.operationArray.forEach(function (operationType) {
                 var lastValueDisplayed = $scope.operationTypeToLastValueDisplayed[operationType];
                 if (!$scope.updateSemaphore[operationType])
@@ -165,7 +166,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
          * Launch the charts updating process
          */
         function launchChartUpdating() {
-            $scope.updateChartInterval = setInterval(updateCharts, 1000);
+            $scope.updateChartInterval = setInterval(updateChartView, 1000);
         }
 
         /**
@@ -289,6 +290,33 @@ angular.module('benchmarkController', ["highcharts-ng"])
 
         $scope.operationArray.forEach(initVariables);
 
+        /* Toast variables */
+        var last = {
+            bottom: false,
+            top: true,
+            left: false,
+            right: true
+        };
+        $scope.toastPosition = angular.extend({}, last);
+        $scope.getToastPosition = function () {
+            sanitizePosition();
+            return Object.keys($scope.toastPosition)
+                .filter(function (pos) {
+                    return $scope.toastPosition[pos];
+                })
+                .join(' ');
+        };
+        function sanitizePosition() {
+            var current = $scope.toastPosition;
+            if (current.bottom && last.top) current.top = false;
+            if (current.top && last.bottom) current.bottom = false;
+            if (current.right && last.left) current.left = false;
+            if (current.left && last.right) current.right = false;
+            last = angular.extend({}, current);
+        }
+
+        /* Some $scope functions */
+
         $scope.stopChartUpdating = function () {
             clearInterval($scope.updateChartInterval)
         };
@@ -303,13 +331,50 @@ angular.module('benchmarkController', ["highcharts-ng"])
             $scope.operationArray.forEach(initVariables);
         });
 
-        $scope.openLeftMenu = function () {
-            $mdSidenav('benchmarkList').toggle();
-        };
-
         $scope.goto = function (path) {
             $location.path(path);
         };
+
+        $scope.deleteBenchmark = function (ev) {
+            $scope.loading = true;
+            var confirm = $mdDialog.confirm({
+                onComplete: function afterShowAnimation() {
+                    var $dialog = angular.element(document.querySelector('md-dialog'));
+                    var $actionsSection = $dialog.find('md-dialog-actions');
+                    var $cancelButton = $actionsSection.children()[0];
+                    var $confirmButton = $actionsSection.children()[1];
+                    angular.element($confirmButton).addClass('md-raised md-warn');
+                    //angular.element($cancelButton).addClass('md-raised');
+                }
+            })
+                .title('Are you sure ?')
+                .textContent('Deletion of a benchmark is not reversible once the process is complete.')
+                .ariaLabel('Are you sure')
+                .targetEvent(ev)
+                .ok('Yes I understand the risk')
+                .cancel('No');
+            $mdDialog.show(confirm).then(function () {
+                Benchmarks.delete($scope.benchmarkName)
+                    .success(function () {
+                        getBenchmarkList();
+                        var pinTo = $scope.getToastPosition();
+                        $mdToast.show(
+                            $mdToast.simple()
+                                .textContent('Benchmark ' + $scope.benchmarkName + ' deleted.')
+                                .position(pinTo)
+                                .hideDelay(3000)
+                        );
+                        $scope.goto("/stats");
+                        $scope.loading = false;
+                    });
+            }, function () {
+                //$scope.status = 'You decided to keep your debt.';
+            });
+
+
+        };
+
+        /* View initialization */
 
         getBenchmarkList();
         initCharts();
@@ -322,38 +387,3 @@ angular.module('benchmarkController', ["highcharts-ng"])
             });
         });
     }]);
-
-
-// CREATE ==================================================================
-// when submitting the add form, send the text to the node API
-/*$scope.createBenchmark = function() {
-
- // validate the formData to make sure that something is there
- // if form is empty, nothing will happen
- if ($scope.formData.text != undefined) {
- $scope.loading = true;
-
- // call the create function from our service (returns a promise object)
- Benchmarks.create($scope.formData)
-
- // if successful creation, call our get function to get all the new benchmarks
- .success(function(data) {
- $scope.loading = false;
- $scope.formData = {}; // clear the form so our user is ready to enter another
- $scope.benchmarks = data; // assign our new list of benchmarks
- });
- }
- };
-
- // DELETE ==================================================================
- // delete a benchmark after checking it
- $scope.deleteBenchmark = function(id) {
- $scope.loading = true;
-
- Benchmarks.delete(id)
- // if successful creation, call our get function to get all the new benchmarks
- .success(function(data) {
- $scope.loading = false;
- $scope.benchmarks = data; // assign our new list of benchmarks
- });
- };*/
