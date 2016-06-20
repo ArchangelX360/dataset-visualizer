@@ -290,40 +290,10 @@ angular.module('benchmarkController', ["highcharts-ng"])
 
         $scope.operationArray.forEach(initVariables);
 
-        /* Toast variables */
-        var last = {
-            bottom: false,
-            top: true,
-            left: false,
-            right: true
-        };
-        $scope.toastPosition = angular.extend({}, last);
-        $scope.getToastPosition = function () {
-            sanitizePosition();
-            return Object.keys($scope.toastPosition)
-                .filter(function (pos) {
-                    return $scope.toastPosition[pos];
-                })
-                .join(' ');
-        };
-        function sanitizePosition() {
-            var current = $scope.toastPosition;
-            if (current.bottom && last.top) current.top = false;
-            if (current.top && last.bottom) current.bottom = false;
-            if (current.right && last.left) current.left = false;
-            if (current.left && last.right) current.right = false;
-            last = angular.extend({}, current);
-        }
-
         /* Some $scope functions */
 
         $scope.stopChartUpdating = function () {
             clearInterval($scope.updateChartInterval)
-        };
-
-        $scope.exportCSV = function (operationType) {
-            //$scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig']
-            console.log($scope.highchartCharts[operationType.toLowerCase() + 'Chart'].getCSV());
         };
 
         $scope.$on('$destroy', function () {
@@ -357,18 +327,17 @@ angular.module('benchmarkController', ["highcharts-ng"])
                 Benchmarks.delete($scope.benchmarkName)
                     .success(function () {
                         getBenchmarkList();
-                        var pinTo = $scope.getToastPosition();
                         $mdToast.show(
                             $mdToast.simple()
                                 .textContent('Benchmark ' + $scope.benchmarkName + ' deleted.')
-                                .position(pinTo)
+                                .position("top right")
                                 .hideDelay(3000)
                         );
                         $scope.goto("/stats");
                         $scope.loading = false;
                     });
             }, function () {
-                //$scope.status = 'You decided to keep your debt.';
+                // Do something if "no" is answered.
             });
 
 
