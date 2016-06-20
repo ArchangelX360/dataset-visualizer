@@ -1,6 +1,6 @@
 angular.module('benchmarkController', ["highcharts-ng"])
 // inject the Benchmark service factory into our controller
-    .controller('BenchmarkController', ['$scope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$mdDialog', '$mdToast', '$location', function ($scope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location) {
+    .controller('BenchmarkController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$mdDialog', '$mdToast', '$location', function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location) {
 
         $scope.loading = true;
 
@@ -280,6 +280,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
          */
 
         $scope.benchmarkName = $routeParams.benchmarkName;
+        $rootScope.pageTitle = 'Benchmark results';
         $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
         $scope.operationTypeToLastValueDisplayed = {}; // Map for updating only new points on charts
         $scope.highchartConfigs = {}; // Map for chart configs
@@ -349,7 +350,8 @@ angular.module('benchmarkController', ["highcharts-ng"])
         initCharts();
         launchChartUpdating();
     }])
-    .controller('BenchmarkListController', ['$scope', '$http', 'Benchmarks', function ($scope, $http, Benchmarks) {
+    .controller('BenchmarkListController', ['$scope', '$rootScope', '$http', 'Benchmarks', function ($scope, $rootScope, $http, Benchmarks) {
+        $rootScope.pageTitle = 'Select a benchmark';
         Benchmarks.getNames().success(function (nameObjects) {
             $scope.benchmarkNames = nameObjects.map(function (nameObject) {
                 return nameObject.name;

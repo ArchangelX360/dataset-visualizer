@@ -1,7 +1,7 @@
 angular.module('workloadsController', [])
 
     .controller('WorkloadsController', function ($scope, $rootScope) {
-        $rootScope.pageTitle = 'Workloads';
+        $rootScope.pageTitle = 'Manage Workloads';
         $scope.showHints = true;
 
         $scope.requestdistributions = ["uniform", "zipfian", "latest"];

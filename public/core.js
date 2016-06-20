@@ -28,6 +28,6 @@ app.factory('socket', function (socketFactory) {
 
 app.run(function ($rootScope) {
     $rootScope.classView = 'view';
-    $rootScope.pageTitle = 'YCSB Visualisation';
+    $rootScope.pageTitle = '';
 });
 
