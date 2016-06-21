@@ -7,8 +7,8 @@ angular.module('cmdService', [])
             post: function (params) {
                 return $http.post('/cmd/launch', params);
             },
-            startMemcached: function (params) {
-                return $http.post('/cmd/memcached/', params);
+            startMemcached: function () {
+                return $http.get('/cmd/memcached/');
             },
             killMemcached: function () {
                 return $http.delete('/cmd/memcached/');

@@ -3,6 +3,7 @@ var nameSchema = require('./models/name');
 var mongoose = require('mongoose');
 var database = require('../config/database'); 			// load the database config
 var child_process = require('child_process');
+var systemConfig = require('../config/system'); 			// load the database config
 
 var clients = {};
 
@@ -21,55 +22,57 @@ function apiReturnResult(res, err, objects) {
 }
 
 /**
- * Parse benchmark parameters and return the corresponding command line
+ * Parse benchmark parameters and return the corresponding parameters Array for child_process
  * @param parameters object that contains all parameters
- * @returns {string} ycsb command line to execute
+ * @returns Array parameters for child_process spawn command
  */
 function parseParameters(parameters) {
     // TODO : do a better parameters handling
-    var parametersStr = '-P ' + parameters.workloadfilepath + ' ';
+    var paramsArray = [];
+    paramsArray.push('-P');
+    paramsArray.push(systemConfig.ycsbRoot + parameters.workloadfilepath);
+
     for (var key in parameters.pParams) {
-        parametersStr += '-p ' + key + '=' + parameters.pParams[key] + ' ';
+        paramsArray.push('-p');
+        paramsArray.push(key + '=' + parameters.pParams[key]);
     }
-    parametersStr += "-p timeseries.granularity=" + parameters.timeseries.granularity + ' ';
+    paramsArray.push('-p');
+    paramsArray.push("timeseries.granularity=" + parameters.timeseries.granularity);
+    paramsArray.push('-p');
+    paramsArray.push("benchmarkname=" + parameters.benchmarkname.replace(/[^\w\s]/gi, ''));
+    paramsArray.unshift(parameters.db);
+    paramsArray.unshift(parameters.target);
 
-    var cmd = "";
-
-    if (typeof parameters.benchmarkname != "undefined" && parameters.benchmarkname !== "") {
-        var benchmarkName = parameters.benchmarkname.replace(/[^\w\s]/gi, '');
-        parametersStr += "-p benchmarkname=" + benchmarkName + ' ';
-
-        cmd = 'cd ' + parameters.ycsbrootpath + ' && ./bin/ycsb ' + parameters.target + ' ' + parameters.db + ' ' + parametersStr;
-
-        if (parameters.status) {
-            cmd += '-s';
-        }
+    if (parameters.status) {
+        paramsArray.push('-s');
     }
 
-    return cmd;
+    return paramsArray;
 }
 
 /**
  * Execute a command on the server and send result only to the user that need the console feedback
- * @param cmd the command line to execute
+ * @param program the program to execute
+ * @param params parameters for child_process spawn command
  * @param benchmarkName the benchmark name (identify only users that need the console feedback)
  */
-function executeCommand(cmd, benchmarkName) {
-    var child = child_process.exec(cmd);
+function executeCommand(program, params, benchmarkName) {
+    console.log(program);
+    console.log(params);
+    var child = child_process.spawn(program, params);
     var client = clients[benchmarkName]; // Only emitting on the right client
 
     client.emit('begin');
+
     child.stdout.on('data', function (data) {
-        client.emit('stdout', {message: data});
+        client.emit('stdout', {message: data.toString()});
     });
 
     child.stderr.on('data', function (data) {
-        console.log('stderr emitted.');
-        client.emit('stderr', {message: data});
+        client.emit('stderr', {message: data.toString()});
     });
 
     child.on('exit', function (code) {
-        //console.log('child process exited with code ' + code + '\n');
         client.emit('exit', {message: 'child process exited with code ' + code});
     });
 }
@@ -79,28 +82,29 @@ module.exports = function (app, io) {
     // api ---------------------------------------------------------------------
     app.post('/cmd/launch', function (req, res) {
         var parameters = req.body;
-        var cmd = parseParameters(parameters);
-        if (cmd !== "") {
-            executeCommand(cmd, parameters.benchmarkname);
+        if (typeof parameters.benchmarkname != "undefined" && parameters.benchmarkname !== "") {
+            var program = systemConfig.ycsbExecutable;
+            var paramsArray = parseParameters(parameters);
+            executeCommand(program, paramsArray, parameters.benchmarkname);
             res.send('[SUCCESS] Benchmarking "' + parameters.target + '" in progress...\n');
         } else {
             res.send('[ERROR] Please enter a valid Benchmark Name.\n');
         }
     });
 
-    app.post('/cmd/memcached', function (req, res) {
-        var parameters = req.body;
-        var cmd = parameters.memcachedrootpath
-            + " -m 10240 -p 11211 -u "
-            + parameters.memcacheduser
-            + " -l 127.0.0.1";
-        child_process.exec(cmd);
-        res.send('[SUCCESS] Memcached is running on 127.0.0.1:11211.\n');
+    app.get('/cmd/memcached', function (req, res) {
+        child_process.exec(systemConfig.memcachedExecutable
+            + " -m " + systemConfig.memcachedMaxMemory
+            + " -p " + systemConfig.memcachedPort
+            + " -u " + systemConfig.memcachedUser
+            + " -l " + systemConfig.memcachedAddress); // TODO : better way please
+        res.send('[SUCCESS] Memcached is running on '
+            + systemConfig.memcachedAddress + ':' + systemConfig.memcachedPort
+            + ' by ' + systemConfig.memcachedUser + '.\n');
     });
 
     app.delete('/cmd/memcached', function (req, res) {
-        var cmd = "killall memcached";
-        child_process.exec(cmd);
+        child_process.exec("killall memcached"); // TODO : better way please
         res.send('[SUCCESS] All Memcached instances are killed.\n');
     });
 
