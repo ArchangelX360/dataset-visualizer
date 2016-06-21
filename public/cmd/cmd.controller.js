@@ -20,7 +20,7 @@ angular.module('cmdController', [])
         $scope.dbs = ["memcached"];
 
         $scope.params = {
-            ycsbrootpath: "/home/titouan/Documents/YCSB/",
+            ycsbrootpath: "/home/titouan/Documents/ycsb-web-app/ycsb-0.10.0-custom-release",
             target: "load",
             benchmarkname: "",
             status: true,
@@ -32,6 +32,12 @@ angular.module('cmdController', [])
                 measurementtype: "timeseries",
                 threadcount: 1
             }
+        };
+
+        /* FOR TESTING ONLY */
+        $scope.memcachedParams = {
+            memcachedrootpath: "/usr/bin/memcached",
+            memcacheduser: "titouan"
         };
 
         socket.on('begin', function () {
@@ -62,7 +68,7 @@ angular.module('cmdController', [])
         };
 
         $scope.startMemcached = function () {
-            Cmds.startMemcached()
+            Cmds.startMemcached($scope.memcachedParams)
                 .success(function (data) {
                     document.getElementById('std-container').innerHTML += data;
                 })

@@ -161,10 +161,36 @@
                                    ng-href="#/stats/{{params.benchmarkname}}" ng-if="isLaunched">Observe Latency
                         </md-button>
                     </div>
+                </form>
+                <form name="memcachedFrom">
                     <div flex layout="column" layout-align="center start">
                         <div flex layout="row">
                             <h1 class="md-headline">FOR TESTING ONLY</h1>
                         </div>
+
+                        <md-input-container>
+                            <label for="memcachedrootpath-input">Memcached executable path</label>
+                            <input id="memcachedrootpath-input" type="text"
+                                   ng-model="memcachedParams.memcachedrootpath"
+                                   name="memcachedrootpath" required/>
+                            <div ng-messages="memcachedFrom.memcachedrootpath.$error">
+                                <div ng-message="required">This is required!</div>
+                            </div>
+                            <div class="hint" ng-if="(showHints && !memcachedFrom.memcachedrootpath.$error.required)">
+                                Absolute path to the memcached executable
+                            </div>
+                        </md-input-container>
+                        <md-input-container>
+                            <label for="memcacheduser-input">YCSB Root Filepath</label>
+                            <input id="memcacheduser-input" type="text" ng-model="memcachedParams.memcacheduser"
+                                   name="memcacheduser" required/>
+                            <div ng-messages="memcachedFrom.memcacheduser.$error">
+                                <div ng-message="required">This is required!</div>
+                            </div>
+                            <div class="hint" ng-if="(showHints && !memcachedFrom.memcacheduser.$error.required)">
+                                User which will launch memcached
+                            </div>
+                        </md-input-container>
                         <div flex layout="row" layout-align="center center">
                             <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Start Memcached"
                                        ng-click="startMemcached()">Start Memcached

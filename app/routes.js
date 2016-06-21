@@ -88,8 +88,12 @@ module.exports = function (app, io) {
         }
     });
 
-    app.get('/cmd/memcached', function (req, res) {
-        var cmd = "/usr/local/memcached/bin/memcached -m 10240 -p 11211 -u titouan -l 127.0.0.1";
+    app.post('/cmd/memcached', function (req, res) {
+        var parameters = req.body;
+        var cmd = parameters.memcachedrootpath
+            + " -m 10240 -p 11211 -u "
+            + parameters.memcacheduser
+            + " -l 127.0.0.1";
         child_process.exec(cmd);
         res.send('[SUCCESS] Memcached is running on 127.0.0.1:11211.\n');
     });
