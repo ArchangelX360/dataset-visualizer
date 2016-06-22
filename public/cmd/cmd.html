@@ -136,9 +136,13 @@
                         <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
                                    ng-click="launchCmd()">Launch Benchmark
                         </md-button>
+                        <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Clear Console"
+                                   ng-click="clearConsole()">Clear Console
+                        </md-button>
                         <md-button class="md-raised md-accent md-primary md-button md-ink-ripple"
                                    aria-label="Observe Latency"
-                                   ng-href="#/stats/{{params.benchmarkname}}" ng-if="isLaunched">Observe Latency
+                                   ng-href="#/stats/{{params.benchmarkname}}"
+                                   ng-if="(isLaunched && params.pParams.measurementtype == 'frontend')">Observe Latency
                         </md-button>
                     </div>
                 </form>

@@ -68,6 +68,10 @@ angular.module('cmdController', [])
             );
         };
 
+        $scope.clearConsole = function () {
+            document.getElementById('std-container').innerHTML = "";
+        };
+
         $scope.startMemcached = function () {
             Cmds.startMemcached()
                 .success(function (data) {
