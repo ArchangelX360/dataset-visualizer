@@ -57,8 +57,6 @@ function parseParameters(parameters) {
  * @param benchmarkName the benchmark name (identify only users that need the console feedback)
  */
 function executeCommand(program, params, benchmarkName) {
-    console.log(program);
-    console.log(params);
     var child = child_process.spawn(program, params);
     var client = clients[benchmarkName]; // Only emitting on the right client
 

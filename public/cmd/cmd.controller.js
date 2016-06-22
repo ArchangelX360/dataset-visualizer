@@ -35,6 +35,7 @@ angular.module('cmdController', [])
 
         socket.on('begin', function () {
             $scope.isFinished = false;
+            $scope.isLaunched = true;
         });
 
         socket.on('stderr', function (data) {
@@ -51,7 +52,6 @@ angular.module('cmdController', [])
         });
 
         $scope.launchCmd = function () {
-            $scope.isLaunched = true;
             socket.emit('authentication', $scope.params.benchmarkname,
                 Cmds.post($scope.params)
                     .success(function (data) {
