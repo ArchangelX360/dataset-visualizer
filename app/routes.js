@@ -30,7 +30,7 @@ function parseParameters(parameters) {
     // TODO : do a better parameters handling
     var paramsArray = [];
     paramsArray.push('-P');
-    paramsArray.push(systemConfig.ycsbRoot + parameters.workloadfilepath);
+    paramsArray.push(systemConfig.workloadFolder + parameters.workloadfile);
 
     for (var key in parameters.pParams) {
         paramsArray.push('-p');

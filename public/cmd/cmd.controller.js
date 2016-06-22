@@ -23,7 +23,7 @@ angular.module('cmdController', [])
             target: "load",
             benchmarkname: "",
             status: true,
-            workloadfilepath: "workloads/workloadaweb",
+            workloadfile: "workloadaweb",
             db: "memcached",
             timeseries: {granularity: 1},
             pParams: {
