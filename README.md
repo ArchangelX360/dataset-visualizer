@@ -65,7 +65,7 @@ For now, only local MongoDB have been tested. But it should work fine with a rem
 
 #### YCSB & benchmarked database
 
-You can configure the absolute path to YCSB root and YCSB python executable in the  _system.js_ file.
+You can configure the absolute path of YCSB stuff in the  _system.js_ file.
 
 ``` json
 {
