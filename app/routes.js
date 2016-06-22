@@ -167,6 +167,20 @@ module.exports = function (app, io) {
         });
     });
 
+    app.get('/api/databases/', function (req, res) {
+        var dbs = [];
+        fs.readFile(systemConfig.ycsbExecutable, 'utf8', function (err, content) {
+            var regexp = /(?:.*"(.*)".*"(com\.yahoo\.ycsb\.(?:db|BasicDB).*)",*[\r\n])/gi;
+            var result = content.match(regexp);
+            result.forEach(function (line) {
+                var myRegexp = /.*"(.*)".*:.*"(?:.*)".*/g;
+                var match = myRegexp.exec(line);
+                dbs.push(match[1]);
+            });
+            apiReturnResult(res, err, dbs);
+        });
+    });
+
     app.get('/api/workloads/', function (req, res) {
         var files = fs.readdirSync(systemConfig.workloadFolder);
         res.send(files);
