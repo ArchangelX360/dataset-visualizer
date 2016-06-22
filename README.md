@@ -98,6 +98,16 @@ Then go to <http://localhost:5555> !
 YCSB "visualisation" version should be available for all kind of database regarding of its implementation.
 It is currently tested only with memcached.
 
+### Make it work with custom things
+
+#### Custom db adapter
+
+TODO
+
+#### Other DB than MongoDB
+
+TODO
+
 ## Limitations
 
 ### Makes YCSB a bit slower
@@ -106,13 +116,3 @@ This frontend slows YCSB a bit because of the real time DB hook.
 
 It slows YCSB by **less than 10% operations by second**, tested on Workload A loads making an average of 15 tries.
 
-
-## Make it work with custom things
-
-### Custom db adapter
-
-TODO
-
-### Other DB than MongoDB
-
-TODO
