@@ -26,12 +26,3 @@ angular.module('benchmarkService', [])
 			}
 		}
 	}]);
-
-
-/*,
- create : function(benchmarkData) {
- return $http.post('/api/benchmarks', benchmarkData);
- },
- delete : function(id) {
- return $http.delete('/api/benchmarks/' + id);
- }*/

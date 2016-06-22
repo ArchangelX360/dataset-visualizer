@@ -26,29 +26,6 @@ this repo. In the future, we hope YCSB will accept our pull-request.
 
 ## Configuration
 
-### YCSB visualisation
-
-#### New parameters
-
-We added two parameters to YCSB:
-
-* **benchmarkname=my_bench_name** is the name of the benchmark's table in the storage database. Be careful, if you use this name for two different benchmarks, the result of the second will be considered as new results for the first one.
-* **frontendhook=boolean** true for activating the storage database hook and fill it with benchmark results, if false the application won't make graphs of your results.
-
-#### Storage database
-
-In the _com.yahoo.ycsb.frontend.MongoHandler_ class you will find MongoDB parameters for YCSB:
-
-``` java
-    private static final String DB_NAME = "dbMeasurements";
-    private static final String DB_HOST = "localhost";
-    private static final int DB_PORT = 27017;
-```
-
-For now, only local MongoDB have been tested. But it should work fine with a remote one.
-
-### Server
-
 You will find configuration files under _config/_
 
 #### Storage database
@@ -57,7 +34,7 @@ You can configure your MongoDB URL in the _database.js_ file.
 
 ``` javascript
 {
-    localUrl: 'mongodb://localhost/dbMeasurements'
+    localUrl: 'mongodb://localhost/db_name'
 }
 ```
 

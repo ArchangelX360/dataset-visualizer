@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var database = require('../config/database'); 			// load the database config
 var child_process = require('child_process');
 var systemConfig = require('../config/system'); 			// load the database config
+var fs = require('fs');
 
 var clients = {};
 
@@ -163,6 +164,30 @@ module.exports = function (app, io) {
             if (err) {
                 res.send(err);
             }
+        });
+    });
+
+    app.get('/api/workloads/', function (req, res) {
+        var files = fs.readdirSync(systemConfig.workloadFolder);
+        res.send(files);
+    });
+
+    app.get('/api/workloads/:filename', function (req, res) {
+        fs.readFile(systemConfig.workloadFolder + req.params.filename, 'utf8', function (err, content) {
+            apiReturnResult(res, err, content)
+        });
+    });
+
+    app.post('/api/workloads/', function (req, res) {
+        var parameters = req.body;
+        fs.writeFile(systemConfig.workloadFolder + parameters.filename, parameters.content, function (err) {
+            apiReturnResult(res, err, "File saved.")
+        });
+    });
+
+    app.delete('/api/workloads/:filename', function (req, res) {
+        fs.unlink(systemConfig.workloadFolder + req.params.filename, function (err) {
+            apiReturnResult(res, err, "File deleted.")
         });
     });
 

@@ -9,6 +9,7 @@ var app = angular.module('visualisationYCSB', [
     'frontpageController',
     'workloadsController',
     'benchmarkService',
+    'workloadService',
     'cmdService',
     'btford.socket-io'
 ]);

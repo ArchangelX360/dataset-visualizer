@@ -1,10 +1,11 @@
 angular.module('cmdController', [])
 // inject the Benchmark service factory into our controller
-    .controller('CmdController', ['$scope', '$rootScope', '$http', 'Cmds', 'socket', function ($scope, $rootScope, $http, Cmds, socket) {
+    .controller('CmdController', ['$scope', '$rootScope', '$http', 'Cmds', 'socket', 'Workloads', function ($scope, $rootScope, $http, Cmds, socket, Workloads) {
 
         $rootScope.pageTitle = "Launch Benchmark";
 
         $scope.showHints = true;
+        $scope.workloads = [];
 
         socket.removeAllListeners();
         $scope.$on('$destroy', function (event) {
@@ -85,4 +86,13 @@ angular.module('cmdController', [])
                     document.getElementById('std-container').innerHTML += data;
                 })
         };
+
+        $scope.getWorkloads = function getWorkloads() {
+            Workloads.getNames().success(function (names) {
+                $scope.workloads = names;
+                $scope.loading = false;
+            });
+        };
+
+        $scope.getWorkloads();
     }]);

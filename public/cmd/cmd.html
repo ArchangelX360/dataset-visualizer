@@ -87,21 +87,11 @@
                         </div>
 
                         <div flex layout="column" class="form-column">
-
                             <md-input-container>
-                                <label for="workloadfile-input">Workload Filepath</label>
-                                <input id="workloadfile-input" type="text" name="workloadfile"
-                                       ng-model="params.workloadfile"
-                                       required/>
-                                <div ng-messages="paramsForm.workloadfile.$error">
-                                    <div ng-message="required">This is required!</div>
-                                </div>
-                                <md-tooltip md-direction="bottom">
-                                    This path is relative to the workloadFolder path in the system config file
-                                </md-tooltip>
-                                <div class="hint" ng-if="(showHints && !paramsForm.workloadfile.$error.required)">
-                                    Path to the workload to use
-                                </div>
+                                <label for="workloadfile-select">Workload file</label>
+                                <md-select id="workloadfile-select" ng-model="params.workloadfile" required>
+                                    <md-option ng-value="w" ng-repeat="w in workloads">{{w}}</md-option>
+                                </md-select>
                             </md-input-container>
 
                             <md-input-container>
