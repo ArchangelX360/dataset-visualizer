@@ -14,8 +14,17 @@ angular.module('cmdController', [])
         $scope.isFinished = true;
         $scope.isLaunched = false;
 
-        // TODO : only timeseries are supported for now
-        $scope.measurementtypes = ["timeseries"];
+        $scope.measurementtypes = [
+            "frontend",
+            "histogram",
+            "hdrhistogram",
+            "hdrhistogram+histogram",
+            "hdrhistogram+raw",
+            "timeseries",
+            "raw"
+        ];
+        // TODO : add histogram and stuff parameters ?
+
         // TODO : only memcached is supported for now
         $scope.dbs = ["memcached"];
 
@@ -27,8 +36,7 @@ angular.module('cmdController', [])
             db: "memcached",
             timeseries: {granularity: 1},
             pParams: {
-                frontendhook: true,
-                measurementtype: "timeseries",
+                measurementtype: "frontend",
                 threadcount: 1
             }
         };
