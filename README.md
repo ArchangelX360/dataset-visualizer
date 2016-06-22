@@ -6,7 +6,7 @@ A web application which communicate with the visualisation part of Yahoo! Cloud 
 
 ### Core programs
 
-You will need Java 8, MongoDB and Maven to use this application :
+You will need Java 8 and MongoDB to use this application :
 
     sudo apt-get install openjdk-8-jre mongodb
 
@@ -55,7 +55,7 @@ You will find configuration files under _config/_
 
 You can configure your MongoDB URL in the _database.js_ file.
 
-``` json
+``` javascript
 {
     localUrl: 'mongodb://localhost/dbMeasurements'
 }
@@ -67,7 +67,7 @@ For now, only local MongoDB have been tested. But it should work fine with a rem
 
 You can configure the absolute path of YCSB stuff in the  _system.js_ file.
 
-``` json
+``` javascript
 {
     ycsbExecutable: '/absolute/path/to/ycsb/python/executable',
     ycsbRoot: '/absolute/path/to/ycsb/root/folder/',
