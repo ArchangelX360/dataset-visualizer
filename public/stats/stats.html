@@ -9,6 +9,15 @@
     <h1 class="md-display-1">Benchmark results of "{{benchmarkName}}"</h1>
 </div>
 
+<div flex layout="row" layout-align="center center">
+    <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Stop chart updates"
+               ng-click="stopChartUpdating()">Stop chart updates
+    </md-button>
+    <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Delete benchmark"
+               ng-click="deleteBenchmark($event)">Delete benchmark
+    </md-button>
+</div>
+
 <div id="highcharts-container" flex layout="column" layout-align="center center">
     <!-- TODO : replace with Angular ng-repeat but it doesn't seem to work for config attribute -->
     <div flex layout="column" layout-gt-md="row" layout-align="center center">
@@ -27,13 +36,4 @@
         <highchart id="scan-chart" config="highchartConfigs.scanChartConfig"
                    ng-if="highchartConfigs.scanChartConfig.title.text !== 'default config'"></highchart>
     </div>
-</div>
-
-<div flex layout="row" layout-align="center center">
-    <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Stop chart updates"
-               ng-click="stopChartUpdating()">Stop chart updates
-    </md-button>
-    <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Delete benchmark"
-               ng-click="deleteBenchmark($event)">Delete benchmark
-    </md-button>
 </div>

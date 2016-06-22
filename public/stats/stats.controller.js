@@ -19,22 +19,22 @@ angular.module('benchmarkController', ["highcharts-ng"])
             });
         }
 
+        function updateAverage(average, size, newValue) {
+            return (size * average + newValue) / (size + 1);
+        }
+
         /**
          * Create an average serie from a value and an original serie
          * @param serie the original serie of which we want an average serie
          * @returns {{name: string, data: *}} the average Highchart serie
          */
-        function createAverageSerie(serie) {
-            var total = serie.data.reduce(function (previous, current) {
-                return previous + current[1];
-            }, 0);
-            var average = total / serie.data.length;
-            var averageSerieData = serie.data.map(function (point) {
-                return [point[0], average];
-            });
+        function createAverageSerie(serie, value) {
+            // TODO : tester si juste premier et dernier point ne suffise pas
             return {
                 name: 'Average ' + serie.name,
-                data: averageSerieData
+                data: serie.data.map(function (point) {
+                    return [point[0], value];
+                })
             };
         }
 
@@ -68,13 +68,18 @@ angular.module('benchmarkController', ["highcharts-ng"])
                 .success(function (records) {
                     if (records.length > 0) {
                         var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
+                        var average = $scope.highchartConfigs[chartConfigVariableName].series[1].data[0][1];
+
                         records.forEach(function (point) {
+                            average = updateAverage(average,
+                                $scope.highchartConfigs[chartConfigVariableName].series[0].data.length, point.latency);
                             addPoint($scope.highchartConfigs[chartConfigVariableName],
                                 [point.createdAt, point.latency], 0);
                         });
+                        
                         // updating average serie
                         $scope.highchartConfigs[chartConfigVariableName].series[1]
-                            = createAverageSerie($scope.highchartConfigs[chartConfigVariableName].series[0]);
+                            = createAverageSerie($scope.highchartConfigs[chartConfigVariableName].series[0], average);
                         // updating timestamps
                         $scope.operationTypeToLastValueDisplayed[operationType] = records[records.length - 1];
                         console.log(operationType + " chart updated !");
@@ -134,8 +139,13 @@ angular.module('benchmarkController', ["highcharts-ng"])
                             name: operationType + " latency",
                             data: convertToSerie(records)
                         };
+
                         // We create the HighChart average serie of the operationType
-                        var averageSerie = createAverageSerie(serie);
+                        var total = serie.data.reduce(function (previous, current) {
+                            return previous + current[1];
+                        }, 0);
+                        var average = total / serie.data.length;
+                        var averageSerie = createAverageSerie(serie, average);
 
                         // We save the last operation timestamp for future updates
                         $scope.operationTypeToLastValueDisplayed[operationType] = records[records.length - 1];
