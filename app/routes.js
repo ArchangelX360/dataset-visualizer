@@ -6,7 +6,16 @@ var child_process = require('child_process');
 var systemConfig = require('../config/system'); 			// load the database config
 var fs = require('fs');
 var psTree = require('ps-tree');
+var clients = {};
+var memcachedChild = null;
+/* FOR TESTING ONLY */
 
+/**
+ * Kill a process
+ * @param pid the process to kill pid
+ * @param signal the killing signal, default SIGKILL
+ * @param callback the callback function
+ */
 var kill = function (pid, signal, callback) {
     signal = signal || 'SIGKILL';
     callback = callback || function () {
@@ -37,28 +46,26 @@ var kill = function (pid, signal, callback) {
     }
 };
 
-var clients = {};
-
 /**
  * Default return fonction of the API for Mongoose queries
  * @param res result of the request
  * @param err errors of the mongoose query
  * @param objects the objects receive by the mongoose query
  */
-function apiReturnResult(res, err, objects) {
+var apiReturnResult = function (res, err, objects) {
     // if there is an error retrieving, send the error. nothing after res.send(err) will execute
     if (err) {
         res.send('[ERROR] ' + err + '.\n');
     }
     res.json(objects);
-}
+};
 
 /**
  * Parse benchmark parameters and return the corresponding parameters Array for child_process
  * @param parameters object that contains all parameters
  * @returns Array parameters for child_process spawn command
  */
-function parseParameters(parameters) {
+var parseParameters = function (parameters) {
     var paramsArray = [];
     paramsArray.push('-P');
     paramsArray.push(systemConfig.workloadFolder + parameters.workloadfile);
@@ -77,7 +84,7 @@ function parseParameters(parameters) {
     }
 
     return paramsArray;
-}
+};
 
 /**
  * Execute a command on the server and send result only to the user that need the console feedback
@@ -85,7 +92,7 @@ function parseParameters(parameters) {
  * @param params parameters for child_process spawn command
  * @param benchmarkName the benchmark name (identify only users that need the console feedback)
  */
-function executeCommand(program, params, benchmarkName) {
+var executeCommand = function (program, params, benchmarkName) {
     var child = child_process.spawn(program, params);
     var client = clients[benchmarkName]; // Only emitting on the right client
 
@@ -95,7 +102,7 @@ function executeCommand(program, params, benchmarkName) {
         kill(child.pid);
         console.log("Client killed the benchmark.");
     });
-    
+
     child.stdout.on('data', function (data) {
         client.emit('stdout', {message: data.toString()});
     });
@@ -108,11 +115,12 @@ function executeCommand(program, params, benchmarkName) {
         client.emit('exit', {message: 'child process exited with code ' + code});
     });
 
-}
+};
 
 module.exports = function (app, io) {
 
-    // api ---------------------------------------------------------------------
+    /* Command API */
+
     app.post('/cmd/launch', function (req, res) {
         var parameters = req.body;
         if (typeof parameters.benchmarkname != "undefined" && parameters.benchmarkname !== "") {
@@ -125,25 +133,10 @@ module.exports = function (app, io) {
         }
     });
 
-    app.get('/cmd/memcached', function (req, res) {
-        child_process.exec(systemConfig.memcachedExecutable
-            + " -m " + systemConfig.memcachedMaxMemory
-            + " -p " + systemConfig.memcachedPort
-            + " -u " + systemConfig.memcachedUser
-            + " -l " + systemConfig.memcachedAddress); // TODO : better way please
-        res.send('[SUCCESS] Memcached is running on '
-            + systemConfig.memcachedAddress + ':' + systemConfig.memcachedPort
-            + ' by ' + systemConfig.memcachedUser + '.\n');
-    });
+    /* Benchmark API */
 
-    app.delete('/cmd/memcached', function (req, res) {
-        child_process.exec("killall memcached"); // TODO : better way please
-        res.send('[SUCCESS] All Memcached instances are killed.\n');
-    });
-
-    // get one benchmark by name
+    // get a benchmark by name
     app.get('/api/benchmarks/:benchmark_name', function (req, res) {
-        // use mongoose to get one benchmark in the database by name
         var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
         Benchmark
             .find(function (err, benchmarks) {
@@ -151,9 +144,8 @@ module.exports = function (app, io) {
             });
     });
 
+    // get benchmark results by operation type
     app.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
-        // use mongoose to get one specific operation type 
-        // results from a benchmark in the database identified by name
         var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
         Benchmark
             .where('operationType', req.params.operation_type)
@@ -163,10 +155,8 @@ module.exports = function (app, io) {
             });
     });
 
+    // get benchmark results by operation type from a specified date
     app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp', function (req, res) {
-        // use mongoose to get one specific operation type results 
-        // from a benchmark in the database identified by name
-        // from a specific date
         var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
         Benchmark
             .where('operationType', req.params.operation_type)
@@ -177,6 +167,7 @@ module.exports = function (app, io) {
             });
     });
 
+    // get all benchmark names
     app.get('/api/benchmarks/names', function (req, res) {
         var Name = mongoose.model('Name', nameSchema);
         Name.find(function (err, names) {
@@ -184,6 +175,7 @@ module.exports = function (app, io) {
         });
     });
 
+    // delete a benchmark
     app.delete('/api/benchmarks/:benchmark_name', function (req, res) {
         var Name = mongoose.model('Name', nameSchema);
         Name.db.db.dropCollection(req.params.benchmark_name, function (err, result) {
@@ -201,6 +193,9 @@ module.exports = function (app, io) {
         });
     });
 
+    /* Databases API */
+
+    // get all databases names
     app.get('/api/databases/', function (req, res) {
         var dbs = [];
         fs.readFile(systemConfig.ycsbExecutable, 'utf8', function (err, content) {
@@ -215,38 +210,75 @@ module.exports = function (app, io) {
         });
     });
 
+    /* Workloads API */
+
+    // get all workloads filenames
     app.get('/api/workloads/', function (req, res) {
         var files = fs.readdirSync(systemConfig.workloadFolder);
         res.send(files);
     });
 
+    // get workload content
     app.get('/api/workloads/:filename', function (req, res) {
         fs.readFile(systemConfig.workloadFolder + req.params.filename, 'utf8', function (err, content) {
             apiReturnResult(res, err, content)
         });
     });
 
+    // create a workload
     app.post('/api/workloads/', function (req, res) {
         var parameters = req.body;
         fs.writeFile(systemConfig.workloadFolder + parameters.filename.replace(/[^a-zA-Z0-9\-\_]/gi, ''),
             parameters.content, function (err) {
-            apiReturnResult(res, err, "File saved.")
-        });
+                apiReturnResult(res, err, "File saved.")
+            });
     });
 
+    // delete a workload
     app.delete('/api/workloads/:filename', function (req, res) {
         fs.unlink(systemConfig.workloadFolder + req.params.filename, function (err) {
             apiReturnResult(res, err, "File deleted.")
         });
     });
 
-    // application -------------------------------------------------------------
+
+    /* FOR TESTING ONLY */
+
+    app.get('/cmd/memcached', function (req, res) {
+        var parameters = [];
+        parameters.push("-m");
+        parameters.push(systemConfig.memcachedMaxMemory);
+        parameters.push("-p");
+        parameters.push(systemConfig.memcachedPort);
+        parameters.push("-u");
+        parameters.push(systemConfig.memcachedUser);
+        parameters.push("-l");
+        parameters.push(systemConfig.memcachedAddress);
+        memcachedChild = child_process.spawn(systemConfig.memcachedExecutable, parameters);
+        res.send('[SUCCESS] Memcached is running on '
+            + systemConfig.memcachedAddress + ':' + systemConfig.memcachedPort
+            + ' by ' + systemConfig.memcachedUser + '.\n');
+    });
+
+    app.delete('/cmd/memcached', function (req, res) {
+        var response = '[SUCCESS] Your memcached instance is killed.\n';
+        if (memcachedChild)
+            kill(memcachedChild.pid);
+        else
+            response = '[ERROR] No instance to kill.\n';
+        res.send(response);
+    });
+
+
+    /* Application */
+
     app.get('*', function (req, res) {
         res.sendFile(__dirname + '/public/index.html'); // load the single view file 
         // (angular will handle the page changes on the front-end)
     });
 
-    // socket ------------------------------------------------------------------
+    /* Sockets */
+
     io.sockets.on('connection', function (socket) {
         console.log('Client connected with id : ' + socket.id);
 
@@ -259,6 +291,5 @@ module.exports = function (app, io) {
             console.log('Client disconnected with id : ' + socket.id);
         });
     });
-
 
 };
