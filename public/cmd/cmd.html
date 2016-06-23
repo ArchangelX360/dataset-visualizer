@@ -117,8 +117,9 @@
                                      style="margin-bottom:-45px; color: rgb(221,44,0)">
                                     Frontend charts won't be generated with this type!
                                 </div>
-                                <md-tooltip md-direction="bottom">
-                                    Specific parameters must be tweaked in the workload file
+                                <md-tooltip md-direction="bottom"
+                                            ng-if="(params.pParams.measurementtype !== 'frontend')">
+                                    Specific type measurement parameters must be tweaked in the workload file
                                 </md-tooltip>
                             </md-input-container>
                         </div>
@@ -135,7 +136,7 @@
                         <md-button class="md-raised md-accent md-primary md-button md-ink-ripple"
                                    aria-label="Observe Latency"
                                    ng-href="#/stats/{{params.benchmarkname}}"
-                                   ng-if="(isLaunched && params.pParams.measurementtype == 'frontend')">Observe Latency
+                                   ng-if="(isLaunched && params.pParams.measurementtype === 'frontend')">Observe Latency
                         </md-button>
                     </div>
                 </form>
