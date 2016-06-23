@@ -5,6 +5,37 @@ var database = require('../config/database'); 			// load the database config
 var child_process = require('child_process');
 var systemConfig = require('../config/system'); 			// load the database config
 var fs = require('fs');
+var psTree = require('ps-tree');
+
+var kill = function (pid, signal, callback) {
+    signal = signal || 'SIGKILL';
+    callback = callback || function () {
+        };
+    var killTree = true;
+    if (killTree) {
+        psTree(pid, function (err, children) {
+            [pid].concat(
+                children.map(function (p) {
+                    return p.PID;
+                })
+            ).forEach(function (tpid) {
+                try {
+                    process.kill(tpid, signal)
+                }
+                catch (ex) {
+                }
+            });
+            callback();
+        });
+    } else {
+        try {
+            process.kill(pid, signal)
+        }
+        catch (ex) {
+        }
+        callback();
+    }
+};
 
 var clients = {};
 
@@ -60,6 +91,11 @@ function executeCommand(program, params, benchmarkName) {
 
     client.emit('begin');
 
+    client.on('kill', function () {
+        kill(child.pid);
+        console.log("Client killed the benchmark.");
+    });
+    
     child.stdout.on('data', function (data) {
         client.emit('stdout', {message: data.toString()});
     });
@@ -71,6 +107,7 @@ function executeCommand(program, params, benchmarkName) {
     child.on('exit', function (code) {
         client.emit('exit', {message: 'child process exited with code ' + code});
     });
+
 }
 
 module.exports = function (app, io) {

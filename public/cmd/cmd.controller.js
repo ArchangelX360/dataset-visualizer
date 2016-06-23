@@ -72,6 +72,7 @@ angular.module('cmdController', [])
 
             socket.on('exit', function (data) {
                 $scope.isFinished = true;
+                $scope.isLaunched = false;
                 appendConsole("<span class='exit'>" + data.message + "</span>");
             });
 
@@ -84,6 +85,10 @@ angular.module('cmdController', [])
                             appendConsole(data)
                         })
                 );
+            };
+
+            $scope.killBenchmark = function () {
+                socket.emit('kill');
             };
 
             $scope.clearConsole = function () {
