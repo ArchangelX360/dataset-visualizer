@@ -13,7 +13,7 @@ angular.module('cmdController', [])
             $rootScope.pageTitle = "Launch Benchmark";
 
             $scope.isFinished = true;
-            $scope.isLaunched = false;
+            $scope.hasBeenLaunched = false;
             $scope.showHints = true;
             $scope.workloads = [];
             $scope.dbs = [];
@@ -58,7 +58,7 @@ angular.module('cmdController', [])
 
             socket.on('begin', function () {
                 $scope.isFinished = false;
-                $scope.isLaunched = true;
+                $scope.hasBeenLaunched = true;
             });
 
             socket.on('stderr', function (data) {
@@ -72,7 +72,6 @@ angular.module('cmdController', [])
 
             socket.on('exit', function (data) {
                 $scope.isFinished = true;
-                $scope.isLaunched = false;
                 appendConsole("<span class='exit'>" + data.message + "</span>");
             });
 
