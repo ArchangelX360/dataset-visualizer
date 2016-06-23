@@ -89,7 +89,8 @@
                         <div flex layout="column" class="form-column">
                             <md-input-container>
                                 <label for="workloadfile-select">Workload file</label>
-                                <md-select id="workloadfile-select" ng-model="params.workloadfile" required>
+                                <md-select id="workloadfile-select" ng-model="params.workloadfile" required
+                                           ng-change="getMeasurementType()">
                                     <md-option ng-value="w" ng-repeat="w in workloads">{{w}}</md-option>
                                 </md-select>
                             </md-input-container>
@@ -100,7 +101,7 @@
                                     <md-option ng-value="db" ng-repeat="db in dbs">{{db}}</md-option>
                                 </md-select>
                             </md-input-container>
-                            <md-input-container>
+                            <md-input-container style="margin-bottom: 40px;">
                                 <label for="measurementtype-input">Measurement Type</label>
                                 <md-select id="measurementtype-input" ng-model="params.pParams.measurementtype"
                                            required>
@@ -109,15 +110,17 @@
                                         measurementtype }} measurement
                                     </md-option>
                                 </md-select>
+                                <div class="hint" ng-if="showHints" style="margin-bottom:-25px;">This will override the
+                                    workload parameter, if different
+                                </div>
+                                <div class="hint" ng-if="(showHints && params.pParams.measurementtype !=='frontend')"
+                                     style="margin-bottom:-45px; color: rgb(221,44,0)">
+                                    Frontend charts won't be generated with this type!
+                                </div>
+                                <md-tooltip md-direction="bottom">
+                                    Specific parameters must be tweaked in the workload file
+                                </md-tooltip>
                             </md-input-container>
-                            <div ng-show="(params.pParams.measurementtype == 'timeseries')">
-                                <label for="timeseriesgranularity-slider">Timeseries granularity</label>
-                                <md-slider-container>
-                                    <md-slider id="timeseriesgranularity-slider" aria-label="Timeseries granularity"
-                                               ng-model="params.timeseries.granularity" min="1" max="1000">
-                                    </md-slider>
-                                </md-slider-container>
-                            </div>
                         </div>
 
                     </div>

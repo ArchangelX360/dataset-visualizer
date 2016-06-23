@@ -3,20 +3,20 @@ angular.module('cmdController', [])
     .controller('CmdController', ['$scope', '$rootScope', '$http', 'Cmds', 'socket', 'Workloads', 'Databases',
         function ($scope, $rootScope, $http, Cmds, socket, Workloads, Databases) {
 
-            $rootScope.pageTitle = "Launch Benchmark";
-
-            $scope.showHints = true;
-            $scope.workloads = [];
-            $scope.dbs = [];
-
+            /* Socket reinitialisation */
             socket.removeAllListeners();
             $scope.$on('$destroy', function (event) {
                 socket.removeAllListeners();
             });
 
+            /* Variables initialisation */
+            $rootScope.pageTitle = "Launch Benchmark";
+
             $scope.isFinished = true;
             $scope.isLaunched = false;
-
+            $scope.showHints = true;
+            $scope.workloads = [];
+            $scope.dbs = [];
             $scope.measurementtypes = [
                 "frontend",
                 "histogram",
@@ -26,21 +26,35 @@ angular.module('cmdController', [])
                 "timeseries",
                 "raw"
             ];
-            // TODO : add histogram and stuff parameters ?
-
-
             $scope.params = {
                 target: "load",
                 benchmarkname: "",
                 status: true,
-                workloadfile: "workloadaweb",
+                workloadfile: "",
                 db: "memcached",
-                timeseries: {granularity: 1},
                 pParams: {
-                    measurementtype: "frontend",
+                    measurementtype: "",
                     threadcount: 1
                 }
             };
+
+            /* Function definitions */
+
+            function appendConsole(data) {
+                var container = document.getElementById('std-container');
+                container.innerHTML += data;
+                container.scrollTop = container.scrollHeight;
+            }
+
+            function getDatabases() {
+                $scope.loading = true;
+                Databases.get().success(function (names) {
+                    $scope.dbs = names;
+                    $scope.loading = false;
+                });
+            }
+
+            /* Socket listeners */
 
             socket.on('begin', function () {
                 $scope.isFinished = false;
@@ -48,61 +62,81 @@ angular.module('cmdController', [])
             });
 
             socket.on('stderr', function (data) {
-                document.getElementById('std-container').innerHTML += "<span class='stderr'>" + data.message + "</span>";
+                appendConsole("<span class='stderr'>" + data.message + "</span>");
+
             });
 
             socket.on('stdout', function (data) {
-                document.getElementById('std-container').innerHTML += "<span class='stdout'>" + data.message + "</span>";
+                appendConsole("<span class='stdout'>" + data.message + "</span>");
             });
 
             socket.on('exit', function (data) {
                 $scope.isFinished = true;
-                document.getElementById('std-container').innerHTML += "<span class='exit'>" + data.message + "</span>";
+                appendConsole("<span class='exit'>" + data.message + "</span>");
             });
+
+            /* Scope functions */
 
             $scope.launchCmd = function () {
                 socket.emit('authentication', $scope.params.benchmarkname,
                     Cmds.post($scope.params)
                         .success(function (data) {
-                            document.getElementById('std-container').innerHTML += data;
+                            appendConsole(data)
                         })
                 );
             };
 
             $scope.clearConsole = function () {
-                document.getElementById('std-container').innerHTML = "";
+                var container = document.getElementById('std-container');
+                container.innerHTML = "";
+                container.scrollTop = container.scrollHeight;
             };
 
             $scope.startMemcached = function () {
                 Cmds.startMemcached()
                     .success(function (data) {
-                        document.getElementById('std-container').innerHTML += data;
+                        appendConsole(data)
                     })
             };
 
             $scope.killMemcached = function () {
                 Cmds.killMemcached()
                     .success(function (data) {
-                        document.getElementById('std-container').innerHTML += data;
+                        appendConsole(data)
                     })
             };
+
 
             $scope.getWorkloads = function () {
                 $scope.loading = true;
                 Workloads.getNames().success(function (names) {
                     $scope.workloads = names;
+                    $scope.params.workloadfile = names[0];
+                    $scope.getMeasurementType();
                     $scope.loading = false;
                 });
             };
 
-            $scope.getDatabases = function () {
-                $scope.loading = true;
-                Databases.get().success(function (names) {
-                    $scope.dbs = names;
-                    $scope.loading = false;
+            $scope.getMeasurementType = function () {
+                Workloads.getContent($scope.params.workloadfile).success(function (content) {
+                    var contentArray = content.match(/[^\r\n]+/g);
+                    var found = false;
+                    contentArray.forEach(function (line) {
+                        var myRegexp = /^measurementtype=([a-zA-Z0-9]*)/;
+                        var exec = myRegexp.exec(line);
+                        if (exec) {
+                            found = true;
+                            $scope.params.pParams.measurementtype = exec[1];
+                        }
+                    });
+                    if (!found) {
+                        $scope.params.pParams.measurementtype = "frontend";
+                    }
                 });
             };
 
+            /* Initialisation */
+
+            getDatabases();
             $scope.getWorkloads();
-            $scope.getDatabases();
         }]);

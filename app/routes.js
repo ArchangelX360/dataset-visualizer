@@ -28,7 +28,6 @@ function apiReturnResult(res, err, objects) {
  * @returns Array parameters for child_process spawn command
  */
 function parseParameters(parameters) {
-    // TODO : do a better parameters handling
     var paramsArray = [];
     paramsArray.push('-P');
     paramsArray.push(systemConfig.workloadFolder + parameters.workloadfile);
@@ -38,9 +37,7 @@ function parseParameters(parameters) {
         paramsArray.push(key + '=' + parameters.pParams[key]);
     }
     paramsArray.push('-p');
-    paramsArray.push("timeseries.granularity=" + parameters.timeseries.granularity);
-    paramsArray.push('-p');
-    paramsArray.push("benchmarkname=" + parameters.benchmarkname.replace(/[^\w\s]/gi, ''));
+    paramsArray.push("benchmarkname=" + parameters.benchmarkname.replace(/[^a-zA-Z0-9]/gi, ''));
     paramsArray.unshift(parameters.db);
     paramsArray.unshift(parameters.target);
 
@@ -194,7 +191,8 @@ module.exports = function (app, io) {
 
     app.post('/api/workloads/', function (req, res) {
         var parameters = req.body;
-        fs.writeFile(systemConfig.workloadFolder + parameters.filename, parameters.content, function (err) {
+        fs.writeFile(systemConfig.workloadFolder + parameters.filename.replace(/[^a-zA-Z0-9\-\_]/gi, ''),
+            parameters.content, function (err) {
             apiReturnResult(res, err, "File saved.")
         });
     });
