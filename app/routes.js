@@ -6,9 +6,13 @@ var child_process = require('child_process');
 var systemConfig = require('../config/system'); 			// load the database config
 var fs = require('fs');
 var psTree = require('ps-tree');
+var Stream = require('stream').Stream;
 var clients = {};
-var memcachedChild = null;
+
+
 /* FOR TESTING ONLY */
+
+var memcachedChild = null;
 
 /**
  * Kill a process
@@ -45,6 +49,46 @@ var kill = function (pid, signal, callback) {
         callback();
     }
 };
+
+
+/**
+ * A hacked querystream formatter which formats the output
+ * as a json literal. Not production quality.
+ */
+
+function ArrayFormatter() {
+    Stream.call(this);
+    this.writable = true;
+    this._done = false;
+}
+
+ArrayFormatter.prototype.__proto__ = Stream.prototype;
+
+ArrayFormatter.prototype.write = function (doc) {
+    if (!this._hasWritten) {
+        this._hasWritten = true;
+
+        // open an object literal / array string along with the doc
+        this.emit('data', '{ "results": [' + JSON.stringify(doc));
+
+    } else {
+        this.emit('data', ',' + JSON.stringify(doc));
+    }
+
+    return true;
+}
+
+ArrayFormatter.prototype.end =
+    ArrayFormatter.prototype.destroy = function () {
+        if (this._done) return;
+        this._done = true;
+
+        // close the object literal / array
+        this.emit('data', ']}');
+        // done
+        this.emit('end');
+    }
+
 
 /**
  * Default return fonction of the API for Mongoose queries
@@ -140,7 +184,8 @@ module.exports = function (app, io) {
     app.get('/api/benchmarks/:benchmark_name', function (req, res) {
         var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
         Benchmark
-            .find(function (err, benchmarks) {
+            .find()
+            .exec(function (err, benchmarks) {
                 apiReturnResult(res, err, benchmarks)
             });
     });
@@ -148,12 +193,14 @@ module.exports = function (app, io) {
     // get benchmark results by operation type
     app.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
         var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
-        Benchmark
+        var format = new ArrayFormatter;
+        var stream = Benchmark
             .where('operationType', req.params.operation_type)
             .sort('createdAt')
-            .find(function (err, benchmarks) {
-                apiReturnResult(res, err, benchmarks)
-            });
+            .find()
+            .lean() // Plain js objects not mongoose documents to speedup the find operation
+            .stream().pipe(format).pipe(res);
+
     });
 
     // get benchmark results by operation type from a specified date
@@ -163,17 +210,37 @@ module.exports = function (app, io) {
             .where('operationType', req.params.operation_type)
             .where('createdAt').gt(parseInt(req.params.from_date_timestamp))
             .sort('createdAt')
-            .find(function (err, benchmarks) {
+            .find()
+            .lean() // Plain js objects not mongoose documents to speedup the find operation
+            .exec(function (err, benchmarks) {
                 apiReturnResult(res, err, benchmarks)
             });
     });
 
+
+    // get benchmark results by operation type from a specified date
+    app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp/:to_date_timestamp',
+        function (req, res) {
+            var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
+            Benchmark
+                .where('operationType', req.params.operation_type)
+                .where('createdAt')
+                .gt(parseInt(req.params.from_date_timestamp)).lt(parseInt(req.params.to_date_timestamp))
+                .sort('createdAt')
+                .find()
+                .lean() // Plain js objects not mongoose documents to speedup the find operation
+                .exec(function (err, benchmarks) {
+                    apiReturnResult(res, err, benchmarks)
+                });
+        });
+
     // get all benchmark names
     app.get('/api/benchmarks/names', function (req, res) {
         var Name = mongoose.model('Name', nameSchema);
-        Name.find(function (err, names) {
-            apiReturnResult(res, err, names)
-        });
+        Name.find()
+            .exec(function (err, names) {
+                apiReturnResult(res, err, names)
+            });
     });
 
     // delete a benchmark

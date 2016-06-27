@@ -18,6 +18,11 @@ angular.module('benchmarkService', [])
 			getByNameByOperationTypeByFromDate: function (benchmarkName, operationType, fromDateTimestamp) {
 				return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType + '/' + fromDateTimestamp);
 			},
+			getByNameByOperationTypeByFromDateToDate: function (benchmarkName, operationType,
+																fromDateTimestamp, toDateTimestamp) {
+				return $http.get('/api/benchmarks/'
+					+ benchmarkName + '/' + operationType + '/' + fromDateTimestamp + '/' + toDateTimestamp);
+			},
 			getNames: function () {
 				return $http.get('/api/benchmarks/names');
 			},

@@ -3,6 +3,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
     .controller('BenchmarkController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$mdDialog', '$mdToast', '$location', function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location) {
 
         $scope.loading = true;
+        var UPDATE_INTERVAL = 200;
 
         /**
          * FONCTION DEFINITION BLOCK
@@ -29,7 +30,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
          * @returns {{name: string, data: *}} the average Highchart serie
          */
         function createAverageSerie(serie, value) {
-            // TODO : tester si juste premier et dernier point ne suffise pas
+            // FIX: possible million iterations
             return {
                 name: 'Average ' + serie.name,
                 data: serie.data.map(function (point) {
@@ -70,16 +71,19 @@ angular.module('benchmarkController', ["highcharts-ng"])
                         var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
                         var average = $scope.highchartConfigs[chartConfigVariableName].series[1].data[0][1];
 
+                        var originalSerie = $scope.highchartConfigs[chartConfigVariableName].series[0];
+                        var originalSerieLength = originalSerie.data.length;
+
                         records.forEach(function (point) {
-                            average = updateAverage(average,
-                                $scope.highchartConfigs[chartConfigVariableName].series[0].data.length, point.latency);
+                            // FIXME: potentially on million iterations !
+                            average = updateAverage(average, originalSerieLength, point.latency);
                             addPoint($scope.highchartConfigs[chartConfigVariableName],
                                 [point.createdAt, point.latency], 0);
                         });
-                        
+
                         // updating average serie
-                        $scope.highchartConfigs[chartConfigVariableName].series[1]
-                            = createAverageSerie($scope.highchartConfigs[chartConfigVariableName].series[0], average);
+                        $scope.highchartConfigs[chartConfigVariableName].series[1] =
+                            createAverageSerie(originalSerie, average);
                         // updating timestamps
                         $scope.operationTypeToLastValueDisplayed[operationType] = records[records.length - 1];
                         console.log(operationType + " chart updated !");
@@ -119,6 +123,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
                 //$scope.highchartConfigs.allChartConfig.series.push(serie);
                 $scope.highchartConfigs[chartConfigVariableName].series.push(serie);
             })
+
         }
 
         /**
@@ -131,28 +136,39 @@ angular.module('benchmarkController', ["highcharts-ng"])
             $scope.updateSemaphore[operationType] = true;
             // We fetch YCSB results
             Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
-                .success(function (records) {
-                    // if there is at least one result for this operation in YCSB
-                    if (records.length > 0) {
-                        // We create our HighChart serie
-                        var serie = {
-                            name: operationType + " latency",
-                            data: convertToSerie(records)
-                        };
+                .success(function (data) {
+                    if (data.hasOwnProperty('results')) {
+                        var result = data["results"];
+                        if (Array.isArray(result) && result.length > 0) {
+                            // if there is at least one result for this operation in YCSB
+                            // and it's not an error
+                            // We create our HighChart serie
+                            var pixelWidth = result.length > 100000 ? result.length / 10000 : 10;
+                            // TODO : infere this better
+                            var serie = {
+                                name: operationType + " latency",
+                                data: convertToSerie(result),
+                                dataGrouping: {
+                                    groupPixelWidth: pixelWidth
+                                }
+                            };
 
-                        // We create the HighChart average serie of the operationType
-                        var total = serie.data.reduce(function (previous, current) {
-                            return previous + current[1];
-                        }, 0);
-                        var average = total / serie.data.length;
-                        var averageSerie = createAverageSerie(serie, average);
+                            // We create the HighChart average serie of the operationType
+                            var total = serie.data.reduce(function (previous, current) {
+                                return previous + current[1];
+                            }, 0);
+                            var average = total / serie.data.length;
+                            var averageSerie = createAverageSerie(serie, average);
 
-                        // We save the last operation timestamp for future updates
-                        $scope.operationTypeToLastValueDisplayed[operationType] = records[records.length - 1];
-
-                        // We display result in the corresponding chart
-                        displayChart(operationType, [serie, averageSerie]);
-                        console.log(operationType + " chart init !");
+                            // We save the last operation timestamp for future updates
+                            $scope.operationTypeToLastValueDisplayed[operationType] = result[result.length - 1];
+                            // We display result in the corresponding chart
+                            displayChart(operationType, [serie, averageSerie]);
+                            console.log(operationType + " chart init !");
+                        } else if (!Array.isArray(result) && result.length > 0) {
+                            // If it's a string, then it's an error
+                            throw result;
+                        }
                     }
                 })
                 .then(function () {
@@ -176,7 +192,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
          * Launch the charts updating process
          */
         function launchChartUpdating() {
-            $scope.updateChartInterval = setInterval(updateChartView, 1000);
+            $scope.updateChartInterval = setInterval(updateChartView, UPDATE_INTERVAL);
         }
 
         /**
@@ -192,6 +208,19 @@ angular.module('benchmarkController', ["highcharts-ng"])
                         zoomType: 'x',
                         height: 650
                     },
+                    tooltip: {
+                        formatter: function () {
+                            var s = 'Timestamp: <b>' + this.x / 1000000 + '</b>';
+
+                            this.points.forEach(function (point) {
+                                s += '<br/><span style="color:'
+                                    + point.series.color + '">\u25CF</span> '
+                                    + point.series.name + ': <b>' + point.y + '</b>';
+                            });
+                            return s;
+
+                        }
+                    },
                     exporting: {
                         csv: {
                             dateFormat: '%Y-%m-%dT%H:%M:%S.%L'
@@ -201,21 +230,20 @@ angular.module('benchmarkController', ["highcharts-ng"])
                         enabled: true,
                         allButtonsEnabled: true,
                         buttons: [{
-                            // TODO : infere this scale from datas
                             type: 'millisecond',
-                            count: 50,
+                            count: 50000000,
                             text: '50ms'
                         }, {
                             type: 'millisecond',
-                            count: 100,
+                            count: 100000000,
                             text: '100ms'
                         }, {
                             type: 'millisecond',
-                            count: 300,
+                            count: 300000000,
                             text: '300ms'
                         }, {
                             type: 'millisecond',
-                            count: 800,
+                            count: 800000000,
                             text: '800ms'
                         }, {
                             type: 'all',
@@ -234,32 +262,11 @@ angular.module('benchmarkController', ["highcharts-ng"])
                     }
                 },
                 xAxis: {
-                    type: "datetime",
-                    units: [[
-                        'millisecond', // unit name
-                        [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
-                    ], [
-                        'second',
-                        [1, 2, 5, 10, 15, 30]
-                    ], [
-                        'minute',
-                        [1, 2, 5, 10, 15, 30]
-                    ], [
-                        'hour',
-                        [1, 2, 3, 4, 6, 8, 12]
-                    ], [
-                        'day',
-                        [1]
-                    ], [
-                        'week',
-                        [1]
-                    ], [
-                        'month',
-                        [1, 3, 6]
-                    ], [
-                        'year',
-                        null
-                    ]]
+                    labels: {
+                        formatter: function () {
+                            return (this.value / 1000000);
+                        }
+                    }
                 },
                 // Stores the chart object into a scope variable to use Highcharts functionnalities
                 // not implemented by highchart-ng
