@@ -56,8 +56,9 @@ var apiReturnResult = function (res, err, objects) {
     // if there is an error retrieving, send the error. nothing after res.send(err) will execute
     if (err) {
         res.send('[ERROR] ' + err + '.\n');
+    } else {
+        res.json(objects);
     }
-    res.json(objects);
 };
 
 /**
@@ -181,8 +182,9 @@ module.exports = function (app, io) {
         Name.db.db.dropCollection(req.params.benchmark_name, function (err, result) {
             if (err) {
                 res.send(err);
+            } else {
+                res.send(result);
             }
-            res.send(result);
         });
         Name.remove({
             name: req.params.benchmark_name
