@@ -119,6 +119,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
             $scope.highchartConfigs[chartConfigVariableName].title.text = operationType + " operations";
 
             // Adding series to the specific operation chart and to the all operations chart
+            $scope.highchartConfigs[chartConfigVariableName].series = [];
             series.forEach(function (serie) {
                 //$scope.highchartConfigs.allChartConfig.series.push(serie);
                 $scope.highchartConfigs[chartConfigVariableName].series.push(serie);
@@ -137,13 +138,14 @@ angular.module('benchmarkController', ["highcharts-ng"])
             // We fetch YCSB results
             Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
                 .success(function (data) {
+                    // TODO : better error handling
                     if (data.hasOwnProperty('results')) {
                         var result = data["results"];
                         if (Array.isArray(result) && result.length > 0) {
                             // if there is at least one result for this operation in YCSB
                             // and it's not an error
                             // We create our HighChart serie
-                            var pixelWidth = result.length > 100000 ? result.length / 10000 : 10;
+                            var pixelWidth = result.length >= 10000 ? result.length / 1000 : 10;
                             // TODO : infere this better
                             var serie = {
                                 name: operationType + " latency",
@@ -166,6 +168,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
                             displayChart(operationType, [serie, averageSerie]);
                             console.log(operationType + " chart init !");
                         } else if (!Array.isArray(result) && result.length > 0) {
+                            // FIXME : not working anymore !
                             // If it's a string, then it's an error
                             throw result;
                         }
@@ -285,7 +288,8 @@ angular.module('benchmarkController', ["highcharts-ng"])
          * Get all benchmarks names and stores it into $scope
          */
         function getBenchmarkList() {
-            Benchmarks.getNames().success(function (nameObjects) {
+            Benchmarks.getNames().success(function (data) {
+                var nameObjects = data["results"];
                 $scope.benchmarkNames = nameObjects.map(function (nameObject) {
                     return nameObject.name;
                 });
@@ -365,11 +369,13 @@ angular.module('benchmarkController', ["highcharts-ng"])
 
         getBenchmarkList();
         initCharts();
-        launchChartUpdating();
+        //launchChartUpdating();
     }])
     .controller('BenchmarkListController', ['$scope', '$rootScope', '$http', 'Benchmarks', function ($scope, $rootScope, $http, Benchmarks) {
         $rootScope.pageTitle = 'Select a benchmark';
-        Benchmarks.getNames().success(function (nameObjects) {
+        Benchmarks.getNames().success(function (data) {
+            console.log(data);
+            var nameObjects = data["results"];
             $scope.benchmarkNames = nameObjects.map(function (nameObject) {
                 return nameObject.name;
             });

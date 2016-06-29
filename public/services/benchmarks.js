@@ -1,33 +1,33 @@
 angular.module('benchmarkService', [])
 
-	// each function returns a promise object 
-	.factory('Benchmarks', ['$http',function($http) {
-		return {
-			getByName: function (benchmarkName) {
-				return $http.get('/api/benchmarks/' + benchmarkName);
-			},
-			getByNameByOperationType: function (benchmarkName, operationType) {
-				return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType);
-			},
-			/*getByNameMapByOperationType : function(benchmarkName, operationArray) {
-			 return $http.post('/api/benchmarks', {
-			 benchmark_name: benchmarkName,
-			 operation_array : JSON.stringify(operationArray)
-			 });
-			 },*/
-			getByNameByOperationTypeByFromDate: function (benchmarkName, operationType, fromDateTimestamp) {
-				return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType + '/' + fromDateTimestamp);
-			},
-			getByNameByOperationTypeByFromDateToDate: function (benchmarkName, operationType,
-																fromDateTimestamp, toDateTimestamp) {
-				return $http.get('/api/benchmarks/'
-					+ benchmarkName + '/' + operationType + '/' + fromDateTimestamp + '/' + toDateTimestamp);
-			},
-			getNames: function () {
-				return $http.get('/api/benchmarks/names');
-			},
-			delete: function (benchmarkName) {
-				return $http.delete('/api/benchmarks/' + benchmarkName);
-			}
-		}
-	}]);
+// each function returns a promise object 
+    .factory('Benchmarks', ['$http', function ($http) {
+        return {
+            getByName: function (benchmarkName) {
+                return $http.get('/api/benchmarks/' + benchmarkName);
+            },
+            getByNameByOperationType: function (benchmarkName, operationType) {
+                return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType);
+            },
+            /*getByNameMapByOperationType : function(benchmarkName, operationArray) {
+             return $http.post('/api/benchmarks', {
+             benchmark_name: benchmarkName,
+             operation_array : JSON.stringify(operationArray)
+             });
+             },*/
+            getByNameByOperationTypeByFromDate: function (benchmarkName, operationType, fromDateTimestamp) {
+                return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType + '/' + fromDateTimestamp);
+            },
+            getByNameByOperationTypeByFromDateToDate: function (benchmarkName, operationType,
+                                                                fromDateTimestamp, toDateTimestamp) {
+                return $http.get('/api/benchmarks/'
+                    + benchmarkName + '/' + operationType + '/' + fromDateTimestamp + '/' + toDateTimestamp);
+            },
+            getNames: function () {
+                return $http.get('/api/benchmarks/names');
+            },
+            delete: function (benchmarkName) {
+                return $http.delete('/api/benchmarks/' + benchmarkName);
+            }
+        }
+    }]);

@@ -1,12 +1,13 @@
-var benchmarkSchema = require('./models/benchmark');
-var nameSchema = require('./models/name');
-var mongoose = require('mongoose');
+//var benchmarkSchema = require('./models/benchmark');
+//var nameSchema = require('./models/name');
+//var mongoose = require('mongoose');
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
 var database = require('../config/database'); 			// load the database config
 var child_process = require('child_process');
 var systemConfig = require('../config/system'); 			// load the database config
 var fs = require('fs');
 var psTree = require('ps-tree');
-var Stream = require('stream').Stream;
 var clients = {};
 
 
@@ -50,46 +51,6 @@ var kill = function (pid, signal, callback) {
     }
 };
 
-
-/**
- * A hacked querystream formatter which formats the output
- * as a json literal. Not production quality.
- */
-
-function ArrayFormatter() {
-    Stream.call(this);
-    this.writable = true;
-    this._done = false;
-}
-
-ArrayFormatter.prototype.__proto__ = Stream.prototype;
-
-ArrayFormatter.prototype.write = function (doc) {
-    if (!this._hasWritten) {
-        this._hasWritten = true;
-
-        // open an object literal / array string along with the doc
-        this.emit('data', '{ "results": [' + JSON.stringify(doc));
-
-    } else {
-        this.emit('data', ',' + JSON.stringify(doc));
-    }
-
-    return true;
-}
-
-ArrayFormatter.prototype.end =
-    ArrayFormatter.prototype.destroy = function () {
-        if (this._done) return;
-        this._done = true;
-
-        // close the object literal / array
-        this.emit('data', ']}');
-        // done
-        this.emit('end');
-    }
-
-
 /**
  * Default return fonction of the API for Mongoose queries
  * @param res result of the request
@@ -97,12 +58,14 @@ ArrayFormatter.prototype.end =
  * @param objects the objects receive by the mongoose query
  */
 var apiReturnResult = function (res, err, objects) {
+    var data = {"errors": null, "results": null};
     // if there is an error retrieving, send the error. nothing after res.send(err) will execute
     if (err) {
-        res.send('[ERROR] ' + err + '.\n');
+        data.errors = '[ERROR] ' + err + '\n';
     } else {
-        res.json(objects);
+        data.results = objects;
     }
+    res.json(data);
 };
 
 /**
@@ -157,114 +120,117 @@ var executeCommand = function (program, params, benchmarkName) {
     });
 
     child.on('exit', function (code) {
-        client.emit('exit', {message: 'child process exited with code ' + code});
+        client.emit('exit', {message: 'child process exited with code ' + code + '\n'});
     });
 
 };
 
-module.exports = function (app, io) {
+var findDocuments = function (collectionName, selector, options, callback, res) {
+    MongoClient.connect(database.localUrl, function (err, db) {
+        assert.equal(null, err);
+        db.collection(collectionName).find(selector, options).toArray(function (err, docs) {
+            assert.equal(err, null);
+            db.close();
+            callback(res, err, docs);
+        });
+    });
+};
 
+var dropBenchmark = function (benchmarkName, callback, res) {
+    MongoClient.connect(database.localUrl, function (err, db) {
+        assert.equal(null, err);
+        db.dropCollection(benchmarkName, function (err, result) {
+            assert.equal(err, null);
+            db.collection("names").remove({name: benchmarkName}, {}, function (err) {
+                assert.equal(null, err);
+                callback(res, err, result);
+                db.close();
+            });
+        });
+    });
+};
+
+module.exports = function (app, io) {
     /* Command API */
 
     app.post('/cmd/launch', function (req, res) {
         var parameters = req.body;
+        var err = null;
+        var response = null;
         if (typeof parameters.benchmarkname != "undefined" && parameters.benchmarkname !== "") {
             var program = systemConfig.ycsbExecutable;
             var paramsArray = parseParameters(parameters);
             executeCommand(program, paramsArray, parameters.benchmarkname);
-            res.send('[SUCCESS] Benchmarking "' + parameters.target + '" in progress...\n');
+            response = '[SUCCESS] Benchmarking "' + parameters.target + '" in progress...\n';
         } else {
-            res.send('[ERROR] Please enter a valid Benchmark Name.\n');
+            err = 'Please enter a valid Benchmark Name.';
         }
+        apiReturnResult(res, err, response);
     });
 
     /* Benchmark API */
 
     // get a benchmark by name
     app.get('/api/benchmarks/:benchmark_name', function (req, res) {
-        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
-        Benchmark
-            .find()
-            .exec(function (err, benchmarks) {
-                apiReturnResult(res, err, benchmarks)
-            });
+        findDocuments(req.params.benchmark_name, {}, {}, apiReturnResult, res);
     });
 
     // get benchmark results by operation type
     app.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
-        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
-        var format = new ArrayFormatter;
-        var stream = Benchmark
-            .where('operationType', req.params.operation_type)
-            .sort('createdAt')
-            .find()
-            .lean() // Plain js objects not mongoose documents to speedup the find operation
-            .stream().pipe(format).pipe(res);
-
+        // TODO : migration à verifier on SORT
+        var selector = {operationType: req.params.operation_type};
+        var options = {"sort": "createdAt"};
+        findDocuments(req.params.benchmark_name, selector, options, apiReturnResult, res);
     });
 
     // get benchmark results by operation type from a specified date
     app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp', function (req, res) {
-        var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
-        Benchmark
-            .where('operationType', req.params.operation_type)
-            .where('createdAt').gt(parseInt(req.params.from_date_timestamp))
-            .sort('createdAt')
-            .find()
-            .lean() // Plain js objects not mongoose documents to speedup the find operation
-            .exec(function (err, benchmarks) {
-                apiReturnResult(res, err, benchmarks)
-            });
+        // TODO : migration à verifier
+        var selector = {operationType: req.params.operation_type};
+        var options = {
+            "sort": "createdAt",
+            "createdAt": {$gt: parseInt(req.params.from_date_timestamp)}
+        };
+        findDocuments(req.params.benchmark_name, selector, options, apiReturnResult, res);
     });
 
 
     // get benchmark results by operation type from a specified date
     app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp/:to_date_timestamp',
         function (req, res) {
-            var Benchmark = mongoose.model('Benchmark', benchmarkSchema, req.params.benchmark_name);
-            Benchmark
-                .where('operationType', req.params.operation_type)
-                .where('createdAt')
-                .gt(parseInt(req.params.from_date_timestamp)).lt(parseInt(req.params.to_date_timestamp))
-                .sort('createdAt')
-                .find()
-                .lean() // Plain js objects not mongoose documents to speedup the find operation
-                .exec(function (err, benchmarks) {
-                    apiReturnResult(res, err, benchmarks)
-                });
+            // TODO : migration à verifier
+            var selector = {operationType: req.params.operation_type};
+            var options = {
+                "sort": "createdAt",
+                "createdAt": {
+                    $lt: parseInt(req.params.to_date_timestamp),
+                    $gt: parseInt(req.params.from_date_timestamp)
+                }
+            };
+            findDocuments(req.params.benchmark_name, selector, options, apiReturnResult, res);
         });
 
     // get all benchmark names
-    app.get('/api/benchmarks/names', function (req, res) {
-        var Name = mongoose.model('Name', nameSchema);
-        Name.find()
-            .exec(function (err, names) {
-                apiReturnResult(res, err, names)
+    app.get('/api/benchmarks/names/', function (req, res) {
+        console.log("test");
+        // FIXME: not working anymore
+        MongoClient.connect(database.localUrl, function (err, db) {
+            db.listCollections().toArray(function (err, collections) {
+                console.log(collections);
+                db.close();
+                apiReturnResult(res, err, collections);
             });
+        });
     });
 
-    // delete a benchmark
+// delete a benchmark
     app.delete('/api/benchmarks/:benchmark_name', function (req, res) {
-        var Name = mongoose.model('Name', nameSchema);
-        Name.db.db.dropCollection(req.params.benchmark_name, function (err, result) {
-            if (err) {
-                res.send(err);
-            } else {
-                res.send(result);
-            }
-        });
-        Name.remove({
-            name: req.params.benchmark_name
-        }, function (err) {
-            if (err) {
-                res.send(err);
-            }
-        });
+        dropBenchmark(req.params.benchmark_name, apiReturnResult, res);
     });
 
     /* Databases API */
 
-    // get all databases names
+// get all databases names
     app.get('/api/databases/', function (req, res) {
         var dbs = [];
         fs.readFile(systemConfig.ycsbExecutable, 'utf8', function (err, content) {
@@ -281,20 +247,20 @@ module.exports = function (app, io) {
 
     /* Workloads API */
 
-    // get all workloads filenames
+// get all workloads filenames
     app.get('/api/workloads/', function (req, res) {
         var files = fs.readdirSync(systemConfig.workloadFolder);
-        res.send(files);
+        apiReturnResult(res, null, files);
     });
 
-    // get workload content
+// get workload content
     app.get('/api/workloads/:filename', function (req, res) {
         fs.readFile(systemConfig.workloadFolder + req.params.filename, 'utf8', function (err, content) {
             apiReturnResult(res, err, content)
         });
     });
 
-    // create a workload
+// create a workload
     app.post('/api/workloads/', function (req, res) {
         var parameters = req.body;
         fs.writeFile(systemConfig.workloadFolder + parameters.filename.replace(/[^a-zA-Z0-9\-\_]/gi, ''),
@@ -303,7 +269,7 @@ module.exports = function (app, io) {
             });
     });
 
-    // delete a workload
+// delete a workload
     app.delete('/api/workloads/:filename', function (req, res) {
         fs.unlink(systemConfig.workloadFolder + req.params.filename, function (err) {
             apiReturnResult(res, err, "File deleted.")
@@ -324,25 +290,29 @@ module.exports = function (app, io) {
         parameters.push("-l");
         parameters.push(systemConfig.memcachedAddress);
         memcachedChild = child_process.spawn(systemConfig.memcachedExecutable, parameters);
-        res.send('[SUCCESS] Memcached is running on '
+        apiReturnResult(res, null, '[SUCCESS] Memcached is running on '
             + systemConfig.memcachedAddress + ':' + systemConfig.memcachedPort
             + ' by ' + systemConfig.memcachedUser + '.\n');
     });
 
     app.delete('/cmd/memcached', function (req, res) {
-        var response = '[SUCCESS] Your memcached instance is killed.\n';
-        if (memcachedChild)
+        var response = "";
+        var err = null;
+        if (memcachedChild) {
             kill(memcachedChild.pid);
-        else
-            response = '[ERROR] No instance to kill.\n';
-        res.send(response);
+            response = '[SUCCESS] Your memcached instance is killed.\n';
+        } else {
+            err = 'No instance to kill.';
+        }
+
+        apiReturnResult(res, err, response);
     });
 
 
     /* Application */
 
     app.get('*', function (req, res) {
-        res.sendFile(__dirname + '/public/index.html'); // load the single view file 
+        res.sendFile(__dirname + '/public/index.html'); // load the single view file
         // (angular will handle the page changes on the front-end)
     });
 
@@ -361,4 +331,5 @@ module.exports = function (app, io) {
         });
     });
 
-};
+}
+;

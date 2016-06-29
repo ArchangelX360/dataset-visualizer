@@ -100,15 +100,17 @@ angular.module('workloadsController', [])
         }
 
         $scope.loadWorkload = function () {
-            Workloads.getContent($scope.selected).success(function (content) {
-                // TODO : manage error 
+            Workloads.getContent($scope.selected).success(function (data) {
+                // TODO : manage error
+                var content = data["results"];
                 $scope.workload.filename = $scope.selected;
                 $scope.workload.content = content;
             });
         };
 
         $scope.getWorkloads = function () {
-            Workloads.getNames().success(function (names) {
+            Workloads.getNames().success(function (data) {
+                var names = data["results"];
                 $scope.workloads = names;
                 $scope.loading = false;
             });

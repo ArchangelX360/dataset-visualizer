@@ -40,15 +40,16 @@ angular.module('cmdController', [])
 
             /* Function definitions */
 
-            function appendConsole(data) {
+            function appendConsole(string) {
                 var container = document.getElementById('std-container');
-                container.innerHTML += data;
+                container.innerHTML += string;
                 container.scrollTop = container.scrollHeight;
             }
 
             function getDatabases() {
                 $scope.loading = true;
-                Databases.get().success(function (names) {
+                Databases.get().success(function (data) {
+                    var names = data["results"];
                     $scope.dbs = names;
                     $scope.loading = false;
                 });
@@ -81,7 +82,8 @@ angular.module('cmdController', [])
                 socket.emit('authentication', $scope.params.benchmarkname,
                     Cmds.post($scope.params)
                         .success(function (data) {
-                            appendConsole(data)
+                            var string = data.errors ? data.errors : data.results;
+                            appendConsole(string)
                         })
                 );
             };
@@ -99,21 +101,24 @@ angular.module('cmdController', [])
             $scope.startMemcached = function () {
                 Cmds.startMemcached()
                     .success(function (data) {
-                        appendConsole(data)
+                        var string = data.errors ? data.errors : data.results;
+                        appendConsole(string)
                     })
             };
 
             $scope.killMemcached = function () {
                 Cmds.killMemcached()
                     .success(function (data) {
-                        appendConsole(data)
+                        var string = data.errors ? data.errors : data.results;
+                        appendConsole(string)
                     })
             };
 
 
             $scope.getWorkloads = function () {
                 $scope.loading = true;
-                Workloads.getNames().success(function (names) {
+                Workloads.getNames().success(function (data) {
+                    var names = data["results"];
                     $scope.workloads = names;
                     $scope.params.workloadfile = names[0];
                     $scope.getMeasurementType();
@@ -122,7 +127,8 @@ angular.module('cmdController', [])
             };
 
             $scope.getMeasurementType = function () {
-                Workloads.getContent($scope.params.workloadfile).success(function (content) {
+                Workloads.getContent($scope.params.workloadfile).success(function (data) {
+                    var content = data["results"];
                     var contentArray = content.match(/[^\r\n]+/g);
                     var found = false;
                     contentArray.forEach(function (line) {
