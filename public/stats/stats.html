@@ -11,7 +11,7 @@
 
 <div flex layout="row" layout-align="center center">
     <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Stop chart updates"
-               ng-click="stopChartUpdating()">Stop chart updates
+               ng-click="stopChartUpdating()" disabled="true">Stop chart updates
     </md-button>
     <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Delete benchmark"
                ng-click="deleteBenchmark($event)">Delete benchmark
@@ -19,21 +19,18 @@
 </div>
 
 <div id="highcharts-container" flex layout="column" layout-align="center center">
-    <!-- TODO : replace with Angular ng-repeat but it doesn't seem to work for config attribute -->
     <div flex layout="column" layout-gt-md="row" layout-align="center center">
-        <!--<highchart id="all-chart" config="highchartConfigs.allChartConfig"
-                   ng-if="highchartConfigs.allChartConfig.title.text !== 'default config'"></highchart>-->
-        <highchart id="insert-chart" config="highchartConfigs.insertChartConfig"
-                   ng-if="highchartConfigs.insertChartConfig.title.text !== 'default config'"></highchart>
-        <highchart id="read-chart" config="highchartConfigs.readChartConfig"
-                   ng-if="highchartConfigs.readChartConfig.title.text !== 'default config'"></highchart>
-        <highchart id="update-chart" config="highchartConfigs.updateChartConfig"
-                   ng-if="highchartConfigs.updateChartConfig.title.text !== 'default config'"></highchart>
+        <hc-operation-chart id="insert-chart" title="INSERT Latency" operation="INSERT" updatefunc="updateRoutine"
+                            initfunc="initRoutine" resizefunc="resizeRoutine"></hc-operation-chart>
+        <hc-operation-chart id="read-chart" title="READ Latency" operation="READ" updatefunc="updateRoutine"
+                            initfunc="initRoutine" resizefunc="resizeRoutine"></hc-operation-chart>
+        <hc-operation-chart id="update-chart" title="UPDATE Latency" operation="UPDATE" updatefunc="updateRoutine"
+                            initfunc="initRoutine" resizefunc="resizeRoutine"></hc-operation-chart>
     </div>
     <div flex layout="column" layout-gt-md="row" layout-align="center center">
-        <highchart id="cleanup-chart" config="highchartConfigs.cleanupChartConfig"
-                   ng-if="highchartConfigs.cleanupChartConfig.title.text !== 'default config'"></highchart>
-        <highchart id="scan-chart" config="highchartConfigs.scanChartConfig"
-                   ng-if="highchartConfigs.scanChartConfig.title.text !== 'default config'"></highchart>
+        <hc-operation-chart id="cleanup-chart" title="CLEANUP Latency" operation="CLEANUP" updatefunc="updateRoutine"
+                            initfunc="initRoutine" resizefunc="resizeRoutine"></hc-operation-chart>
+        <hc-operation-chart id="scan-chart" title="SCAN Latency" operation="SCAN" updatefunc="updateRoutine"
+                            initfunc="initRoutine" resizefunc="resizeRoutine"></hc-operation-chart>
     </div>
 </div>

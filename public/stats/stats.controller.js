@@ -1,219 +1,43 @@
-angular.module('benchmarkController', [])
-// inject the Benchmark service factory into our controller
-    .controller('BenchmarkController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$mdDialog', '$mdToast', '$location', function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location) {
+angular.module('stats', [])
+// TODO : handle multiple series insertion and not only the former [original,average] couple --> we'd make boxplot in the future !
+// TODO : make a controller for delete benchmark
+    .directive('hcOperationChart', function () {
+        return {
+            restrict: 'E',
+            template: '<div></div>',
+            scope: {
+                series: '=',
+                operation: '@',
+                updatefunc: '=',
+                resizefunc: '=',
+                initfunc: '='
+            },
+            link: function (scope, element) {
+                var updateInterval;
 
-        $scope.loading = true;
-        var UPDATE_INTERVAL = 200;
-
-        /**
-         * FONCTION DEFINITION BLOCK
-         */
-
-        /**
-         * Convert stored raw values from YCSB to Highchart formatting
-         * @param rawValues YCSB raw DB values
-         * @returns {*} Highchart formatted data
-         */
-        function convertToSerie(rawValues) {
-            return rawValues.map(function (measureObj) {
-                return [measureObj.createdAt, measureObj.latency]
-            });
-        }
-
-        function updateAverage(average, size, newValue) {
-            return (size * average + newValue) / (size + 1);
-        }
-
-        /**
-         * Create an average serie from a value and an original serie
-         * @param serie the original serie of which we want an average serie
-         * @returns {{name: string, data: *}} the average Highchart serie
-         */
-        function createAverageSerie(serie, value) {
-            // FIX: possible million iterations
-            return {
-                name: 'Average ' + serie.name,
-                data: serie.data.map(function (point) {
-                    return [point[0], value];
-                })
-            };
-        }
-
-        /**
-         * Add a point to the chart's serie
-         * @param chartOption option of the chart to access the serie
-         * @param point couple to add [timestamp, value]
-         * @param serieIndex index of the serie
-         */
-        function addPoint(chartOption, point, serieIndex) {
-            chartOption.series[serieIndex].data.push(point);
-        }
-
-        /**
-         * Free update semaphore of a specific operationType chart
-         * @param operationType the operationType string
-         */
-        function freeSemaphore(operationType) {
-            $scope.updateSemaphore[operationType] = false;
-        }
-
-        /**
-         * Update the chart points with new points in DB from the fromDateTimestamp to now
-         * @param operationType the operationType string
-         * @param fromDateTimestamp the timestamp of the date from which we should update points
-         * @param callback a callback function
-         */
-        function updateChart(operationType, fromDateTimestamp, callback) {
-            $scope.updateSemaphore[operationType] = true;
-            Benchmarks.getByNameByOperationTypeFrom($scope.benchmarkName, operationType, fromDateTimestamp)
-                .success(function (records) {
-                    if (records.length > 0) {
-                        var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
-                        var average = $scope.highchartConfigs[chartConfigVariableName].series[1].data[0][1];
-
-                        var originalSerie = $scope.highchartConfigs[chartConfigVariableName].series[0];
-                        var originalSerieLength = originalSerie.data.length;
-
-                        records.forEach(function (point) {
-                            // FIXME: potentially on million iterations !
-                            average = updateAverage(average, originalSerieLength, point.latency);
-                            addPoint($scope.highchartConfigs[chartConfigVariableName],
-                                [point.createdAt, point.latency], 0);
-                        });
-
-                        // updating average serie
-                        $scope.highchartConfigs[chartConfigVariableName].series[1] =
-                            createAverageSerie(originalSerie, average);
-                        // updating timestamps
-                        $scope.operationTypeToLastValueDisplayed[operationType] = records[records.length - 1];
-                        console.log(operationType + " chart updated !");
-                    }
-                })
-                .then(function () {
-                    if (callback)
-                        callback(operationType);
+                element.on('$destroy', function () {
+                    clearInterval(updateInterval)
                 });
-        }
 
-        /**
-         * Updates all charts or initialize not initialized charts and update the benchmarks list
-         */
-        function updateChartView() {
-            getBenchmarkList();
-            $scope.operationArray.forEach(function (operationType) {
-                var lastValueDisplayed = $scope.operationTypeToLastValueDisplayed[operationType];
-                if (!$scope.updateSemaphore[operationType])
-                    !lastValueDisplayed.hasOwnProperty("createdAt") ? initChart(operationType, freeSemaphore)
-                        : updateChart(operationType, lastValueDisplayed.createdAt, freeSemaphore);
-            });
-        }
-
-        /**
-         * Activate the chart view and initialize values for an operationType
-         * @param operationType string of the operationType processed
-         * @param series Highchart data series for the operationType chart
-         */
-        function displayChart(operationType, series) {
-            var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
-            // Defining the chart title will activate its visualisation on the view
-            $scope.highchartConfigs[chartConfigVariableName].title.text = operationType + " operations";
-
-            // Adding series to the specific operation chart and to the all operations chart
-            $scope.highchartConfigs[chartConfigVariableName].series = [];
-            series.forEach(function (serie) {
-                //$scope.highchartConfigs.allChartConfig.series.push(serie);
-                $scope.highchartConfigs[chartConfigVariableName].series.push(serie);
-            })
-
-        }
-
-        /**
-         * Initialize chart of an specified operationType creating its series and displaying it
-         * If there is no data for the specified operationType, its graph is not initialized.
-         * @param operationType the operationType string
-         * @param callback a callback function
-         */
-        function initChart(operationType, callback) {
-            $scope.updateSemaphore[operationType] = true;
-            // We fetch YCSB results
-            Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
-                .success(function (data) {
-                    // TODO : better error handling
-                    if (data.hasOwnProperty('results')) {
-                        var result = data["results"];
-                        if (Array.isArray(result) && result.length > 0) {
-                            // if there is at least one result for this operation in YCSB
-                            // and it's not an error
-                            // We create our HighChart serie
-                            var pixelWidth = result.length >= 10000 ? result.length / 1000 : 10;
-                            // TODO : infere this better
-                            var serie = {
-                                name: operationType + " latency",
-                                data: convertToSerie(result),
-                                dataGrouping: {
-                                    groupPixelWidth: pixelWidth
-                                }
-                            };
-
-                            // We create the HighChart average serie of the operationType
-                            var total = serie.data.reduce(function (previous, current) {
-                                return previous + current[1];
-                            }, 0);
-                            var average = total / serie.data.length;
-                            var averageSerie = createAverageSerie(serie, average);
-
-                            // We save the last operation timestamp for future updates
-                            $scope.operationTypeToLastValueDisplayed[operationType] = result[result.length - 1];
-                            // We display result in the corresponding chart
-                            displayChart(operationType, [serie, averageSerie]);
-                            console.log(operationType + " chart init !");
-                        } else if (!Array.isArray(result) && result.length > 0) {
-                            // FIXME : not working anymore !
-                            // If it's a string, then it's an error
-                            throw result;
-                        }
-                    }
-                })
-                .then(function () {
-                    $scope.loading = false;
-                    if (callback)
-                        callback(operationType);
-                });
-        }
-
-        /**
-         * Initialize all operationType charts
-         */
-        function initCharts() {
-            $scope.loading = true;
-            $scope.operationArray.forEach(function (operationType) {
-                initChart(operationType, freeSemaphore)
-            });
-        }
-
-        /**
-         * Launch the charts updating process
-         */
-        function launchChartUpdating() {
-            $scope.updateChartInterval = setInterval(updateChartView, UPDATE_INTERVAL);
-        }
-
-        /**
-         * Initialize all variables of an operationType including maps' keys, chart options and update semaphore.
-         * @param operationType the operationType string
-         */
-        function initVariables(operationType) {
-            $scope.operationTypeToLastValueDisplayed[operationType] = {};
-            $scope.updateSemaphore[operationType] = false;
-            $scope.highchartConfigs[operationType.toLowerCase() + 'ChartConfig'] = {
-                options: {
+                Highcharts.StockChart(element[0], {
                     chart: {
                         zoomType: 'x',
-                        height: 650
+                        height: 650,
+                        events: {
+                            load: function () {
+                                // set up the updating of the chart each second
+                                var chart = this;
+                                scope.initfunc(chart, scope.operation);
+                                updateInterval = setInterval(function () {
+                                    var extremesObject = chart.xAxis[0].getExtremes();
+                                    scope.updatefunc(chart, scope.operation, Math.round(extremesObject.dataMax));
+                                }, 5000);
+                            }
+                        }
                     },
                     tooltip: {
                         formatter: function () {
-                            var s = 'Timestamp: <b>' + this.x / 1000000 + '</b>';
+                            var s = 'Measure #<b>' + this.x + '</b>';
 
                             this.points.forEach(function (point) {
                                 s += '<br/><span style="color:'
@@ -232,26 +56,27 @@ angular.module('benchmarkController', [])
                     rangeSelector: {
                         enabled: true,
                         allButtonsEnabled: true,
-                        buttons: [{
-                            type: 'millisecond',
-                            count: 50000000,
-                            text: '50ms'
-                        }, {
-                            type: 'millisecond',
-                            count: 100000000,
-                            text: '100ms'
-                        }, {
-                            type: 'millisecond',
-                            count: 300000000,
-                            text: '300ms'
-                        }, {
-                            type: 'millisecond',
-                            count: 800000000,
-                            text: '800ms'
-                        }, {
-                            type: 'all',
-                            text: 'All'
-                        }],
+                        buttons: [
+                            {
+                                type: 'millisecond',
+                                count: 1,
+                                text: '1op'
+                            }, {
+                                type: 'millisecond',
+                                count: 10,
+                                text: '10op'
+                            }, {
+                                type: 'millisecond',
+                                count: 10000,
+                                text: '10000op'
+                            }, {
+                                type: 'millisecond',
+                                count: 50000,
+                                text: '50000op'
+                            }, {
+                                type: 'all',
+                                text: 'All'
+                            }],
                         buttonTheme: {
                             width: 50
                         },
@@ -260,29 +85,240 @@ angular.module('benchmarkController', [])
                     navigator: {
                         enabled: true,
                         series: {
-                            includeInCSVExport: false
+                            includeInCSVExport: false,
+                            id: 'nav'
+                        },
+                        xAxis: {
+                            labels: {
+                                formatter: function () {
+                                    return this.value;
+                                }
+                            }
                         }
-                    }
-                },
-                xAxis: {
-                    labels: {
-                        formatter: function () {
-                            return (this.value / 1000000);
+                    },
+                    xAxis: {
+                        labels: {
+                            formatter: function () {
+                                return this.value;
+                            }
                         }
+                    },
+                    series: [
+                        {
+                            id: scope.operation + '_latency',
+                            name: scope.operation + ' latency',
+                            data: []
+                        },
+                        {
+                            id: scope.operation + '_latency_average',
+                            name: 'Average ' + scope.operation + ' latency',
+                            data: []
+                        }
+                    ],
+                    title: {
+                        text: scope.operation + ' latency'
                     }
-                },
-                // Stores the chart object into a scope variable to use Highcharts functionnalities
-                // not implemented by highchart-ng
-                func: function (chart) {
-                    $scope.highchartCharts[operationType.toLowerCase() + 'Chart'] = chart;
-                },
-                series: [],
-                title: {
-                    text: 'default config'
-                },
-                useHighStocks: true
-            };
+                });
+            }
+        };
+    })
+
+    // inject the Benchmark service factory into our controller
+    .controller('StatController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$mdDialog', '$mdToast', '$location', '$q', function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location, $q) {
+
+        $scope.benchmarkName = $routeParams.benchmarkName;
+        $rootScope.pageTitle = 'Benchmark results';
+        $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
+        $scope.MAX_POINTS = 20000; // Number maximal of points got from MongoDB
+        // (depends on your browser/computer performance) and has a undetermined upper limit with NodeJS
+        $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
+        $scope.packetSizes = {};
+        $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP"];
+        $scope.operationArray.forEach(function (operationType) {
+            $scope.updateSemaphore[operationType] = true;
+            $scope.packetSizes[operationType] = 1;
+        });
+        $scope.benchmarkNames = getBenchmarkList();
+
+        /**
+         * Free update semaphore of a specific operationType chart
+         * @param operationType the operationType string
+         */
+        function freeSemaphore(operationType) {
+            $scope.updateSemaphore[operationType] = false;
         }
+
+        /**
+         * Convert stored raw values from YCSB to Highchart formatting
+         *
+         * NOTE : this function could be overwritten to handle every kind of dataset like candlestick for example
+         *
+         * @param rawValues YCSB raw DB values
+         * @returns {*} Highchart formatted data
+         */
+        function convertToSerie(rawValues) {
+            // FIXME: possible million iterations
+            return rawValues.map(function (measureObj) {
+                return [measureObj.num, measureObj.latency]
+            });
+        }
+
+        /**
+         * Update an average value with a O(1) complexity algorithm
+         * @param average the former average
+         * @param size the size of the serie
+         * @param newValue the new value added to the serie (that's why we need a new average)
+         * @returns {number} the new average
+         */
+        function updateAverage(average, size, newValue) {
+            return (size * average + newValue) / (size + 1);
+        }
+
+        /**
+         * Create an average serie data array from a value and an original serie
+         * @param serieData the original serie data array of which we want an average serie
+         * @param value the average
+         * @returns {{name: string, data: *}} the average Highchart serie
+         */
+        function createAverageData(serieData, value) {
+            // FIXME: possible million iterations
+            return serieData.map(function (point) {
+                return [point[0], value];
+            })
+        }
+
+        /**
+         * Return the serie average with an O(n) complexity algorithm
+         * @param serieData the serie data
+         * @returns {number} the average of the serie
+         */
+        function getAverage(serieData) {
+            // FIXME: possible million iterations
+            var total = serieData.reduce(function (previous, current) {
+                return previous + current[1];
+            }, 0);
+            return total / serieData.length;
+        }
+
+        function getAllDataPoints(chart, id) {
+            // FIXME: possible million iterations
+            var points = [];
+            var xData = chart.get(id).xData;
+            var yData = chart.get(id).yData;
+            for (var i = 0; i < xData.length; i++) {
+                points.push([xData[i], yData[i]]);
+            }
+            return points;
+        }
+
+        function updateSeries(chart, operationType, rawPoints, packetSize) {
+            if (rawPoints.length > 0) {
+                console.log('[' + operationType + '] Updating series');
+
+                $scope.packetSizes[operationType] = packetSize;
+
+                var newPointsData = convertToSerie(rawPoints);
+
+                var originalSerieLength = chart.get(operationType + '_latency').xData.length;
+                var average = chart.get(operationType + '_latency_average').yData[0];
+
+                newPointsData.forEach(function (point) {
+                    average = updateAverage(average, originalSerieLength, point[1]);
+                });
+
+                var oldPoints = getAllDataPoints(chart, operationType + '_latency');
+                var completeData = oldPoints.concat(newPointsData);
+
+                chart.get(operationType + '_latency').setData(completeData);
+                chart.get(operationType + '_latency_average').setData(createAverageData(completeData, average));
+
+                console.log('%c[' + operationType + '] Chart updated', 'color: green');
+            } else {
+                console.log('%c[' + operationType + '] No new points found', 'color: orange');
+            }
+            freeSemaphore(operationType)
+        }
+
+        $scope.updateRoutine = function (chart, operationType, lastInserted) {
+            if (!$scope.updateSemaphore[operationType]) {
+                console.log('[' + operationType + '] Updating chart');
+                $scope.updateSemaphore[operationType] = true;
+
+                Benchmarks.getSize($scope.benchmarkName, operationType).success(function (data) {
+                    var datasetSize = data["results"];
+                    if (datasetSize > $scope.MAX_POINTS) {
+                        var packetSize = Math.floor(datasetSize / $scope.MAX_POINTS) + 1;
+
+                        if (packetSize != $scope.packetSizes[operationType]) {
+                            // FIXME: careful this should decrease view performance a lot !
+                            lastInserted = 0; // We are rebuilding the whole series to have a consistency
+                        }
+
+                        Benchmarks.getByNameByOperationTypeByQuality($scope.benchmarkName, operationType, lastInserted,
+                            "MAX", $scope.MAX_POINTS, packetSize).success(function (data) {
+                            var newPoints = data["results"];
+
+                            if (packetSize != $scope.packetSizes[operationType]) {
+                                initSeries(chart, operationType, newPoints, packetSize);
+                            } else {
+                                updateSeries(chart, operationType, newPoints, packetSize);
+                            }
+                        });
+                    } else {
+                        Benchmarks.getByNameByOperationTypeFrom($scope.benchmarkName, operationType, lastInserted).success(function (data) {
+                            var newPoints = data["results"];
+                            var packetSize = $scope.packetSizes[operationType];
+                            if (datasetSize == newPoints.length) {
+                                initSeries(chart, operationType, newPoints, packetSize);
+                            } else {
+                                updateSeries(chart, operationType, newPoints, packetSize);
+                            }
+                        });
+                    }
+                });
+            }
+        };
+
+        function initSeries(chart, operationType, rawPoints, packetSize) {
+            if (rawPoints.length > 0) {
+                console.log('[' + operationType + '] Initializing series');
+
+                $scope.packetSizes[operationType] = packetSize;
+
+                var points = convertToSerie(rawPoints);
+
+                chart.get(operationType + '_latency').setData(points);
+                chart.get(operationType + '_latency_average').setData(createAverageData(points, getAverage(points)));
+
+                console.log('%c[' + operationType + '] Chart initialized', 'color: green');
+            } else {
+                console.log('%c[' + operationType + '] No points found', 'color: orange');
+            }
+            freeSemaphore(operationType);
+            chart.hideLoading();
+        }
+
+        $scope.initRoutine = function (chart, operationType) {
+            console.log('[' + operationType + '] Initializing chart');
+            chart.showLoading('Loading data from server...');
+
+            Benchmarks.getSize($scope.benchmarkName, operationType).success(function (data) {
+                var datasetSize = data["results"];
+                if (datasetSize > $scope.MAX_POINTS) {
+                    var packetSize = Math.floor(datasetSize / $scope.MAX_POINTS) + 1;
+                    Benchmarks.getByNameByOperationTypeByQuality($scope.benchmarkName, operationType, 0,
+                        "MAX", $scope.MAX_POINTS, packetSize).success(function (data) {
+                        initSeries(chart, operationType, data["results"], packetSize);
+                    });
+                } else {
+                    Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType).success(function (data) {
+                        initSeries(chart, operationType, data["results"], 1);
+                    });
+                }
+            });
+        };
+
+        /* BUTTONS ROUTINE */
 
         /**
          * Get all benchmarks names and stores it into $scope
@@ -296,39 +332,11 @@ angular.module('benchmarkController', [])
             });
         }
 
-        /**
-         * VARIABLES DEFINITION BLOCK
-         */
-
-        $scope.benchmarkName = $routeParams.benchmarkName;
-        $rootScope.pageTitle = 'Benchmark results';
-        $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
-        $scope.operationTypeToLastValueDisplayed = {}; // Map for updating only new points on charts
-        $scope.highchartConfigs = {}; // Map for chart configs
-        $scope.highchartCharts = {}; // Map for charts
-        $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
-        $scope.updateChartInterval = null;
-        $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP"];
-
-        $scope.operationArray.forEach(initVariables);
-
-        /* Some $scope functions */
-
-        $scope.stopChartUpdating = function () {
-            clearInterval($scope.updateChartInterval)
-        };
-
-        $scope.$on('$destroy', function () {
-            $scope.stopChartUpdating();
-            $scope.operationArray.forEach(initVariables);
-        });
-
         $scope.goto = function (path) {
             $location.path(path);
         };
 
         $scope.deleteBenchmark = function (ev) {
-            $scope.loading = true;
             var confirm = $mdDialog.confirm({
                 onComplete: function afterShowAnimation() {
                     var $dialog = angular.element(document.querySelector('md-dialog'));
@@ -346,6 +354,7 @@ angular.module('benchmarkController', [])
                 .ok('Yes I understand the risk')
                 .cancel('No');
             $mdDialog.show(confirm).then(function () {
+                $scope.loading = true;
                 Benchmarks.delete($scope.benchmarkName)
                     .success(function () {
                         getBenchmarkList();
@@ -361,16 +370,10 @@ angular.module('benchmarkController', [])
             }, function () {
                 // Do something if "no" is answered.
             });
-
-
         };
 
-        /* View initialization */
-
-        getBenchmarkList();
-        initCharts();
-        //launchChartUpdating();
-    }])
+    }
+    ])
     .controller('BenchmarkListController', ['$scope', '$rootScope', '$http', 'Benchmarks', function ($scope, $rootScope, $http, Benchmarks) {
         $rootScope.pageTitle = 'Select a benchmark';
         Benchmarks.getNames().success(function (data) {

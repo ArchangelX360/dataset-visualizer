@@ -4,7 +4,6 @@ var app = angular.module('visualisationYCSB', [
     'ngRoute',
     'ngMessages',
     'ngAnimate',
-    'benchmarkController',
     'cmdController',
     'frontpageController',
     'workloadsController',
@@ -18,9 +17,7 @@ var app = angular.module('visualisationYCSB', [
 
 app.config(function($routeProvider) {
     $routeProvider.when('/', {templateUrl: 'frontpage/frontpage.html', controller: 'FrontpageController'})
-        .when('/stats/:benchmarkName', {templateUrl: 'stats/stats.html', controller: 'BenchmarkController'})
-        .when('/stats-custom/:benchmarkName',
-            {templateUrl: 'stats/stats-custom-hng.html', controller: 'StatController'})
+        .when('/stats/:benchmarkName', {templateUrl: 'stats/stats.html', controller: 'StatController'})
         .when('/stats', {templateUrl: 'stats/list.html', controller: 'BenchmarkListController'})
         .when('/cmd', {templateUrl: 'cmd/cmd.html', controller: 'CmdController'})
         .when('/workloads', {templateUrl: 'workloads/workloads.html', controller: 'WorkloadsController'})
