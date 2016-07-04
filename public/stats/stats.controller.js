@@ -1,4 +1,4 @@
-angular.module('benchmarkController', ["highcharts-ng"])
+angular.module('benchmarkController', [])
 // inject the Benchmark service factory into our controller
     .controller('BenchmarkController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdSidenav', '$mdDialog', '$mdToast', '$location', function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location) {
 
@@ -65,7 +65,7 @@ angular.module('benchmarkController', ["highcharts-ng"])
          */
         function updateChart(operationType, fromDateTimestamp, callback) {
             $scope.updateSemaphore[operationType] = true;
-            Benchmarks.getByNameByOperationTypeByFromDate($scope.benchmarkName, operationType, fromDateTimestamp)
+            Benchmarks.getByNameByOperationTypeFrom($scope.benchmarkName, operationType, fromDateTimestamp)
                 .success(function (records) {
                     if (records.length > 0) {
                         var chartConfigVariableName = operationType.toLowerCase() + 'ChartConfig';
@@ -374,7 +374,6 @@ angular.module('benchmarkController', ["highcharts-ng"])
     .controller('BenchmarkListController', ['$scope', '$rootScope', '$http', 'Benchmarks', function ($scope, $rootScope, $http, Benchmarks) {
         $rootScope.pageTitle = 'Select a benchmark';
         Benchmarks.getNames().success(function (data) {
-            console.log(data);
             var nameObjects = data["results"];
             $scope.benchmarkNames = nameObjects.map(function (nameObject) {
                 return nameObject.name;

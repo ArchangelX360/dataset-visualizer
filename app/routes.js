@@ -1,6 +1,5 @@
-//var benchmarkSchema = require('./models/benchmark');
-//var nameSchema = require('./models/name');
-//var mongoose = require('mongoose');
+var express = require('express');
+var router = express.Router();
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var database = require('../config/database'); 			// load the database config
@@ -150,10 +149,10 @@ var dropBenchmark = function (benchmarkName, callback, res) {
     });
 };
 
-module.exports = function (app, io) {
+module.exports = function (router, io) {
     /* Command API */
 
-    app.post('/cmd/launch', function (req, res) {
+    router.post('/cmd/launch', function (req, res) {
         var parameters = req.body;
         var err = null;
         var response = null;
@@ -171,67 +170,78 @@ module.exports = function (app, io) {
     /* Benchmark API */
 
     // get a benchmark by name
-    app.get('/api/benchmarks/:benchmark_name', function (req, res) {
+    router.get('/api/benchmarks/:benchmark_name', function (req, res) {
         findDocuments(req.params.benchmark_name, {}, {}, apiReturnResult, res);
     });
 
     // get benchmark results by operation type
-    app.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
-        // TODO : migration à verifier on SORT
+    router.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
         var selector = {operationType: req.params.operation_type};
-        var options = {"sort": "createdAt"};
+        var options = {"sort": "num"};
         findDocuments(req.params.benchmark_name, selector, options, apiReturnResult, res);
     });
 
     // get benchmark results by operation type from a specified date
-    app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp', function (req, res) {
-        // TODO : migration à verifier
-        var selector = {operationType: req.params.operation_type};
-        var options = {
-            "sort": "createdAt",
-            "createdAt": {$gt: parseInt(req.params.from_date_timestamp)}
+    router.get('/api/benchmarks/:benchmark_name/:operation_type/:from', function (req, res) {
+        var selector = {
+            operationType: req.params.operation_type,
+            num: {$gt: parseInt(req.params.from)}
         };
+        var options = {"sort": "num"};
         findDocuments(req.params.benchmark_name, selector, options, apiReturnResult, res);
     });
 
 
     // get benchmark results by operation type from a specified date
-    app.get('/api/benchmarks/:benchmark_name/:operation_type/:from_date_timestamp/:to_date_timestamp',
+    router.get('/api/benchmarks/:benchmark_name/:operation_type/:from/:to',
         function (req, res) {
-            // TODO : migration à verifier
-            var selector = {operationType: req.params.operation_type};
-            var options = {
-                "sort": "createdAt",
-                "createdAt": {
-                    $lt: parseInt(req.params.to_date_timestamp),
-                    $gt: parseInt(req.params.from_date_timestamp)
+
+            // FIXME : should return a quality serie
+
+            var selector = {
+                operationType: req.params.operation_type,
+                num: {
+                    $lt: parseInt(req.params.to),
+                    $gt: parseInt(req.params.from)
                 }
+            };
+            var options = {
+                "sort": "num"
             };
             findDocuments(req.params.benchmark_name, selector, options, apiReturnResult, res);
         });
 
     // get all benchmark names
-    app.get('/api/benchmarks/names/', function (req, res) {
-        console.log("test");
-        // FIXME: not working anymore
+    router.get('/nav/names', function (req, res) {
         MongoClient.connect(database.localUrl, function (err, db) {
             db.listCollections().toArray(function (err, collections) {
-                console.log(collections);
                 db.close();
+                collections.shift(); // removing system collection
                 apiReturnResult(res, err, collections);
             });
         });
     });
 
 // delete a benchmark
-    app.delete('/api/benchmarks/:benchmark_name', function (req, res) {
+    router.delete('/api/benchmarks/:benchmark_name', function (req, res) {
         dropBenchmark(req.params.benchmark_name, apiReturnResult, res);
+    });
+
+    router.get('/api/infos/benchmarks/size/:benchmark_name/:operation_type', function (req, res) {
+        MongoClient.connect(database.localUrl, function (err, db) {
+            db.collection(req.params.benchmark_name).count({operationType: req.params.operation_type},
+                function (err, count) {
+                    assert.equal(err, null);
+                    db.close();
+                    apiReturnResult(res, err, parseInt(count));
+                });
+        });
     });
 
     /* Databases API */
 
 // get all databases names
-    app.get('/api/databases/', function (req, res) {
+    router.get('/api/databases/', function (req, res) {
         var dbs = [];
         fs.readFile(systemConfig.ycsbExecutable, 'utf8', function (err, content) {
             var regexp = /(?:.*"(.*)".*"(com\.yahoo\.ycsb\.(?:db|BasicDB).*)",*[\r\n])/gi;
@@ -248,20 +258,20 @@ module.exports = function (app, io) {
     /* Workloads API */
 
 // get all workloads filenames
-    app.get('/api/workloads/', function (req, res) {
+    router.get('/api/workloads/', function (req, res) {
         var files = fs.readdirSync(systemConfig.workloadFolder);
         apiReturnResult(res, null, files);
     });
 
 // get workload content
-    app.get('/api/workloads/:filename', function (req, res) {
+    router.get('/api/workloads/:filename', function (req, res) {
         fs.readFile(systemConfig.workloadFolder + req.params.filename, 'utf8', function (err, content) {
             apiReturnResult(res, err, content)
         });
     });
 
 // create a workload
-    app.post('/api/workloads/', function (req, res) {
+    router.post('/api/workloads/', function (req, res) {
         var parameters = req.body;
         fs.writeFile(systemConfig.workloadFolder + parameters.filename.replace(/[^a-zA-Z0-9\-\_]/gi, ''),
             parameters.content, function (err) {
@@ -270,7 +280,7 @@ module.exports = function (app, io) {
     });
 
 // delete a workload
-    app.delete('/api/workloads/:filename', function (req, res) {
+    router.delete('/api/workloads/:filename', function (req, res) {
         fs.unlink(systemConfig.workloadFolder + req.params.filename, function (err) {
             apiReturnResult(res, err, "File deleted.")
         });
@@ -279,7 +289,7 @@ module.exports = function (app, io) {
 
     /* FOR TESTING ONLY */
 
-    app.get('/cmd/memcached', function (req, res) {
+    router.get('/cmd/memcached', function (req, res) {
         var parameters = [];
         parameters.push("-m");
         parameters.push(systemConfig.memcachedMaxMemory);
@@ -295,7 +305,7 @@ module.exports = function (app, io) {
             + ' by ' + systemConfig.memcachedUser + '.\n');
     });
 
-    app.delete('/cmd/memcached', function (req, res) {
+    router.delete('/cmd/memcached', function (req, res) {
         var response = "";
         var err = null;
         if (memcachedChild) {
@@ -311,12 +321,10 @@ module.exports = function (app, io) {
 
     /* Application */
 
-    app.get('*', function (req, res) {
-        res.sendFile(__dirname + '/public/index.html'); // load the single view file
-        // (angular will handle the page changes on the front-end)
-    });
-
-    /* Sockets */
+    /*router.get('*', function (req, res) {
+     res.sendFile(__dirname + '/public/index.html'); // load the single view file
+     // (angular will handle the page changes on the front-end)
+     });*/
 
     io.sockets.on('connection', function (socket) {
         console.log('Client connected with id : ' + socket.id);
@@ -331,5 +339,62 @@ module.exports = function (app, io) {
         });
     });
 
-}
-;
+    router.get('/api/aggregate/:benchmark_name/:operation_type/:from/:to/:limit/:packet_size', function (req, res) {
+        // FIXME: RESULT COULD EXCEED BY A FEW POINTS THE LIMIT ! See calls
+
+        var limit = req.params.limit;
+        var benchmarkName = req.params.benchmark_name;
+        var packetSize = parseInt(req.params.packet_size);
+        var match = {
+            $match: {
+                operationType: req.params.operation_type,
+                num: {
+                    $lt: (req.params.to === "MAX") ? Number.MAX_VALUE : parseInt(req.params.to),
+                    $gt: parseInt(req.params.from)
+                }
+            }
+        };
+        var project = {
+            "$project": {
+                "latency": 1,
+                "operationType": 1,
+                "num": 1
+            }
+        };
+
+        var group = {
+            "$group": {
+                "_id": {
+                    "o": "$operationType",
+                    'interval': {'$subtract': [{'$divide': ['$num', packetSize]}, {'$mod': [{'$divide': ['$num', packetSize]}, 1]}]},
+                },
+                "operationType": {$first: "$operationType"},
+                "num": {$first: "$num"},
+                "latency": {
+                    "$avg": "$latency"
+                }
+            }
+        };
+
+        console.log('[' + req.params.operation_type + '] Aggregating...');
+
+        MongoClient.connect(database.localUrl, function (err, db) {
+            console.log('[' + req.params.operation_type + '] Running : ' + packetSize);
+            db.collection(benchmarkName).aggregate([match, project, group, {"$sort": {"num": 1}}], {
+                allowDiskUse: true
+            }).toArray(function (err, results) {
+                if (err) {
+                    console.log(err)
+                }
+                console.log('[' + req.params.operation_type + '] Length : ' + results.length);
+                db.close();
+                apiReturnResult(res, err, results);
+                /*if (results.length <= limit) {
+                 } else {
+                 console.log('[ERROR '+ req.params.operation_type + '] packet size wasn\'t well defined at the beggining');
+                 }*/
+            });
+        });
+    });
+
+};
