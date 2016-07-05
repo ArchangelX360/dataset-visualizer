@@ -1,6 +1,4 @@
 angular.module('workloadService', [])
-
-// each function returns a promise object 
     .factory('Workloads', ['$http', function ($http) {
         return {
             getNames: function () {
@@ -17,4 +15,3 @@ angular.module('workloadService', [])
             }
         }
     }]);
-

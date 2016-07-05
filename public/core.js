@@ -15,6 +15,15 @@ var app = angular.module('visualisationYCSB', [
     'btford.socket-io'
 ]);
 
+app.config(function ($mdThemingProvider) {
+    $mdThemingProvider.theme('default')
+        .primaryPalette('green')
+        .accentPalette('blue')
+        .warnPalette('orange')
+    //.dark()
+    ;
+});
+
 app.config(function($routeProvider) {
     $routeProvider.when('/', {templateUrl: 'frontpage/frontpage.html', controller: 'FrontpageController'})
         .when('/stats/:benchmarkName', {templateUrl: 'stats/stats.html', controller: 'StatController'})

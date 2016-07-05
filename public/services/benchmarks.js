@@ -12,8 +12,10 @@ angular.module('benchmarkService', [])
             getByNameByOperationTypeFrom: function (benchmarkName, operationType, fromDateTimestamp) {
                 return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType + '/' + fromDateTimestamp);
             },
-            getByNameByOperationTypeByQuality: function (benchmarkName, operationType, fromDateTimestamp, toDateTimestamp, limit, milliseconds) {
-                return $http.get('/api/aggregate/' + benchmarkName + '/' + operationType + '/' + fromDateTimestamp + '/' + toDateTimestamp + '/' + limit + '/' + milliseconds);
+            getByNameByOperationTypeByQuality: function (benchmarkName, operationType,
+                                                         fromDateTimestamp, toDateTimestamp, limit, bucketSize) {
+                return $http.get('/api/aggregate/' + benchmarkName + '/' + operationType + '/'
+                    + fromDateTimestamp + '/' + toDateTimestamp + '/' + limit + '/' + bucketSize);
             },
             getSize: function (benchmarkName, operationType) {
                 return $http.get('/api/infos/benchmarks/size/' + benchmarkName + '/' + operationType);
