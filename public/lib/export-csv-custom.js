@@ -23,14 +23,8 @@
 
     Highcharts.setOptions({
         lang: {
-            downloadCSV: 'Download CSV',
-            downloadTimestampCSV: 'Download Timestamp CSV',
-            downloadAdjustedTimestampCSV: 'Download Adjusted Timestamp CSV',
-            downloadXLS: 'Download XLS',
-            downloadTimestampXLS: 'Download Timestamp XLS',
-            downloadAdjustedTimestampXLS: 'Download Adjusted Timestamp XLS'
-            /*viewData: 'View data table',
-             viewAdjustedData: 'View adjusted data table'*/
+            downloadCSV: 'Download CSV (Whole series)',
+            downloadCSVCurrent: 'Download CSV (Current Points)'
         }
     });
 
@@ -38,7 +32,7 @@
     /**
      * Get the data rows as a two dimensional array
      */
-    Highcharts.Chart.prototype.getDataRows = function (timestamp, adjusted) {
+    Highcharts.Chart.prototype.getDataRows = function (wholeSeries) {
         var options = (this.options.exporting || {}).csv || {},
             xAxis = this.xAxis[0],
             rows = {},
@@ -77,7 +71,14 @@
                     j = j + 1;
                 }
 
-                each(series.points, function (point, pIdx) {
+                var pointsToIterate = series.points;
+                if (wholeSeries) {
+                    pointsToIterate = series.options.data
+                }
+                each(pointsToIterate, function (point, pIdx) {
+                    if (wholeSeries) {
+                        point = {x: point[0], y: point[1]};
+                    }
                     var key = requireSorting ? point.x : pIdx,
                         prop,
                         val;
@@ -119,42 +120,25 @@
 
         // Add header row
         if (!xTitle) {
-            xTitle = xAxis.isDatetimeAxis ? 'DateTime' : 'Category';
+            xTitle = xAxis.isDatetimeAxis ? 'Number' : 'Category';
         }
-
-        if (timestamp && xAxis.isDatetimeAxis) {
-            xTitle = 'Timestamp';
-            if (adjusted) {
-                var reference = rowArr[0].x;
-                xTitle = "Adjusted ".concat(xTitle);
-            }
-        }
-
-
         dataRows = [[xTitle].concat(names)];
 
         // Add the category column
         each(rowArr, function (row) {
 
-
             var category = row.name;
-
-            if (timestamp && xAxis.isDatetimeAxis) {
-                if (adjusted)
-                    row.x -= reference;
-                category = row.x;
-            } else {
-                if (!category) {
-                    if (xAxis.isDatetimeAxis) {
-                        if (row.x instanceof Date) {
-                            row.x = row.x.getTime();
-                        }
-                        category = Highcharts.dateFormat(dateFormat, row.x);
-                    } else if (xAxis.categories) {
-                        category = pick(xAxis.names[row.x], xAxis.categories[row.x], row.x)
-                    } else {
-                        category = row.x;
+            if (!category) {
+                if (xAxis.isDatetimeAxis) {
+                    if (row.x instanceof Date) {
+                        row.x = row.x.getTime();
                     }
+                    //category = Highcharts.dateFormat(dateFormat, row.x);
+                    category = row.x;
+                } else if (xAxis.categories) {
+                    category = pick(xAxis.names[row.x], xAxis.categories[row.x], row.x)
+                } else {
+                    category = row.x;
                 }
             }
 
@@ -169,9 +153,9 @@
     /**
      * Get a CSV string
      */
-    Highcharts.Chart.prototype.getCSV = function (useLocalDecimalPoint, timestamp, adjusted) {
+    Highcharts.Chart.prototype.getCSV = function (useLocalDecimalPoint, wholeSeries) {
         var csv = '',
-            rows = this.getDataRows(timestamp, adjusted),
+            rows = this.getDataRows(wholeSeries),
             options = (this.options.exporting || {}).csv || {},
             itemDelimiter = options.itemDelimiter || ',', // use ';' for direct import to Excel
             lineDelimiter = options.lineDelimiter || '\n'; // '\n' isn't working with the js csv data extraction
@@ -202,42 +186,6 @@
             }
         });
         return csv;
-    };
-
-    /**
-     * Build a HTML table with the data
-     */
-    Highcharts.Chart.prototype.getTable = function (useLocalDecimalPoint, timestamp, adjusted) {
-        var html = '<table>',
-            rows = this.getDataRows(timestamp, adjusted);
-
-        // Transform the rows to HTML
-        each(rows, function (row, i) {
-            var tag = i ? 'td' : 'th',
-                val,
-                j,
-                n = useLocalDecimalPoint ? (1.1).toLocaleString()[1] : '.';
-
-            html += '<tr>';
-            for (j = 0; j < row.length; j = j + 1) {
-                val = row[j];
-                // Add the cell
-                if (typeof val === 'number') {
-                    val = val.toString();
-                    if (n === ',') {
-                        val = val.replace('.', n);
-                    }
-                    html += '<' + tag + ' class="number">' + val + '</' + tag + '>';
-
-                } else {
-                    html += '<' + tag + '>' + (val === undefined ? '' : val) + '</' + tag + '>';
-                }
-            }
-
-            html += '</tr>';
-        });
-        html += '</table>';
-        return html;
     };
 
     function getContent(chart, href, extension, content, MIME) {
@@ -282,10 +230,10 @@
     }
 
     /**
-     * Call this on click of 'Download CSV' button
+     * Call this on click of 'Download CSV (Whole series)' button
      */
-    Highcharts.Chart.prototype.downloadCSV = function (timestamp, adjusted) {
-        var csv = this.getCSV(true, timestamp, adjusted);
+    Highcharts.Chart.prototype.downloadCSV = function () {
+        var csv = this.getCSV(true, true);
         getContent(
             this,
             'data:text/csv,\uFEFF' + csv.replace(/\n/g, '%0A'),
@@ -296,46 +244,18 @@
     };
 
     /**
-     * Call this on click of 'Download XLS' button
+     * Call this on click of 'Download CSV (Current Points)' button
      */
-    Highcharts.Chart.prototype.downloadXLS = function (timestamp, adjusted) {
-        var uri = 'data:application/vnd.ms-excel;base64,',
-            template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
-                '<head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>' +
-                '<x:Name>Ark1</x:Name>' +
-                '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' +
-                '<style>td{border:none;font-family: Calibri, sans-serif;} .number{mso-number-format:"0.00";}</style>' +
-                '<meta name=ProgId content=Excel.Sheet>' +
-                '<meta charset=UTF-8>' +
-                '</head><body>' +
-                this.getTable(true, timestamp, adjusted) +
-                '</body></html>',
-            base64 = function (s) {
-                return window.btoa(unescape(encodeURIComponent(s))); // #50
-            };
+    Highcharts.Chart.prototype.downloadCSVCurrent = function () {
+        var csv = this.getCSV(true, false);
         getContent(
             this,
-            uri + base64(template),
-            'xls',
-            template,
-            'application/vnd.ms-excel'
+            'data:text/csv,\uFEFF' + csv.replace(/\n/g, '%0A'),
+            'csv',
+            csv,
+            'text/csv'
         );
     };
-
-    /**
-     * View the data in a table below the chart
-     */
-    Highcharts.Chart.prototype.viewData = function (timestamp, adjusted) {
-        if (!this.insertedTable) {
-            var div = document.createElement('div');
-            div.className = 'highcharts-data-table';
-            // Insert after the chart container
-            this.renderTo.parentNode.insertBefore(div, this.renderTo.nextSibling);
-            div.innerHTML = this.getTable(false, timestamp, adjusted);
-            this.insertedTable = true;
-        }
-    };
-
 
     // Add "Download CSV" to the exporting menu. Use download attribute if supported, else
     // run a simple PHP script that returns a file. The source code for the PHP script can be viewed at
@@ -347,48 +267,19 @@
                 this.downloadCSV();
             }
         }, {
-            textKey: 'downloadTimestampCSV',
+            textKey: 'downloadCSVCurrent',
             onclick: function () {
-                this.downloadCSV(true);
+                this.downloadCSVCurrent();
             }
-        }, {
-            textKey: 'downloadAdjustedTimestampCSV',
-            onclick: function () {
-                this.downloadCSV(true, true);
-            }
-        }, {
-            textKey: 'downloadXLS',
-            onclick: function () {
-                this.downloadXLS();
-            }
-        }, {
-            textKey: 'downloadTimestampXLS',
-            onclick: function () {
-                this.downloadXLS(true);
-            }
-        }, {
-            textKey: 'downloadAdjustedTimestampXLS',
-            onclick: function () {
-                this.downloadXLS(true, true);
-            }
-        }/*,
-         {
-         textKey: 'viewData',
-         onclick: function () {
-         this.viewData();
-         }
-         },
-         {
-         textKey: 'viewAdjustedData',
-         onclick: function () {
-         this.viewData(true);
-         }
-         }*/);
+        });
     }
 
     // Series specific
     if (seriesTypes.map) {
         seriesTypes.map.prototype.exportKey = 'name';
+    }
+    if (seriesTypes.mapbubble) {
+        seriesTypes.mapbubble.prototype.exportKey = 'name';
     }
 
 });
