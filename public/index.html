@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <title>YCSB Visualisation</title>
     <link rel="icon" type="image/jpg" href="icons/presentation.svg"/>
-
-    <link rel="stylesheet" href="lib/angular-material.min.css">
-    <!--<link rel="stylesheet" href="lib/angular-chart.min.css">-->
+    <link rel="stylesheet" href="lib/angular-material/angular-material.min.css">
     <link rel="stylesheet" href="css/app.css">
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="lib/socket.io-1.4.5.js"></script>
 </head>
 <body ng-app="visualisationYCSB" flex>
 
@@ -21,19 +19,8 @@
                     <md-icon md-svg-icon="icons/ic_home_white_48px.svg"></md-icon>
                 </md-button>
             </a>
-            <h2>
-                <a ng-href="#/">
-                    <span>YCSB Visualisation</span>
-                </a>
-                <span> > {{pageTitle}}</span>
-            </h2>
+            <h2><a ng-href="#/"><span>YCSB Visualisation</span></a><span> > {{pageTitle}}</span></h2>
             <span flex></span>
-            <!--<md-button class="md-icon-button" aria-label="Favorite">
-                <md-icon md-svg-icon="img/icons/favorite.svg" style="color: greenyellow;"></md-icon>
-            </md-button>
-            <md-button class="md-icon-button" aria-label="More">
-                <md-icon md-svg-icon="img/icons/more_vert.svg"></md-icon>
-            </md-button>-->
         </div>
     </md-toolbar>
     <div ng-class="classView" ng-view></div>
@@ -43,31 +30,33 @@
 
 </body>
 
-<!-- TODO : use node_modules instead of the lib/ folder -->
-<script src="lib/angular.min.js"></script>
-<script src="lib/angular-animate.min.js"></script>
-<script src="lib/angular-route.min.js"></script>
-<script src="lib/angular-aria.min.js"></script>
-<script src="lib/angular-messages.min.js"></script>
-<script src="lib/angular-material.min.js"></script>
-<script src="lib/socket.min.js"></script>
-
-<!-- TODO : use downloaded libraries instead of remote repositories -->
-<script src="https://code.highcharts.com/adapters/standalone-framework.js"></script>
-<script src="https://code.highcharts.com/stock/highstock.src.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+<!-- Librairies -->
+<script src="lib/angular/angular.min.js"></script>
+<script src="lib/angular-animate/angular-animate.min.js"></script>
+<script src="lib/angular-route/angular-route.min.js"></script>
+<script src="lib/angular-aria/angular-aria.min.js"></script>
+<script src="lib/angular-messages/angular-messages.min.js"></script>
+<script src="lib/angular-material/angular-material.min.js"></script>
+<script src="lib/angular-socket-io/socket.min.js"></script>
+<script src="lib/highcharts/adapters/standalone-framework.js"></script>
+<script src="lib/highcharts/highstock.src.js"></script>
+<script src="lib/highcharts/modules/exporting.js"></script>
+<script src="lib/highcharts/modules/offline-exporting.js"></script>
 <script src="lib/export-csv-custom.js"></script>
 
+<!-- Angular controllers -->
 <script src="stats/stats.controller.js"></script>
 <script src="stats/stats.controller.js"></script>
 <script src="frontpage/frontpage.controller.js"></script>
 <script src="cmd/cmd.controller.js"></script>
 <script src="workloads/workloads.controller.js"></script>
+
+<!-- Angular services -->
 <script src="services/benchmarks.js"></script>
 <script src="services/cmd.js"></script>
 <script src="services/workloads.js"></script>
 <script src="services/databases.js"></script>
-<script src="core.js"></script> <!-- load our main application -->
+
+<script src="core.js"></script>
 
 </html>

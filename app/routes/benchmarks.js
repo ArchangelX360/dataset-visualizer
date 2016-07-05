@@ -102,7 +102,7 @@ module.exports = function (router) {
     });
 
     router.get('/api/aggregate/:benchmark_name/:operation_type/:from/:to/:limit/:bucket_size', function (req, res) {
-        // FIXME: RESULT COULD EXCEED BY A FEW POINTS THE LIMIT ! See calls
+        // Warning: result could exceed limit by a few points
 
         var limit = req.params.limit;
         var benchmarkName = req.params.benchmark_name;
