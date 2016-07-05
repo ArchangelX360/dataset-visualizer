@@ -1,4 +1,8 @@
-module.exports = {
+var urls = {
     localUrl: 'mongodb://localhost/dbMeasurements',
-    //remoteUrl : 'mongodb://node:nodeuser@mongo.onmodulus.net:27017/uwO3mypu'
+    remoteUrl: 'mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]'
+};
+
+module.exports = {
+    url: urls.localUrl
 };

@@ -1,6 +1,7 @@
 angular.module('workloadsController', [])
 
-    .controller('WorkloadsController', ['$scope', '$rootScope', 'Workloads', '$mdDialog', '$mdToast', function ($scope, $rootScope, Workloads, $mdDialog, $mdToast) {
+    .controller('WorkloadsController', ['$scope', '$rootScope', 'Workloads', '$mdDialog', '$mdToast',
+        function ($scope, $rootScope, Workloads, $mdDialog, $mdToast) {
         $rootScope.pageTitle = 'Manage Workloads';
         $scope.showHints = true;
         $scope.loading = true;

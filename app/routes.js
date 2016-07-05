@@ -125,7 +125,7 @@ var executeCommand = function (program, params, benchmarkName) {
 };
 
 var findDocuments = function (collectionName, selector, options, callback, res) {
-    MongoClient.connect(database.localUrl, function (err, db) {
+    MongoClient.connect(database.url, function (err, db) {
         assert.equal(null, err);
         db.collection(collectionName).find(selector, options).toArray(function (err, docs) {
             assert.equal(err, null);
@@ -136,7 +136,7 @@ var findDocuments = function (collectionName, selector, options, callback, res) 
 };
 
 var dropBenchmark = function (benchmarkName, callback, res) {
-    MongoClient.connect(database.localUrl, function (err, db) {
+    MongoClient.connect(database.url, function (err, db) {
         assert.equal(null, err);
         db.dropCollection(benchmarkName, function (err, result) {
             assert.equal(err, null);
@@ -213,7 +213,7 @@ module.exports = function (router, io) {
 
     // get all benchmark names
     router.get('/nav/names', function (req, res) {
-        MongoClient.connect(database.localUrl, function (err, db) {
+        MongoClient.connect(database.url, function (err, db) {
             db.listCollections().toArray(function (err, collections) {
                 db.close();
                 collections.shift(); // removing system collection
@@ -228,7 +228,7 @@ module.exports = function (router, io) {
     });
 
     router.get('/api/infos/benchmarks/size/:benchmark_name/:operation_type', function (req, res) {
-        MongoClient.connect(database.localUrl, function (err, db) {
+        MongoClient.connect(database.url, function (err, db) {
             db.collection(req.params.benchmark_name).count({operationType: req.params.operation_type},
                 function (err, count) {
                     assert.equal(err, null);
@@ -378,7 +378,7 @@ module.exports = function (router, io) {
 
         console.log('[' + req.params.operation_type + '] Aggregating...');
 
-        MongoClient.connect(database.localUrl, function (err, db) {
+        MongoClient.connect(database.url, function (err, db) {
             console.log('[' + req.params.operation_type + '] Running : ' + packetSize);
             db.collection(benchmarkName).aggregate([match, project, group, {"$sort": {"num": 1}}], {
                 allowDiskUse: true

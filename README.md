@@ -6,6 +6,8 @@ A web application which communicate with the visualisation part of Yahoo! Cloud 
 
 ### Core programs
 
+**WARNING: We assume that nodejs and npm are already installed on your machine**
+
 You will need Java 8 and MongoDB to use this application :
 
     sudo apt-get install openjdk-8-jre mongodb
@@ -23,26 +25,66 @@ You will also need YCSB "visualisation" version.
 For now, the custom release will be included in
 this repo. In the future, we hope YCSB will accept our pull-request.
 
-
 ## Configuration
 
-You will find configuration files under _config/_
+### Storage database
 
-#### Storage database
+You can configure your MongoDB URL in the _config/database.js_ file.
 
-You can configure your MongoDB URL in the _database.js_ file.
+Here's the general config file with placeholders:
 
 ``` javascript
-{
-    localUrl: 'mongodb://localhost/db_name'
-}
+var urls = {
+    localUrl: 'mongodb://localhost/<my_db_name>',
+    remoteUrl : 'mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]'
+};
+
+module.exports = {
+    url: urls.<my_url_attribute>
+};
+
 ```
 
-For now, only local MongoDB have been tested. But it should work fine with a remote one.
+See [MongoDB Documentation](https://docs.mongodb.com/manual/reference/connection-string/#standard-connection-string-format]) for connection string format explainations.
 
-#### YCSB & benchmarked database
+#### Local configuration example
 
-You can configure the absolute path of YCSB stuff in the  _system.js_ file.
+Here's an example of a local configuration:
+
+``` javascript
+var urls = {
+    localUrl: 'mongodb://localhost/dbMeasurements', // our DB name is dbMeasurements
+};
+
+module.exports = {
+    url: urls.localUrl // we export the local url for the application
+};
+
+```
+
+#### Remote configuration example
+
+If you want to have a remote instance you need to :
+* authorize your remote MongoDB instance to accept remote connections.
+* adapt the _remoteUrl_ attribute
+* export _urls.remoteUrl_
+
+This is an example of a remote configuration:
+
+``` javascript
+var urls = {
+    remoteUrl : 'mongodb://node:nodeuser@mongo.onmodulus.net:27017/uwO3mypu'
+};
+
+module.exports = {
+    url: urls.remoteUrl // we export the remote url for the application
+};
+
+```
+
+### YCSB & benchmarked database
+
+You can configure the absolute path of YCSB stuff in the  _config/system.js_ file.
 
 ``` javascript
 {
@@ -52,6 +94,36 @@ You can configure the absolute path of YCSB stuff in the  _system.js_ file.
 }
 ```
 
+### Client configuration
+
+You might want to configure the charts view.
+
+#### Explainations
+
+You can set the _MAX\_POINTS_ variables, this variable is based on your browser and PC performance.
+
+MongoDB is grouping value and making averages to optimise the view and make nodejs serve results faster. This grouping process reduces measurements' precision. For example, you would get 5 buckets of average each based on 4 successive values instead of getting 20 measures:
+
+``` javascript
+// MongoDB aggregation illustration
+
+[15,15,15,15,0,10,10,0,10,20,25,25,0,0,0,0,10,5,10,15]  // Original array
+==> [15, 5, 20, 0, 10]                                  // Aggregated array
+```
+
+**// TODO : do a illustration as a map reduce illustration in docs**
+
+ The better your computer and browser are, the higher you can set the _MAX\_POINTS_ value and the smaller these buckets will be. You will have a more precise dataset.
+
+#### Variable location
+
+ The variable is located in _public/stats/stats.controller.js_.
+
+``` javascript
+/** CONFIGURATION VARIABLES **/
+$scope.MAX_POINTS = 20000; // maximal number of points you can get from MongoDB
+```
+
 ## Deployment
 
 ### NodeJS server modules installation
@@ -59,6 +131,10 @@ You can configure the absolute path of YCSB stuff in the  _system.js_ file.
 Go to folder where the file _package.json_ is located and execute:
 
     npm install
+
+### Execution rights
+
+Be sure to have execution rights on the app folder otherwise launching benchmarks won't work!
   
 ### Launch it !
 
@@ -67,6 +143,8 @@ You need to start the NodeJS server:
     node --max-old-space-size=16384 server.js
 
 Then go to <http://localhost:5555> !
+
+**NOTE: adapt the _max-old-space-size_ regarding your machine.**
 
 ## Compatibility
 
