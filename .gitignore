@@ -37,9 +37,3 @@ node_modules
 
 # YCSB release
 ycsb-0.10.0-custom-release/
-ycsb-handler2-custom-release/
-
-#SVG workaround
-public/icons/presentation.svg
-public/icons/rocket.svg
-public/icons/settings.svg

@@ -128,7 +128,14 @@ $scope.MAX_POINTS = 20000; // maximal number of points you can get from MongoDB
 
 ### NodeJS server modules installation
 
-Go to folder where the file _package.json_ is located and execute:
+Go to the root folder of the application where the file _package.json_ is located and execute:
+
+    npm install
+
+
+### Client modules installation
+
+Go to the _public_ folder where the file _package.json_ is located and execute:
 
     npm install
 
@@ -144,7 +151,7 @@ You need to start the NodeJS server:
 
 Then go to <http://localhost:5555> !
 
-**NOTE: adapt the _max-old-space-size_ regarding your machine.**
+**NOTE:** adapt the _max-old-space-size_ regarding your machine.
 
 ## Compatibility
 

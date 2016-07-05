@@ -1,7 +1,7 @@
 {
-    "name": "ycsb-web-app",
+    "name": "ycsb-web-app-server",
     "version": "0.0.1",
-    "description": "An AngularJS YCSB Web App for visualisation.",
+    "description": "An AngularJS YCSB Web Server for visualisation.",
     "author": "Titouan Bion <titouan.bion@gmail.com>",
     "contributors": [
         {
@@ -11,7 +11,7 @@
     ],
     "keywords": [
         "ycsb",
-        "frontend",
+        "server",
         "angularjs"
     ],
     "private": true,
@@ -19,7 +19,6 @@
     "dependencies": {
         "express": "^4.13.4",
         "body-parser": "^1.4.3",
-        "highcharts": "^4.2.5",
         "mongodb": "^2.1.18",
         "ps-tree": "^1.1.0",
         "method-override": "^2.1.3",
