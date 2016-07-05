@@ -23,6 +23,7 @@ app.use(methodOverride('X-HTTP-Method-Override')); // override with the X-HTTP-M
 require('./app/routes/workloads.js')(app);
 require('./app/routes/cmds.js')(app, io);
 require('./app/routes/benchmarks.js')(app);
+require('./app/routes/databases.js')(app);
 
 // listen (start app with node server.js)
 server.listen(port);

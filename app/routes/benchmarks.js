@@ -1,3 +1,5 @@
+/* Benchmarks API routes */
+
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var database = require('../../config/database');

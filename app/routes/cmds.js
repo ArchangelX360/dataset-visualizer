@@ -1,3 +1,5 @@
+/* Commands API routes */
+
 var fs = require('fs');
 var utilities = require('../utilities');
 var child_process = require('child_process');
@@ -117,7 +119,6 @@ module.exports = function (router, io) {
         });
     });
 
-    /* Command API */
     router.post('/cmd/launch', function (req, res) {
         var parameters = req.body;
         var err = null;
@@ -133,22 +134,6 @@ module.exports = function (router, io) {
         utilities.sendResult(res, err, response);
     });
 
-    /* Databases API */
-
-    // get all databases names
-    router.get('/api/databases/', function (req, res) {
-        var dbs = [];
-        fs.readFile(systemConfig.ycsbExecutable, 'utf8', function (err, content) {
-            var regexp = /(?:.*"(.*)".*"(com\.yahoo\.ycsb\.(?:db|BasicDB).*)",*[\r\n])/gi;
-            var result = content.match(regexp);
-            result.forEach(function (line) {
-                var myRegexp = /.*"(.*)".*:.*"(?:.*)".*/g;
-                var match = myRegexp.exec(line);
-                dbs.push(match[1]);
-            });
-            utilities.sendResult(res, err, dbs);
-        });
-    });
 
     /* FOR TESTING ONLY */
 
