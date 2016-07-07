@@ -4,6 +4,7 @@ var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var database = require('../../config/database');
 var utilities = require('../utilities');
+var systemConfig = require('../../config/system');
 
 var findDocuments = function (collectionName, selector, options, callback, res) {
     MongoClient.connect(database.url, function (err, db) {
@@ -21,7 +22,7 @@ var dropBenchmark = function (benchmarkName, callback, res) {
         assert.equal(null, err);
         db.dropCollection(benchmarkName, function (err, result) {
             assert.equal(err, null);
-            db.collection("names").remove({name: benchmarkName}, {}, function (err) {
+            db.collection(systemConfig.countersCollectionName).deleteMany({collection: benchmarkName}, {}, function (err) {
                 assert.equal(null, err);
                 callback(res, err, result);
                 db.close();
@@ -61,32 +62,15 @@ module.exports = function (router) {
         findDocuments(req.params.benchmark_name, selector, options, utilities.sendResult, res);
     });
 
-    // get benchmark results by operation type from a specified date
-    router.get('/api/benchmarks/:benchmark_name/:operation_type/:from/:to',
-        function (req, res) {
-
-            // FIXME : should return a quality serie
-
-            var selector = {
-                operationType: req.params.operation_type,
-                num: {
-                    $lt: parseInt(req.params.to),
-                    $gt: parseInt(req.params.from)
-                }
-            };
-            var options = {
-                "sort": "num"
-            };
-            findDocuments(req.params.benchmark_name, selector, options, utilities.sendResult, res);
-        });
-
     // get all benchmark names
     router.get('/nav/names', function (req, res) {
         MongoClient.connect(database.url, function (err, db) {
             db.listCollections().toArray(function (err, collections) {
                 db.close();
-                collections.shift(); // removing system collection
-                utilities.sendResult(res, err, collections);
+                var filteredCollections = collections.filter(function (e) {
+                    return (e.name != "system.indexes" && e.name != systemConfig.countersCollectionName);
+                });
+                utilities.sendResult(res, err, filteredCollections);
             });
         });
     });

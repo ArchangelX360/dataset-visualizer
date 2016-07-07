@@ -1,6 +1,7 @@
 /* Commands API routes */
 
 var fs = require('fs');
+var psTree = require('ps-tree');
 var utilities = require('../utilities');
 var child_process = require('child_process');
 var systemConfig = require('../../config/system');
@@ -31,42 +32,6 @@ var parseParameters = function (parameters) {
 
     return paramsArray;
 };
-
-/**
- * Execute a command on the server and send result only to the user that need the console feedback
- * @param program the program to execute
- * @param params parameters for child_process spawn command
- * @param benchmarkName the benchmark name (identify only users that need the console feedback)
- */
-var executeCommand = function (program, params, benchmarkName) {
-    var child = child_process.spawn(program, params);
-    var client = clients[benchmarkName]; // Only emitting on the right client
-
-    client.emit('begin');
-
-    client.on('kill', function () {
-        kill(child.pid);
-        console.log("Client killed the benchmark.");
-    });
-
-    child.stdout.on('data', function (data) {
-        client.emit('stdout', {message: data.toString()});
-    });
-
-    child.stderr.on('data', function (data) {
-        client.emit('stderr', {message: data.toString()});
-    });
-
-    child.on('exit', function (code) {
-        client.emit('exit', {message: 'child process exited with code ' + code + '\n'});
-    });
-
-};
-
-/* FOR TESTING ONLY */
-
-var psTree = require('ps-tree');
-var memcachedChild = null;
 
 /**
  * Kill a process
@@ -104,6 +69,44 @@ var kill = function (pid, signal, callback) {
     }
 };
 
+/**
+ * Execute a command on the server and send result only to the user that need the console feedback
+ * @param program the program to execute
+ * @param params parameters for child_process spawn command
+ * @param benchmarkName the benchmark name (identify only users that need the console feedback)
+ */
+var executeCommand = function (program, params, benchmarkName) {
+    // FIXME: (node) warning: possible EventEmitter memory leak detected.
+    // FIXME: Memory possible memory leak, we never shutdown the socket neither removing listeners
+
+    var child = child_process.spawn(program, params);
+    var client = clients[benchmarkName]; // Only emitting on the right client
+
+    client.emit('begin');
+
+    client.on('kill', function () {
+        kill(child.pid);
+        console.log("Client killed the benchmark.");
+    });
+
+    child.stdout.on('data', function (data) {
+        client.emit('stdout', {message: data.toString()});
+    });
+
+    child.stderr.on('data', function (data) {
+        client.emit('stderr', {message: data.toString()});
+    });
+
+    child.on('exit', function (code) {
+        client.emit('exit', {message: 'child process exited with code ' + code + '\n'});
+    });
+
+};
+
+/* FOR TESTING ONLY */
+var memcachedChild = null;
+/* */
+
 module.exports = function (router, io) {
 
     io.sockets.on('connection', function (socket) {
@@ -114,7 +117,7 @@ module.exports = function (router, io) {
             clients[benchmarkName] = socket;
         });
 
-        socket.on('disconnect', function (socket) {
+        socket.on('disconnect', function () {
             console.log('Client disconnected with id : ' + socket.id);
         });
     });
