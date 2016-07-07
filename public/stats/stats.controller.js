@@ -1,5 +1,4 @@
 angular.module('stats', [])
-// TODO : make a controller for delete benchmark
     .directive('hcOperationChart', function () {
         return {
             restrict: 'E',
@@ -8,7 +7,6 @@ angular.module('stats', [])
                 series: '=',
                 operation: '@',
                 updatefunc: '=',
-                resizefunc: '=',
                 initfunc: '='
             },
             link: function (scope, element) {
@@ -121,28 +119,31 @@ angular.module('stats', [])
             }
         };
     })
-
     // inject the Benchmark service factory into our controller
-    .controller('StatController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams',
-        '$mdSidenav', '$mdDialog', '$mdToast', '$location', '$q',
-        function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdSidenav, $mdDialog, $mdToast, $location) {
+    .controller('StatController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdDialog', '$mdToast', '$location',
+        function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdDialog, $mdToast, $location) {
 
             /** CONFIGURATION VARIABLES **/
             $scope.MAX_POINTS = 20000; // maximal number of points you can get from MongoDB
             // (depends on your browser/computer performance) and has a undetermined upper limit with NodeJS
-            $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP"];
+            $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP", "READ-MODIFY-WRITE", "DELETE"];
 
+            /* VARIABLE INITIALIZATION */
+
+            getBenchmarkList();
+            $scope.benchmarkName = $routeParams.benchmarkName;
+            $rootScope.pageTitle = ($scope.benchmarkName) ? 'Benchmark results' : 'Select a benchmark';
+            $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
 
             $scope.benchmarkName = $routeParams.benchmarkName;
-            $rootScope.pageTitle = 'Benchmark results';
-            $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
             $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
             $scope.packetSizes = {};
             $scope.operationArray.forEach(function (operationType) {
                 $scope.updateSemaphore[operationType] = true;
                 $scope.packetSizes[operationType] = 1;
             });
-            $scope.benchmarkNames = getBenchmarkList();
+
+            /* CHART FUNCTIONS */
 
             /**
              * Free update semaphore of a specific operationType chart
@@ -161,7 +162,6 @@ angular.module('stats', [])
              * @returns {*} Highchart formatted data
              */
             function convertToSerie(rawValues) {
-                // FIXME: possible million iterations
                 return rawValues.map(function (measureObj) {
                     return [measureObj.num, measureObj.latency]
                 });
@@ -185,7 +185,6 @@ angular.module('stats', [])
              * @returns {{name: string, data: *}} the average Highchart serie
              */
             function createAverageData(serieData, value) {
-                // FIXME: possible million iterations
                 return serieData.map(function (point) {
                     return [point[0], value];
                 })
@@ -197,7 +196,6 @@ angular.module('stats', [])
              * @returns {number} the average of the serie
              */
             function getAverage(serieData) {
-                // FIXME: possible million iterations
                 var total = serieData.reduce(function (previous, current) {
                     return previous + current[1];
                 }, 0);
@@ -211,7 +209,6 @@ angular.module('stats', [])
              * @returns {Array} current points in the series
              */
             function getAllDataPoints(chart, id) {
-                // FIXME: possible million iterations
                 var points = [];
                 var xData = chart.get(id).xData;
                 var yData = chart.get(id).yData;
@@ -355,25 +352,27 @@ angular.module('stats', [])
                 });
             };
 
-            /* BUTTONS ROUTINE */
+            /* DELETION FUNCTIONS */
 
-            /**
-             * Get all benchmarks names and stores it into $scope
-             */
-            function getBenchmarkList() {
-                Benchmarks.getNames().success(function (data) {
-                    var nameObjects = data["results"];
-                    $scope.benchmarkNames = nameObjects.map(function (nameObject) {
-                        return nameObject.name;
+            function deleteBenchmark(benchmarkName) {
+                Benchmarks.delete(benchmarkName)
+                    .success(function () {
+                        $mdToast.show(
+                            $mdToast.simple()
+                                .textContent('Benchmark ' + benchmarkName + ' deleted.')
+                                .position("top right")
+                                .hideDelay(3000)
+                        );
+                        $location.path("/stats");
+                        $scope.loading = false;
                     });
-                });
             }
 
-            $scope.goto = function (path) {
-                $location.path(path);
-            };
-
-            $scope.deleteBenchmark = function (ev) {
+            /**
+             *
+             * @param ev
+             */
+            $scope.confirmDeletionBenchmark = function (ev) {
                 var confirm = $mdDialog.confirm({
                     onComplete: function afterShowAnimation() {
                         var $dialog = angular.element(document.querySelector('md-dialog'));
@@ -392,32 +391,22 @@ angular.module('stats', [])
                     .cancel('No');
                 $mdDialog.show(confirm).then(function () {
                     $scope.loading = true;
-                    Benchmarks.delete($scope.benchmarkName)
-                        .success(function () {
-                            getBenchmarkList();
-                            $mdToast.show(
-                                $mdToast.simple()
-                                    .textContent('Benchmark ' + $scope.benchmarkName + ' deleted.')
-                                    .position("top right")
-                                    .hideDelay(3000)
-                            );
-                            $scope.goto("/stats");
-                            $scope.loading = false;
-                        });
+                    deleteBenchmark($scope.benchmarkName);
                 }, function () {
                     // Do something if "no" is answered.
                 });
             };
 
-        }
-    ])
-    .controller('BenchmarkListController', ['$scope', '$rootScope', '$http', 'Benchmarks',
-        function ($scope, $rootScope, $http, Benchmarks) {
-            $rootScope.pageTitle = 'Select a benchmark';
-            Benchmarks.getNames().success(function (data) {
-                var nameObjects = data["results"];
-                $scope.benchmarkNames = nameObjects.map(function (nameObject) {
-                    return nameObject.name;
+            /* NAV FUNCTIONS */
+
+            function getBenchmarkList() {
+                Benchmarks.getNames().success(function (data) {
+                    var nameObjects = data["results"];
+                    $scope.benchmarkNames = nameObjects.map(function (nameObject) {
+                        return nameObject.name;
+                    });
                 });
-            });
-        }]);
+            }
+
+        }
+    ]);
