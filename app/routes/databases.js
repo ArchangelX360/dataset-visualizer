@@ -1,24 +1,40 @@
 /* Databases API routes */
 
 var systemConfig = require('../../config/system');
-var fs = require('fs');
 var utilities = require('../utilities');
+var readline = require('readline');
+var fs = require('fs');
 
 module.exports = function (router) {
-// get all databases names
+    // get all databases names
     router.get('/api/databases/', function (req, res) {
-        var dbs = [];
-        fs.readFile(systemConfig.ycsbExecutable, 'utf8', function (err, content) {
-            if (!err) {
-                var regexp = /(?:.*"(.*)".*"(com\.yahoo\.ycsb\.(?:db|BasicDB).*)",*[\r\n])/gi;
-                var result = content.match(regexp);
-                result.forEach(function (line) {
-                    var myRegexp = /.*"(.*)".*:.*"(?:.*)".*/g;
-                    var match = myRegexp.exec(line);
-                    dbs.push(match[1]);
-                });
+        var filename;
+        var regexStr;
+        var dbArray = [];
+
+        if (systemConfig.useBindingFile) {
+            filename = systemConfig.ycsbBindingsFile;
+            regexStr = /^(.*):.*/;
+        } else {
+            filename = systemConfig.ycsbPythonExecutable;
+            regexStr = /"(.*)".*:.*"com\.yahoo\.ycsb\.(?:db|BasicDB).*"/;
+        }
+
+        var readStream = fs.createReadStream(filename);
+        readStream.on('error', function (err) {
+            utilities.sendResult(res, err, null);
+        });
+
+        var lineReader = readline.createInterface({input: readStream});
+        lineReader.on('line', function (line) {
+            if (line[0] !== "#") {
+                var dbStr = regexStr.exec(line);
+                if (dbStr)
+                    dbArray.push(dbStr[1]);
             }
-            utilities.sendResult(res, err, dbs);
+        });
+        lineReader.on('close', function () {
+            utilities.sendResult(res, null, dbArray);
         });
     });
-}
+};

@@ -1,8 +1,11 @@
+var ycsbRoot = "/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/";
+
 module.exports = {
-    ycsbExecutable: '/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/bin/ycsb',
-    ycsbBindingsFile: '/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/bin/bindings.properties',
-    ycsbRoot: '/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/',
-    workloadFolder: '/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/workloads/',
+    ycsbExecutable: ycsbRoot + 'bin/ycsb',
+    ycsbPythonExecutable: ycsbRoot + 'bin/ycsb',
+    useBindingFile: true,
+    ycsbBindingsFile: ycsbRoot + 'bin/bindings.properties',
+    workloadFolder: ycsbRoot + 'workloads/',
     countersCollectionName: 'counters',
     memcachedExecutable: '/usr/bin/memcached',
     memcachedUser: 'titouan',
