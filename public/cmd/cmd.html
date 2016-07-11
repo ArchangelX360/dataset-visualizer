@@ -30,143 +30,146 @@
     }
 </style>
 
-    <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
+<md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
 
-    <div flex layout="column" layout-align="center center">
+<div flex layout="column" layout-align="center center">
 
-        <div flex layout-gt-md="row" layout="column">
-            <div flex layout="column">
-                <h1 class="md-headline">YCSB Parameters</h1>
-                <form name="paramsForm">
+    <div flex layout-gt-md="row" layout="column">
+        <div flex layout="column">
+            <h1 class="md-headline">YCSB Parameters</h1>
+            <form name="paramsForm">
 
-                    <div flex layout="row" layout-xs="column" layout-align="center center">
-                        <md-input-container>
-                            <label for="benchmarkname-input">Benchmark name</label>
-                            <input id="benchmarkname-input" type="text" ng-model="params.benchmarkname"
-                                   name="benchmarkname" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
-                            <div ng-messages="paramsForm.benchmarkname.$error" role="alert">
-                                <div ng-message="required">This is required!</div>
-                                <div ng-message="pattern">No special chars allowed!</div>
-                            </div>
-                            <md-tooltip md-direction="bottom" class="tt-multiline">
-                                BE CAREFUL : if you use the same name two times, <br> it will refer to the same
-                                benchmark for YCSB Visualisation
+                <div flex layout="row" layout-xs="column" layout-align="center center">
+                    <md-input-container>
+                        <label for="benchmarkname-input">Benchmark name</label>
+                        <input id="benchmarkname-input" type="text" ng-model="params.benchmarkname"
+                               name="benchmarkname" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
+                        <div ng-messages="paramsForm.benchmarkname.$error" role="alert">
+                            <div ng-message="required">This is required!</div>
+                            <div ng-message="pattern">No special chars allowed!</div>
+                        </div>
+                        <md-tooltip md-direction="bottom" class="tt-multiline">
+                            BE CAREFUL : if you use the same name two times, <br> it will refer to the same
+                            benchmark for YCSB Visualisation
+                        </md-tooltip>
+                        <div class="hint"
+                             ng-if="(showHints && !paramsForm.benchmarkname.$error.required && !paramsForm.benchmarkname.$error.pattern)">
+                            Benchmark UNIQUE name for DB
+                        </div>
+                    </md-input-container>
+                </div>
+
+                <div flex layout="row" layout-xs="column">
+
+                    <div flex layout="column" class="form-column">
+                        <div>
+                            <p>YCSB Target</p>
+                            <md-radio-group id="target-input" ng-model="params.target" aria-label="Target">
+                                <md-radio-button value="load" aria-label="load">Load</md-radio-button>
+                                <md-radio-button value="run" aria-label="run">Run</md-radio-button>
+                            </md-radio-group>
+                        </div>
+                        <div>
+                            <md-switch aria-label="Status report (stderr)" ng-model="params.status">
+                                Status report (stderr)
+                            </md-switch>
+                            <md-tooltip md-direction="bottom">
+                                Activate YCSB status report
                             </md-tooltip>
-                            <div class="hint"
-                                 ng-if="(showHints && !paramsForm.benchmarkname.$error.required && !paramsForm.benchmarkname.$error.pattern)">
-                                Benchmark UNIQUE name for DB
+                        </div>
+                        <md-input-container>
+                            <label>Number of client threads</label>
+                            <input type="number" ng-model="params.pParams.threadcount" name="threadcount">
+                            <div class="hint" ng-if="showHints">Number of YCSB client threads
                             </div>
                         </md-input-container>
                     </div>
 
-                    <div flex layout="row" layout-xs="column">
+                    <div flex layout="column" class="form-column">
+                        <md-input-container>
+                            <label for="workloadfile-select">Workload file</label>
+                            <md-select id="workloadfile-select" ng-model="params.workloadfile" required
+                                       ng-change="getMeasurementType()">
+                                <md-option ng-value="w" ng-repeat="w in workloads">{{w}}</md-option>
+                            </md-select>
+                        </md-input-container>
 
-                        <div flex layout="column" class="form-column">
-                            <div>
-                                <p>YCSB Target</p>
-                                <md-radio-group id="target-input" ng-model="params.target" aria-label="Target">
-                                    <md-radio-button value="load" aria-label="load">Load</md-radio-button>
-                                    <md-radio-button value="run" aria-label="run">Run</md-radio-button>
-                                </md-radio-group>
+                        <md-input-container>
+                            <label for="db-input">Database Class</label>
+                            <md-select id="db-input" ng-model="params.db" required>
+                                <md-option ng-value="db" ng-repeat="db in dbs">{{db}}</md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container style="margin-bottom: 40px;">
+                            <label for="measurementtype-input">Measurement Type</label>
+                            <md-select id="measurementtype-input" ng-model="params.pParams.measurementtype"
+                                       required>
+                                <md-option ng-value="measurementtype"
+                                           ng-repeat="measurementtype in measurementtypes">{{
+                                    measurementtype }} measurement
+                                </md-option>
+                            </md-select>
+                            <div class="hint" ng-if="showHints" style="margin-bottom:-25px;">This will override the
+                                workload parameter, if different
                             </div>
-                            <div>
-                                <md-switch aria-label="Status report (stderr)" ng-model="params.status">
-                                    Status report (stderr)
-                                </md-switch>
-                                <md-tooltip md-direction="bottom">
-                                    Activate YCSB status report
-                                </md-tooltip>
+                            <div class="hint" ng-if="(showHints && params.pParams.measurementtype !=='frontend')"
+                                 style="margin-bottom:-45px; color: rgb(221,44,0)">
+                                Frontend charts won't be generated with this type!
                             </div>
-                            <md-input-container>
-                                <label>Number of client threads</label>
-                                <input type="number" ng-model="params.pParams.threadcount" name="threadcount">
-                                <div class="hint" ng-if="showHints">Number of YCSB client threads
-                                </div>
-                            </md-input-container>
-                        </div>
+                            <md-tooltip md-direction="bottom"
+                                        ng-if="(params.pParams.measurementtype !== 'frontend')">
+                                Specific type measurement parameters must be tweaked in the workload file
+                            </md-tooltip>
+                        </md-input-container>
+                    </div>
 
-                        <div flex layout="column" class="form-column">
-                            <md-input-container>
-                                <label for="workloadfile-select">Workload file</label>
-                                <md-select id="workloadfile-select" ng-model="params.workloadfile" required
-                                           ng-change="getMeasurementType()">
-                                    <md-option ng-value="w" ng-repeat="w in workloads">{{w}}</md-option>
-                                </md-select>
-                            </md-input-container>
+                </div>
+                <md-subheader class="md-accent">
+                    Note: please do not use this view to launch benchmarks with a huge amount of points (millions)
+                </md-subheader>
+                <div flex layout="row" layout-align="center center">
+                    <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
+                               ng-click="launchCmd()" ng-disabled="(!isFinished)">Launch Benchmark
+                    </md-button>
+                    <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Kill Benchmark"
+                               ng-click="killBenchmark()" ng-disabled="(isFinished)">Kill Benchmark
+                    </md-button>
+                    <md-button class="md-raised md-accent md-primary md-button md-ink-ripple"
+                               aria-label="Observe Latency"
+                               ng-href="#/stats/{{params.benchmarkname}}"
+                               ng-disabled="!(hasBeenLaunched && params.pParams.measurementtype === 'frontend')">
+                        Observe
+                        Latency
+                    </md-button>
+                    <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Clear Console"
+                               ng-click="clearConsole()">Clear Console
+                    </md-button>
+                </div>
+            </form>
 
-                            <md-input-container>
-                                <label for="db-input">Database Class</label>
-                                <md-select id="db-input" ng-model="params.db" required>
-                                    <md-option ng-value="db" ng-repeat="db in dbs">{{db}}</md-option>
-                                </md-select>
-                            </md-input-container>
-                            <md-input-container style="margin-bottom: 40px;">
-                                <label for="measurementtype-input">Measurement Type</label>
-                                <md-select id="measurementtype-input" ng-model="params.pParams.measurementtype"
-                                           required>
-                                    <md-option ng-value="measurementtype"
-                                               ng-repeat="measurementtype in measurementtypes">{{
-                                        measurementtype }} measurement
-                                    </md-option>
-                                </md-select>
-                                <div class="hint" ng-if="showHints" style="margin-bottom:-25px;">This will override the
-                                    workload parameter, if different
-                                </div>
-                                <div class="hint" ng-if="(showHints && params.pParams.measurementtype !=='frontend')"
-                                     style="margin-bottom:-45px; color: rgb(221,44,0)">
-                                    Frontend charts won't be generated with this type!
-                                </div>
-                                <md-tooltip md-direction="bottom"
-                                            ng-if="(params.pParams.measurementtype !== 'frontend')">
-                                    Specific type measurement parameters must be tweaked in the workload file
-                                </md-tooltip>
-                            </md-input-container>
-                        </div>
-
+            <form name="memcachedFrom">
+                <div flex layout="column" layout-align="center start">
+                    <div flex layout="row">
+                        <h1 class="md-headline">FOR TESTING ONLY</h1>
                     </div>
 
                     <div flex layout="row" layout-align="center center">
-                        <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
-                                   ng-click="launchCmd()">Launch Benchmark
+                        <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Start Memcached"
+                                   ng-click="startMemcached()">Start Memcached
                         </md-button>
-                        <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Kill Benchmark"
-                                   ng-click="killBenchmark()" ng-disabled="(isFinished)">Kill Benchmark
-                        </md-button>
-                        <md-button class="md-raised md-accent md-primary md-button md-ink-ripple"
-                                   aria-label="Observe Latency"
-                                   ng-href="#/stats/{{params.benchmarkname}}"
-                                   ng-disabled="!(hasBeenLaunched && params.pParams.measurementtype === 'frontend')">
-                            Observe
-                            Latency
-                        </md-button>
-                        <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Clear Console"
-                                   ng-click="clearConsole()">Clear Console
+                        <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Kill Memcached"
+                                   ng-click="killMemcached()">Kill Memcached
                         </md-button>
                     </div>
-                </form>
-                <form name="memcachedFrom">
-                    <div flex layout="column" layout-align="center start">
-                        <div flex layout="row">
-                            <h1 class="md-headline">FOR TESTING ONLY</h1>
-                        </div>
-
-                        <div flex layout="row" layout-align="center center">
-                            <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Start Memcached"
-                                       ng-click="startMemcached()">Start Memcached
-                            </md-button>
-                            <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Kill Memcached"
-                                       ng-click="killMemcached()">Kill Memcached
-                            </md-button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div flex layout="column">
-                <h1 class="md-headline">Standard output</h1>
-                <div class="console-container">
-                    <pre id="std-container"></pre>
                 </div>
+            </form>
+        </div>
+
+        <div flex layout="column">
+            <h1 class="md-headline">Standard output</h1>
+            <div class="console-container">
+                <pre id="std-container"></pre>
             </div>
         </div>
     </div>
+</div>

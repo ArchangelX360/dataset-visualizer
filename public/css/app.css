@@ -1,3 +1,7 @@
+body {
+    overflow-x: hidden;
+}
+
 .frontpage-icon {
     height: 150px;
     width: 150px;
@@ -33,8 +37,48 @@ a.nostyle:visited {
     height: auto;
 }
 
-.benchmark-nav {
+.benchmark-nav-container {
     overflow-x: auto;
     overflow-y: hidden;
     width: 100%
+}
+
+md-toast.md-error-toast-theme div.md-toast-content {
+    color: white !important;
+    background-color: #f44336 !important;
+}
+
+md-toast.md-accent-toast-theme div.md-toast-content {
+    color: white !important;
+    background-color: #2196f3 !important;
+}
+
+md-toast.md-success-toast-theme div.md-toast-content {
+    color: white !important;
+    background-color: #8bc34a !important;
+}
+
+md-toast.md-warn-toast-theme div.md-toast-content {
+    color: white !important;
+    background-color: #ffc107 !important;
+}
+
+.main-nav {
+    height: 56px;
+    min-height: 56px;
+    padding: 0 16px;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+}
+
+.fab-custom {
+    position: fixed;
+    bottom: 56px;
+    right: 16px;
+    padding: 0 16px;
+    z-index: 5;
 }

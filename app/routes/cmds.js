@@ -1,6 +1,6 @@
 /* Commands API routes */
 
-var fs = require('fs');
+var debug = require('debug')('cmd');
 var psTree = require('ps-tree');
 var utilities = require('../utilities');
 var child_process = require('child_process');
@@ -86,7 +86,7 @@ var executeCommand = function (program, params, benchmarkName) {
 
     client.on('kill', function () {
         kill(child.pid);
-        console.log("Client killed the benchmark.");
+        debug("Client killed the benchmark.");
     });
 
     child.stdout.on('data', function (data) {
@@ -110,15 +110,15 @@ var memcachedChild = null;
 module.exports = function (router, io) {
 
     io.sockets.on('connection', function (socket) {
-        console.log('Client connected with id : ' + socket.id);
+        debug('Client connected with id : ' + socket.id);
 
         socket.on('authentication', function (benchmarkName) {
-            console.log("Authenticate with : " + benchmarkName);
+            debug("Authenticate with : " + benchmarkName);
             clients[benchmarkName] = socket;
         });
 
         socket.on('disconnect', function () {
-            console.log('Client disconnected with id : ' + socket.id);
+            debug('Client disconnected with id : ' + socket.id);
         });
     });
 
@@ -130,11 +130,11 @@ module.exports = function (router, io) {
             var program = systemConfig.ycsbExecutable;
             var paramsArray = parseParameters(parameters);
             executeCommand(program, paramsArray, parameters.benchmarkname);
-            response = '[SUCCESS] Benchmarking "' + parameters.target + '" in progress...\n';
+            response = 'Benchmarking "' + parameters.target + '" launched !';
         } else {
             err = 'Please enter a valid Benchmark Name.';
         }
-        utilities.sendResult(res, err, response);
+        utilities.sendResult(res, err, response, 400);
     });
 
 
@@ -151,17 +151,16 @@ module.exports = function (router, io) {
         parameters.push("-l");
         parameters.push(systemConfig.memcachedAddress);
         memcachedChild = child_process.spawn(systemConfig.memcachedExecutable, parameters);
-        utilities.sendResult(res, null, '[SUCCESS] Memcached is running on '
-            + systemConfig.memcachedAddress + ':' + systemConfig.memcachedPort
-            + ' by ' + systemConfig.memcachedUser + '.\n');
+        utilities.sendResult(res, null, 'Memcached is running on ' + systemConfig.memcachedAddress
+            + ':' + systemConfig.memcachedPort + ' by ' + systemConfig.memcachedUser + '.\n');
     });
 
     router.delete('/cmd/memcached', function (req, res) {
-        var response = "";
+        var response = null;
         var err = null;
         if (memcachedChild) {
             kill(memcachedChild.pid);
-            response = '[SUCCESS] Your memcached instance is killed.\n';
+            response = 'Your memcached instance is killed.\n';
         } else {
             err = 'No instance to kill.';
         }

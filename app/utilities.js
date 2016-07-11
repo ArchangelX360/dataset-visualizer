@@ -5,15 +5,13 @@ module.exports = {
      * @param res result of the request
      * @param err errors of the mongodb query
      * @param objects the mongodb results
+     * @param errorCode request error code if different than an internal error
      */
-    sendResult: function (res, err, objects) {
-        var data = {"errors": null, "results": null};
+    sendResult: function (res, err, objects, errorCode) {
         if (err) {
-            data.errors = '[ERROR] ' + err + '\n';
-        } else {
-            data.results = objects;
+            res.status(errorCode || 500).json(err);
+            return;
         }
-        res.json(data);
+        res.json(objects);
     }
-
 };

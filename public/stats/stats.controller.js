@@ -7,13 +7,12 @@ angular.module('stats', [])
                 series: '=',
                 operation: '@',
                 updatefunc: '=',
-                initfunc: '='
+                initfunc: '=',
+                updateinterval: '='
             },
             link: function (scope, element) {
-                var updateInterval;
-
                 element.on('$destroy', function () {
-                    clearInterval(updateInterval)
+                    clearInterval(scope.updateinterval)
                 });
 
                 Highcharts.StockChart(element[0], {
@@ -25,7 +24,7 @@ angular.module('stats', [])
                                 // set up the updating of the chart each second
                                 var chart = this;
                                 scope.initfunc(chart, scope.operation);
-                                updateInterval = setInterval(function () {
+                                scope.updateinterval = setInterval(function () {
                                     var extremesObject = chart.xAxis[0].getExtremes();
                                     scope.updatefunc(chart, scope.operation, Math.round(extremesObject.dataMax));
                                 }, 3000);
@@ -120,16 +119,18 @@ angular.module('stats', [])
         };
     })
     // inject the Benchmark service factory into our controller
-    .controller('StatController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdDialog', '$mdToast', '$location',
-        function ($scope, $rootScope, $http, Benchmarks, $routeParams, $mdDialog, $mdToast, $location) {
+    .controller('StatController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdDialog',
+        '$mdToast', '$location', 'ToastService', '$log', function ($scope, $rootScope, $http, Benchmarks, $routeParams,
+                                                                   $mdDialog, $mdToast, $location, ToastService, $log) {
 
             /** CONFIGURATION VARIABLES **/
             $scope.MAX_POINTS = 20000; // maximal number of points you can get from MongoDB
             // (depends on your browser/computer performance) and has a undetermined upper limit with NodeJS
-            $scope.operationArray = ["INSERT", "READ", "UPDATE", "SCAN", "CLEANUP", "READ-MODIFY-WRITE", "DELETE"];
+            $scope.operationArray = ["INSERT", "READ", "UPDATE", "READ-MODIFY-WRITE", "CLEANUP", "SCAN", "DELETE"];
 
             /* VARIABLE INITIALIZATION */
 
+            $scope.intervals = {};
             getBenchmarkList();
             $scope.benchmarkName = $routeParams.benchmarkName;
             $rootScope.pageTitle = ($scope.benchmarkName) ? 'Benchmark results' : 'Select a benchmark';
@@ -141,7 +142,9 @@ angular.module('stats', [])
             $scope.operationArray.forEach(function (operationType) {
                 $scope.updateSemaphore[operationType] = true;
                 $scope.packetSizes[operationType] = 1;
+                $scope.intervals[operationType] = null;
             });
+            $scope.updateIntervalsActive = false;
 
             /* CHART FUNCTIONS */
 
@@ -227,7 +230,7 @@ angular.module('stats', [])
              */
             function updateSeries(chart, operationType, rawPoints, packetSize) {
                 if (rawPoints.length > 0) {
-                    console.log('[' + operationType + '] Updating series');
+                    $log.info('[' + operationType + '] Updating series');
 
                     $scope.packetSizes[operationType] = packetSize;
                     var newPointsData = convertToSerie(rawPoints);
@@ -244,10 +247,11 @@ angular.module('stats', [])
                     chart.get(operationType + '_latency').setData(completeData);
                     chart.get(operationType + '_latency_average').setData(createAverageData(completeData, average));
 
-                    console.log('%c[' + operationType + '] Chart updated', 'color: green');
+                    $log.info('%c[' + operationType + '] Chart updated', 'color: green');
                 } else {
-                    console.log('%c[' + operationType + '] No new points found', 'color: orange');
+                    $log.info('%c[' + operationType + '] No new points found', 'color: orange');
                 }
+                chart.hideLoading();
                 freeSemaphore(operationType)
             }
 
@@ -259,11 +263,11 @@ angular.module('stats', [])
              */
             $scope.updateRoutine = function (chart, operationType, lastInserted) {
                 if (!$scope.updateSemaphore[operationType]) {
-                    console.log('[' + operationType + '] Updating chart');
+                    $log.info('[' + operationType + '] Updating chart');
                     $scope.updateSemaphore[operationType] = true;
 
-                    Benchmarks.getSize($scope.benchmarkName, operationType).success(function (data) {
-                        var datasetSize = data["results"];
+                    Benchmarks.getSize($scope.benchmarkName, operationType).then(function (result) {
+                        var datasetSize = result.data;
                         if (datasetSize > $scope.MAX_POINTS) {
                             var packetSize = Math.floor(datasetSize / $scope.MAX_POINTS) + 1;
 
@@ -273,19 +277,21 @@ angular.module('stats', [])
                             }
 
                             Benchmarks.getByNameByOperationTypeByQuality($scope.benchmarkName, operationType,
-                                lastInserted, "MAX", $scope.MAX_POINTS, packetSize).success(function (data) {
-                                var newPoints = data["results"];
-
-                                if (packetSize != $scope.packetSizes[operationType]) {
-                                    initSeries(chart, operationType, newPoints, packetSize);
-                                } else {
-                                    updateSeries(chart, operationType, newPoints, packetSize);
-                                }
-                            });
+                                lastInserted, "MAX", $scope.MAX_POINTS, packetSize)
+                                .then(function (result) {
+                                    var newPoints = result.data;
+                                    if (packetSize != $scope.packetSizes[operationType]) {
+                                        initSeries(chart, operationType, newPoints, packetSize);
+                                    } else {
+                                        updateSeries(chart, operationType, newPoints, packetSize);
+                                    }
+                                }, function (err) {
+                                    ToastService.showToast(err.data, 'error');
+                                });
                         } else {
                             Benchmarks.getByNameByOperationTypeFrom($scope.benchmarkName, operationType, lastInserted)
-                                .success(function (data) {
-                                    var newPoints = data["results"];
+                                .then(function (result) {
+                                    var newPoints = result.data;
                                     var packetSize = $scope.packetSizes[operationType];
 
                                     if (datasetSize == newPoints.length) {
@@ -293,8 +299,12 @@ angular.module('stats', [])
                                     } else {
                                         updateSeries(chart, operationType, newPoints, packetSize);
                                     }
+                                }, function (err) {
+                                    ToastService.showToast(err.data, 'error');
                                 });
                         }
+                    }, function (err) {
+                        ToastService.showToast(err.data, 'error');
                     });
                 }
             };
@@ -308,7 +318,7 @@ angular.module('stats', [])
              */
             function initSeries(chart, operationType, rawPoints, packetSize) {
                 if (rawPoints.length > 0) {
-                    console.log('[' + operationType + '] Initializing series');
+                    $log.info('[' + operationType + '] Initializing series');
 
                     $scope.packetSizes[operationType] = packetSize;
 
@@ -318,12 +328,14 @@ angular.module('stats', [])
                     chart.get(operationType + '_latency_average')
                         .setData(createAverageData(points, getAverage(points)));
 
-                    console.log('%c[' + operationType + '] Chart initialized', 'color: green');
+                    $log.info('%c[' + operationType + '] Chart initialized', 'color: green');
+                    chart.hideLoading();
                 } else {
-                    console.log('%c[' + operationType + '] No points found', 'color: orange');
+                    chart.showLoading('No data found.');
+                    $log.info('%c[' + operationType + '] No points found', 'color: orange');
                 }
+                $scope.updateIntervalsActive = true;
                 freeSemaphore(operationType);
-                chart.hideLoading();
             }
 
             /**
@@ -332,45 +344,68 @@ angular.module('stats', [])
              * @param operationType the operation type
              */
             $scope.initRoutine = function (chart, operationType) {
-                console.log('[' + operationType + '] Initializing chart');
+                $log.info('[' + operationType + '] Initializing chart');
                 chart.showLoading('Loading data from server...');
 
-                Benchmarks.getSize($scope.benchmarkName, operationType).success(function (data) {
-                    var datasetSize = data["results"];
+                Benchmarks.getSize($scope.benchmarkName, operationType).then(function (result) {
+                    var datasetSize = result.data;
                     if (datasetSize > $scope.MAX_POINTS) {
                         var packetSize = Math.floor(datasetSize / $scope.MAX_POINTS) + 1;
                         Benchmarks.getByNameByOperationTypeByQuality($scope.benchmarkName, operationType, 0,
-                            "MAX", $scope.MAX_POINTS, packetSize).success(function (data) {
-                            initSeries(chart, operationType, data["results"], packetSize);
+                            "MAX", $scope.MAX_POINTS, packetSize).then(function (result) {
+                            var rawPoints = result.data;
+                            initSeries(chart, operationType, rawPoints, packetSize);
+                        }, function (err) {
+                            ToastService.showToast(err.data, 'error');
                         });
                     } else {
                         Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
-                            .success(function (data) {
-                                initSeries(chart, operationType, data["results"], 1);
+                            .then(function (result) {
+                                var rawPoints = result.data;
+                                initSeries(chart, operationType, rawPoints, 1);
+                            }, function (err) {
+                                ToastService.showToast(err.data, 'error');
                             });
                     }
+                }, function (err) {
+                    ToastService.showToast(err.data, 'error');
                 });
+            };
+
+            /**
+             * Clears all chart update intervals
+             */
+            $scope.clearUpdateIntervals = function () {
+                for (var operationType in $scope.intervals) {
+                    if ($scope.intervals.hasOwnProperty(operationType)) {
+                        clearInterval($scope.intervals[operationType]);
+                        $log.info("%c[" + operationType + "] Update interval cleared.", 'color: rgb(68,138,255)');
+                    }
+                }
+                $scope.updateIntervalsActive = false;
+                ToastService.showToast("Updates stopped.", 'warn');
             };
 
             /* DELETION FUNCTIONS */
 
+            /**
+             * Launch specified benchmark DB deletion
+             * @param benchmarkName the name of the benchmark
+             */
             function deleteBenchmark(benchmarkName) {
                 Benchmarks.delete(benchmarkName)
-                    .success(function () {
-                        $mdToast.show(
-                            $mdToast.simple()
-                                .textContent('Benchmark ' + benchmarkName + ' deleted.')
-                                .position("top right")
-                                .hideDelay(3000)
-                        );
+                    .then(function () {
+                        ToastService.showToast('Benchmark ' + benchmarkName + ' deleted.', 'warn');
                         $location.path("/stats");
                         $scope.loading = false;
+                    }, function (err) {
+                        ToastService.showToast(err.data, 'error');
                     });
             }
 
             /**
-             *
-             * @param ev
+             * Shows confirm popup to delete a benchmark and launches its deletion if user answer yes
+             * @param ev the event
              */
             $scope.confirmDeletionBenchmark = function (ev) {
                 var confirm = $mdDialog.confirm({
@@ -399,13 +434,15 @@ angular.module('stats', [])
 
             /* NAV FUNCTIONS */
 
+            /**
+             * Get benchmark name list to fill the nav
+             */
             function getBenchmarkList() {
-                Benchmarks.getNames().success(function (data) {
-                    var nameObjects = data["results"];
-                    $scope.benchmarkNames = nameObjects.map(function (nameObject) {
-                        return nameObject.name;
-                    });
-                });
+                Benchmarks.getNames().then(function (result) {
+                    $scope.benchmarkNames = result.data;
+                }, function (err) {
+                    ToastService.showToast(err.data, 'error');
+                })
             }
 
         }

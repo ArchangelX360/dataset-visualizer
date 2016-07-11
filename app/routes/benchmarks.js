@@ -1,55 +1,46 @@
 /* Benchmarks API routes */
-
-var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
-var database = require('../../config/database');
 var utilities = require('../utilities');
 var systemConfig = require('../../config/system');
+var debug = require('debug')('benchmark');
 
-var findDocuments = function (collectionName, selector, options, callback, res) {
-    MongoClient.connect(database.url, function (err, db) {
-        assert.equal(null, err);
-        db.collection(collectionName).find(selector, options).toArray(function (err, docs) {
-            assert.equal(err, null);
-            db.close();
-            callback(res, err, docs);
+var findDocuments = function (db, collectionName, selector, options, callback, res) {
+    db.collection(collectionName).find(selector, options).toArray(function (err, docs) {
+        callback(res, err, docs);
+    });
+};
+
+var dropBenchmark = function (db, benchmarkName, callback, res) {
+    db.dropCollection(benchmarkName, function (err, result) {
+        if (err) {
+            res.status(500).json(err);
+            return;
+        }
+        db.collection(systemConfig.countersCollectionName).deleteMany({collection: benchmarkName}, {}, function (err) {
+            callback(res, err, result);
         });
     });
 };
 
-var dropBenchmark = function (benchmarkName, callback, res) {
-    MongoClient.connect(database.url, function (err, db) {
-        assert.equal(null, err);
-        db.dropCollection(benchmarkName, function (err, result) {
-            assert.equal(err, null);
-            db.collection(systemConfig.countersCollectionName).deleteMany({collection: benchmarkName}, {}, function (err) {
-                assert.equal(null, err);
-                callback(res, err, result);
-                db.close();
-            });
-        });
-    });
-};
-
-module.exports = function (router) {
+module.exports = function (router, db) {
 
     /* Benchmark API */
 
     // get a benchmark by name
     router.get('/api/benchmarks/:benchmark_name', function (req, res) {
-        findDocuments(req.params.benchmark_name, {}, {}, utilities.sendResult, res);
+        findDocuments(db, req.params.benchmark_name, {}, {}, utilities.sendResult, res);
     });
 
     // delete a benchmark
-    router.delete('/api/benchmarks/:benchmark_name', function (req, res) {
-        dropBenchmark(req.params.benchmark_name, utilities.sendResult, res);
+    router.delete('/api/benchmarks/:benchmark_name', function (req, res, next) {
+        dropBenchmark(db, req.params.benchmark_name, utilities.sendResult, res, next);
     });
 
     // get benchmark results by operation type
     router.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
         var selector = {operationType: req.params.operation_type};
         var options = {"sort": "num"};
-        findDocuments(req.params.benchmark_name, selector, options, utilities.sendResult, res);
+        findDocuments(db, req.params.benchmark_name, selector, options, utilities.sendResult, res);
     });
 
     // get benchmark results by operation type from a specified date
@@ -59,36 +50,34 @@ module.exports = function (router) {
             num: {$gt: parseInt(req.params.from)}
         };
         var options = {"sort": "num"};
-        findDocuments(req.params.benchmark_name, selector, options, utilities.sendResult, res);
+        findDocuments(db, req.params.benchmark_name, selector, options, utilities.sendResult, res);
     });
 
     // get all benchmark names
     router.get('/nav/names', function (req, res) {
-        MongoClient.connect(database.url, function (err, db) {
-            db.listCollections().toArray(function (err, collections) {
-                db.close();
-                var filteredCollections = collections.filter(function (e) {
-                    return (e.name != "system.indexes" && e.name != systemConfig.countersCollectionName);
-                });
-                utilities.sendResult(res, err, filteredCollections);
-            });
+        db.listCollections().toArray(function (err, collections) {
+            if (!err) {
+                var filteredCollections = collections.reduce(function (res, nameObject) {
+                    if (nameObject.name != "system.indexes" && nameObject.name != systemConfig.countersCollectionName) {
+                        res.push(nameObject.name);
+                    }
+                    return res;
+                }, []);
+            }
+            utilities.sendResult(res, err, filteredCollections);
         });
     });
 
 
     router.get('/api/infos/benchmarks/size/:benchmark_name/:operation_type', function (req, res) {
-        MongoClient.connect(database.url, function (err, db) {
-            db.collection(req.params.benchmark_name).count({operationType: req.params.operation_type},
-                function (err, count) {
-                    assert.equal(err, null);
-                    db.close();
-                    utilities.sendResult(res, err, parseInt(count));
-                });
-        });
+        db.collection(req.params.benchmark_name).count({operationType: req.params.operation_type},
+            function (err, count) {
+                utilities.sendResult(res, err, parseInt(count));
+            });
     });
 
     router.get('/api/aggregate/:benchmark_name/:operation_type/:from/:to/:limit/:bucket_size', function (req, res) {
-        // Warning: result could exceed limit by a few points
+        /* Warning: result could exceed limit by a few points */
 
         var limit = req.params.limit;
         var benchmarkName = req.params.benchmark_name;
@@ -129,25 +118,14 @@ module.exports = function (router) {
 
         var sort = {"$sort": {"num": 1}};
 
-        console.log('[' + req.params.operation_type + '] Aggregating...');
-
-        MongoClient.connect(database.url, function (err, db) {
-            console.log('[' + req.params.operation_type + '] Bucket size: ' + bucketSize);
-            db.collection(benchmarkName).aggregate(
-                [match, project, group, sort],
-                {allowDiskUse: true}
-            ).toArray(function (err, results) {
-                if (err) {
-                    console.log(err)
-                }
-                console.log('[' + req.params.operation_type + '] Result length: ' + results.length);
-                db.close();
+        debug('[' + req.params.operation_type + '] Aggregating with bucket size: ' + bucketSize);
+        db.collection(benchmarkName).aggregate([match, project, group, sort], {allowDiskUse: true})
+            .toArray(function (err, results) {
+                debug('[' + req.params.operation_type + '] Result length: ' + results.length);
+                if (results.length > limit)
+                    debug('[WARNING][' + req.params.operation_type + '] result a bit longer than limit');
                 utilities.sendResult(res, err, results);
-                if (results.length > limit) {
-                    console.log('[WARNING][' + req.params.operation_type + '] result a bit longer than limit');
-                }
             });
-        });
     });
 
 };

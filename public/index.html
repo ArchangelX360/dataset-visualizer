@@ -6,23 +6,25 @@
     <link rel="icon" type="image/jpg" href="icons/presentation.svg"/>
     <link rel="stylesheet" href="node_modules/angular-material/angular-material.min.css">
     <link rel="stylesheet" href="css/app.css">
-    <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="node_modules/socket.io-client/socket.io.js"></script>
 </head>
 <body ng-app="visualisationYCSB" flex>
 
 <div layout="column" flex layout-fill>
-    <md-toolbar>
+    <md-toolbar class="main-nav">
         <div class="md-toolbar-tools">
             <a ng-href="#/">
                 <md-button class="md-icon-button" aria-label="Home">
-                    <md-icon md-svg-icon="icons/ic_home_white_48px.svg"></md-icon>
+                    <md-icon aria-label="Home"><i class="material-icons">&#xE88A;</i></md-icon>
                 </md-button>
             </a>
             <h2><a ng-href="#/"><span>YCSB Visualisation</span></a><span> > {{pageTitle}}</span></h2>
             <span flex></span>
         </div>
     </md-toolbar>
+    <div style="height: 56px; max-height: 56px; min-height: 56px"></div>
     <div ng-class="classView" ng-view></div>
     <div class="footer" layout="row" layout-align="center center">
     </div>
@@ -56,6 +58,7 @@
 <script src="services/cmd.js"></script>
 <script src="services/workloads.js"></script>
 <script src="services/databases.js"></script>
+<script src="services/toast.js"></script>
 
 <script src="core.js"></script>
 
