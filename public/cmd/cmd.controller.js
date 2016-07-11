@@ -41,8 +41,9 @@ angular.module('cmdController', [])
             /* Function definitions */
 
             function appendConsole(string) {
-                var container = document.getElementById('std-container');
-                container.innerHTML += string;
+                var console = document.getElementById('std-container');
+                var container = document.getElementsByClassName('console-container')[0];
+                console.innerHTML += string;
                 container.scrollTop = container.scrollHeight;
             }
 
@@ -100,9 +101,10 @@ angular.module('cmdController', [])
             };
 
             $scope.clearConsole = function () {
-                var container = document.getElementById('std-container');
-                container.innerHTML = "";
-                container.scrollTop = container.scrollHeight; //FIXME not working on all browser
+                var console = document.getElementById('std-container');
+                var container = document.getElementsByClassName('console-container')[0];
+                console.innerHTML = "";
+                container.scrollTop = container.scrollHeight;
             };
 
             $scope.startMemcached = function () {
