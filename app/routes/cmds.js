@@ -76,11 +76,10 @@ var kill = function (pid, signal, callback) {
  * @param benchmarkName the benchmark name (identify only users that need the console feedback)
  */
 var executeCommand = function (program, params, benchmarkName) {
-    // FIXME: (node) warning: possible EventEmitter memory leak detected.
-    // FIXME: Memory possible memory leak, we never shutdown the socket neither removing listeners
-
     var child = child_process.spawn(program, params);
     var client = clients[benchmarkName]; // Only emitting on the right client
+
+    client.removeAllListeners();
 
     client.emit('begin');
 
