@@ -87,7 +87,7 @@ angular.module('workloadsController', [])
                         if (err.data.hasOwnProperty('code')) {
                             ToastService.showToast(ToastService.parseFsError(err.data), 'error');
                         } else {
-                            ToastService.showToast(err, 'error');
+                            ToastService.showToast(err.data, 'error');
                         }
                     });
                 }, function () {
