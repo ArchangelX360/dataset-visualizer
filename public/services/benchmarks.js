@@ -6,19 +6,19 @@ angular.module('benchmarkService', [])
             getByName: function (benchmarkName) {
                 return $http.get('/api/benchmarks/' + benchmarkName);
             },
-            getByNameByOperationType: function (benchmarkName, operationType) {
-                return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType);
+            getByNameByLabel: function (benchmarkName, label) {
+                return $http.get('/api/benchmarks/' + benchmarkName + '/' + label);
             },
-            getByNameByOperationTypeFrom: function (benchmarkName, operationType, fromDateTimestamp) {
-                return $http.get('/api/benchmarks/' + benchmarkName + '/' + operationType + '/' + fromDateTimestamp);
+            getByNameByLabelFrom: function (benchmarkName, label, fromDateTimestamp) {
+                return $http.get('/api/benchmarks/' + benchmarkName + '/' + label + '/' + fromDateTimestamp);
             },
-            getByNameByOperationTypeByQuality: function (benchmarkName, operationType,
-                                                         fromDateTimestamp, toDateTimestamp, limit, bucketSize) {
-                return $http.get('/api/aggregate/' + benchmarkName + '/' + operationType + '/'
+            getByNameByLabelByQuality: function (benchmarkName, label,
+                                                 fromDateTimestamp, toDateTimestamp, limit, bucketSize) {
+                return $http.get('/api/aggregate/' + benchmarkName + '/' + label + '/'
                     + fromDateTimestamp + '/' + toDateTimestamp + '/' + limit + '/' + bucketSize);
             },
-            getSize: function (benchmarkName, operationType) {
-                return $http.get('/api/infos/benchmarks/size/' + benchmarkName + '/' + operationType);
+            getSize: function (benchmarkName, label) {
+                return $http.get('/api/infos/benchmarks/size/' + benchmarkName + '/' + label);
             },
             getNames: function () {
                 return $http.get('/nav/names');

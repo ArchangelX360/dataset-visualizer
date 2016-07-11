@@ -36,17 +36,17 @@ module.exports = function (router, db) {
         dropBenchmark(db, req.params.benchmark_name, utilities.sendResult, res, next);
     });
 
-    // get benchmark results by operation type
-    router.get('/api/benchmarks/:benchmark_name/:operation_type', function (req, res) {
-        var selector = {operationType: req.params.operation_type};
+    // get benchmark results by label
+    router.get('/api/benchmarks/:benchmark_name/:label', function (req, res) {
+        var selector = {label: req.params.label};
         var options = {"sort": "num"};
         findDocuments(db, req.params.benchmark_name, selector, options, utilities.sendResult, res);
     });
 
-    // get benchmark results by operation type from a specified date
-    router.get('/api/benchmarks/:benchmark_name/:operation_type/:from', function (req, res) {
+    // get benchmark results by label from a specified date
+    router.get('/api/benchmarks/:benchmark_name/:label/:from', function (req, res) {
         var selector = {
-            operationType: req.params.operation_type,
+            label: req.params.label,
             num: {$gt: parseInt(req.params.from)}
         };
         var options = {"sort": "num"};
@@ -69,14 +69,14 @@ module.exports = function (router, db) {
     });
 
 
-    router.get('/api/infos/benchmarks/size/:benchmark_name/:operation_type', function (req, res) {
-        db.collection(req.params.benchmark_name).count({operationType: req.params.operation_type},
+    router.get('/api/infos/benchmarks/size/:benchmark_name/:label', function (req, res) {
+        db.collection(req.params.benchmark_name).count({label: req.params.label},
             function (err, count) {
                 utilities.sendResult(res, err, parseInt(count));
             });
     });
 
-    router.get('/api/aggregate/:benchmark_name/:operation_type/:from/:to/:limit/:bucket_size', function (req, res) {
+    router.get('/api/aggregate/:benchmark_name/:label/:from/:to/:limit/:bucket_size', function (req, res) {
         /* Warning: result could exceed limit by a few points */
 
         var limit = req.params.limit;
@@ -84,7 +84,7 @@ module.exports = function (router, db) {
         var bucketSize = parseInt(req.params.bucket_size);
         var match = {
             $match: {
-                operationType: req.params.operation_type,
+                label: req.params.label,
                 num: {
                     $lt: (req.params.to === "MAX") ? Number.MAX_VALUE : parseInt(req.params.to),
                     $gt: parseInt(req.params.from)
@@ -93,8 +93,8 @@ module.exports = function (router, db) {
         };
         var project = {
             "$project": {
-                "latency": 1,
-                "operationType": 1,
+                "measure": 1,
+                "label": 1,
                 "num": 1
             }
         };
@@ -102,28 +102,28 @@ module.exports = function (router, db) {
         var group = {
             "$group": {
                 "_id": {
-                    "o": "$operationType",
+                    "o": "$label",
                     'interval': {
                         '$subtract': [{'$divide': ['$num', bucketSize]},
                             {'$mod': [{'$divide': ['$num', bucketSize]}, 1]}]
                     }
                 },
-                "operationType": {$first: "$operationType"},
+                "label": {$first: "$label"},
                 "num": {$first: "$num"},
-                "latency": {
-                    "$avg": "$latency"
+                "measure": {
+                    "$avg": "$measure"
                 }
             }
         };
 
         var sort = {"$sort": {"num": 1}};
 
-        debug('[' + req.params.operation_type + '] Aggregating with bucket size: ' + bucketSize);
+        debug('[' + req.params.label + '] Aggregating with bucket size: ' + bucketSize);
         db.collection(benchmarkName).aggregate([match, project, group, sort], {allowDiskUse: true})
             .toArray(function (err, results) {
-                debug('[' + req.params.operation_type + '] Result length: ' + results.length);
+                debug('[' + req.params.label + '] Result length: ' + results.length);
                 if (results.length > limit)
-                    debug('[WARNING][' + req.params.operation_type + '] result a bit longer than limit');
+                    debug('[WARNING][' + req.params.label + '] result a bit longer than limit');
                 utilities.sendResult(res, err, results);
             });
     });

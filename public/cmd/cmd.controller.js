@@ -42,7 +42,7 @@ angular.module('cmdController', [])
 
             function appendConsole(string) {
                 var console = document.getElementById('std-container');
-                var container = document.getElementsByClassName('console-container')[0];
+                var container = document.getElementsByClassName('console-container') [0];
                 console.innerHTML += string;
                 container.scrollTop = container.scrollHeight;
             }

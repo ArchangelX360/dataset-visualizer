@@ -22,7 +22,7 @@ var parseParameters = function (parameters) {
         paramsArray.push(key + '=' + parameters.pParams[key]);
     }
     paramsArray.push('-p');
-    paramsArray.push("benchmarkname=" + parameters.benchmarkname.replace(/[^a-zA-Z0-9]/gi, ''));
+    paramsArray.push("frontend.collection.benchmark=" + parameters.benchmarkname.replace(/[^a-zA-Z0-9]/gi, ''));
     paramsArray.unshift(parameters.db);
     paramsArray.unshift(parameters.target);
 

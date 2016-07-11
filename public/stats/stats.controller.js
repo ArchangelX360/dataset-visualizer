@@ -5,7 +5,7 @@ angular.module('stats', [])
             template: '<div></div>',
             scope: {
                 series: '=',
-                operation: '@',
+                customlabel: '@',
                 updatefunc: '=',
                 initfunc: '=',
                 updateinterval: '='
@@ -23,10 +23,10 @@ angular.module('stats', [])
                             load: function () {
                                 // set up the updating of the chart each second
                                 var chart = this;
-                                scope.initfunc(chart, scope.operation);
+                                scope.initfunc(chart, scope.customlabel);
                                 scope.updateinterval = setInterval(function () {
                                     var extremesObject = chart.xAxis[0].getExtremes();
-                                    scope.updatefunc(chart, scope.operation, Math.round(extremesObject.dataMax));
+                                    scope.updatefunc(chart, scope.customlabel, Math.round(extremesObject.dataMax));
                                 }, 3000);
                             }
                         }
@@ -101,18 +101,18 @@ angular.module('stats', [])
                     },
                     series: [
                         {
-                            id: scope.operation + '_latency',
-                            name: scope.operation + ' latency',
+                            id: scope.customlabel + '_measures',
+                            name: scope.customlabel + ' measures',
                             data: []
                         },
                         {
-                            id: scope.operation + '_latency_average',
-                            name: 'Average ' + scope.operation + ' latency',
+                            id: scope.customlabel + '_measures_average',
+                            name: scope.customlabel + 'average',
                             data: []
                         }
                     ],
                     title: {
-                        text: scope.operation + ' latency'
+                        text: scope.customlabel + ' measures'
                     }
                 });
             }
@@ -139,21 +139,21 @@ angular.module('stats', [])
             $scope.benchmarkName = $routeParams.benchmarkName;
             $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
             $scope.packetSizes = {};
-            $scope.operationArray.forEach(function (operationType) {
-                $scope.updateSemaphore[operationType] = true;
-                $scope.packetSizes[operationType] = 1;
-                $scope.intervals[operationType] = null;
+            $scope.operationArray.forEach(function (label) {
+                $scope.updateSemaphore[label] = true;
+                $scope.packetSizes[label] = 0;
+                $scope.intervals[label] = null;
             });
             $scope.updateIntervalsActive = false;
 
             /* CHART FUNCTIONS */
 
             /**
-             * Free update semaphore of a specific operationType chart
-             * @param operationType the operationType string
+             * Free update semaphore of a specific label chart
+             * @param label the label string
              */
-            function freeSemaphore(operationType) {
-                $scope.updateSemaphore[operationType] = false;
+            function freeSemaphore(label) {
+                $scope.updateSemaphore[label] = false;
             }
 
             /**
@@ -166,7 +166,7 @@ angular.module('stats', [])
              */
             function convertToSerie(rawValues) {
                 return rawValues.map(function (measureObj) {
-                    return [measureObj.num, measureObj.latency]
+                    return [measureObj.num, measureObj.measure]
                 });
             }
 
@@ -222,82 +222,81 @@ angular.module('stats', [])
             }
 
             /**
-             * Updates series of a specific operationType
+             * Updates series of a specific label
              * @param chart the chart object
-             * @param operationType the operation type
+             * @param label the label
              * @param rawPoints the points to add
              * @param packetSize the size of the packet used
              */
-            function updateSeries(chart, operationType, rawPoints, packetSize) {
+            function updateSeries(chart, label, rawPoints, packetSize) {
                 if (rawPoints.length > 0) {
-                    $log.info('[' + operationType + '] Updating series');
+                    $log.info('[' + label + '] Updating series');
 
-                    $scope.packetSizes[operationType] = packetSize;
+                    $scope.packetSizes[label] = packetSize;
                     var newPointsData = convertToSerie(rawPoints);
-                    var originalSerieLength = chart.get(operationType + '_latency').xData.length;
-                    var average = chart.get(operationType + '_latency_average').yData[0];
+                    var originalSerieLength = chart.get(label + '_measures').xData.length;
+                    var average = chart.get(label + '_measures_average').yData[0];
 
                     newPointsData.forEach(function (point) {
                         average = updateAverage(average, originalSerieLength, point[1]);
                     });
 
-                    var oldPoints = getAllDataPoints(chart, operationType + '_latency');
+                    var oldPoints = getAllDataPoints(chart, label + '_measures');
                     var completeData = oldPoints.concat(newPointsData);
 
-                    chart.get(operationType + '_latency').setData(completeData);
-                    chart.get(operationType + '_latency_average').setData(createAverageData(completeData, average));
+                    chart.get(label + '_measures').setData(completeData);
+                    chart.get(label + '_measures_average').setData(createAverageData(completeData, average));
 
-                    $log.info('%c[' + operationType + '] Chart updated', 'color: green');
+                    $log.info('%c[' + label + '] Chart updated', 'color: green');
                 } else {
-                    $log.info('%c[' + operationType + '] No new points found', 'color: orange');
+                    $log.info('%c[' + label + '] No new points found', 'color: orange');
                 }
                 chart.hideLoading();
-                freeSemaphore(operationType)
+                freeSemaphore(label)
             }
 
             /**
              * Update routine that decide if the chart needs a full update, a partial update or an init
              * @param chart the chart object
-             * @param operationType the operation type
+             * @param label the label
              * @param lastInserted the number (num) of the last inserted point into the specified operation chart
              */
-            $scope.updateRoutine = function (chart, operationType, lastInserted) {
-                if (!$scope.updateSemaphore[operationType]) {
-                    $log.info('[' + operationType + '] Updating chart');
-                    $scope.updateSemaphore[operationType] = true;
+            $scope.updateRoutine = function (chart, label, lastInserted) {
+                if (!$scope.updateSemaphore[label]) {
+                    $log.info('[' + label + '] Updating chart');
+                    $scope.updateSemaphore[label] = true;
 
-                    Benchmarks.getSize($scope.benchmarkName, operationType).then(function (result) {
+                    Benchmarks.getSize($scope.benchmarkName, label).then(function (result) {
                         var datasetSize = result.data;
                         if (datasetSize > $scope.MAX_POINTS) {
                             var packetSize = Math.floor(datasetSize / $scope.MAX_POINTS) + 1;
 
-                            if (packetSize != $scope.packetSizes[operationType]) {
+                            if (packetSize != $scope.packetSizes[label]) {
                                 // FIXME: careful this should decrease view performance a lot !
                                 lastInserted = 0; // We are rebuilding the whole series to have quality consistency
                             }
 
-                            Benchmarks.getByNameByOperationTypeByQuality($scope.benchmarkName, operationType,
+                            Benchmarks.getByNameByLabelByQuality($scope.benchmarkName, label,
                                 lastInserted, "MAX", $scope.MAX_POINTS, packetSize)
                                 .then(function (result) {
                                     var newPoints = result.data;
-                                    if (packetSize != $scope.packetSizes[operationType]) {
-                                        initSeries(chart, operationType, newPoints, packetSize);
+                                    if (packetSize != $scope.packetSizes[label]) {
+                                        initSeries(chart, label, newPoints, packetSize);
                                     } else {
-                                        updateSeries(chart, operationType, newPoints, packetSize);
+                                        updateSeries(chart, label, newPoints, packetSize);
                                     }
                                 }, function (err) {
                                     ToastService.showToast(err.data, 'error');
                                 });
                         } else {
-                            Benchmarks.getByNameByOperationTypeFrom($scope.benchmarkName, operationType, lastInserted)
+                            Benchmarks.getByNameByLabelFrom($scope.benchmarkName, label, lastInserted)
                                 .then(function (result) {
                                     var newPoints = result.data;
-                                    var packetSize = $scope.packetSizes[operationType];
 
-                                    if (datasetSize == newPoints.length) {
-                                        initSeries(chart, operationType, newPoints, packetSize);
+                                    if ($scope.packetSizes[label] == 0) {
+                                        initSeries(chart, label, newPoints, 1);
                                     } else {
-                                        updateSeries(chart, operationType, newPoints, packetSize);
+                                        updateSeries(chart, label, newPoints, 1);
                                     }
                                 }, function (err) {
                                     ToastService.showToast(err.data, 'error');
@@ -312,57 +311,57 @@ angular.module('stats', [])
             /**
              * Initialize a specified operation chart
              * @param chart the chart object
-             * @param operationType the operation type
+             * @param label the label
              * @param rawPoints points use for initialisation
              * @param packetSize the size of packet used for this initialization
              */
-            function initSeries(chart, operationType, rawPoints, packetSize) {
+            function initSeries(chart, label, rawPoints, packetSize) {
                 if (rawPoints.length > 0) {
-                    $log.info('[' + operationType + '] Initializing series');
+                    $log.info('[' + label + '] Initializing series');
 
-                    $scope.packetSizes[operationType] = packetSize;
+                    $scope.packetSizes[label] = packetSize;
 
                     var points = convertToSerie(rawPoints);
 
-                    chart.get(operationType + '_latency').setData(points);
-                    chart.get(operationType + '_latency_average')
+                    chart.get(label + '_measures').setData(points);
+                    chart.get(label + '_measures_average')
                         .setData(createAverageData(points, getAverage(points)));
 
-                    $log.info('%c[' + operationType + '] Chart initialized', 'color: green');
+                    $log.info('%c[' + label + '] Chart initialized', 'color: green');
                     chart.hideLoading();
                 } else {
                     chart.showLoading('No data found.');
-                    $log.info('%c[' + operationType + '] No points found', 'color: orange');
+                    $log.info('%c[' + label + '] No points found', 'color: orange');
                 }
                 $scope.updateIntervalsActive = true;
-                freeSemaphore(operationType);
+                freeSemaphore(label);
             }
 
             /**
              * Initialization routine which define if the chart should be init full all points or with a smaller amount
              * @param chart the object chart
-             * @param operationType the operation type
+             * @param label the label
              */
-            $scope.initRoutine = function (chart, operationType) {
-                $log.info('[' + operationType + '] Initializing chart');
+            $scope.initRoutine = function (chart, label) {
+                $log.info('[' + label + '] Initializing chart');
                 chart.showLoading('Loading data from server...');
 
-                Benchmarks.getSize($scope.benchmarkName, operationType).then(function (result) {
+                Benchmarks.getSize($scope.benchmarkName, label).then(function (result) {
                     var datasetSize = result.data;
                     if (datasetSize > $scope.MAX_POINTS) {
                         var packetSize = Math.floor(datasetSize / $scope.MAX_POINTS) + 1;
-                        Benchmarks.getByNameByOperationTypeByQuality($scope.benchmarkName, operationType, 0,
+                        Benchmarks.getByNameByLabelByQuality($scope.benchmarkName, label, 0,
                             "MAX", $scope.MAX_POINTS, packetSize).then(function (result) {
                             var rawPoints = result.data;
-                            initSeries(chart, operationType, rawPoints, packetSize);
+                            initSeries(chart, label, rawPoints, packetSize);
                         }, function (err) {
                             ToastService.showToast(err.data, 'error');
                         });
                     } else {
-                        Benchmarks.getByNameByOperationType($scope.benchmarkName, operationType)
+                        Benchmarks.getByNameByLabel($scope.benchmarkName, label)
                             .then(function (result) {
                                 var rawPoints = result.data;
-                                initSeries(chart, operationType, rawPoints, 1);
+                                initSeries(chart, label, rawPoints, 1);
                             }, function (err) {
                                 ToastService.showToast(err.data, 'error');
                             });
@@ -376,10 +375,10 @@ angular.module('stats', [])
              * Clears all chart update intervals
              */
             $scope.clearUpdateIntervals = function () {
-                for (var operationType in $scope.intervals) {
-                    if ($scope.intervals.hasOwnProperty(operationType)) {
-                        clearInterval($scope.intervals[operationType]);
-                        $log.info("%c[" + operationType + "] Update interval cleared.", 'color: rgb(68,138,255)');
+                for (var label in $scope.intervals) {
+                    if ($scope.intervals.hasOwnProperty(label)) {
+                        clearInterval($scope.intervals[label]);
+                        $log.info("%c[" + label + "] Update interval cleared.", 'color: rgb(68,138,255)');
                     }
                 }
                 $scope.updateIntervalsActive = false;

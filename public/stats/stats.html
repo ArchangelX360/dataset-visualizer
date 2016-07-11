@@ -18,10 +18,10 @@
     </div>
 
     <div id="highcharts-container" flex layout="row" layout-align="center center" layout-wrap>
-        <hc-operation-chart id="{{operationType | lowercase}}-chart" title="{{operationType}} Latency"
-                            operation="{{operationType}}"
-                            updatefunc="updateRoutine" initfunc="initRoutine" updateinterval="intervals[operationType]"
-                            ng-repeat="operationType in operationArray"></hc-operation-chart>
+        <hc-operation-chart id="{{customlabel | lowercase}}-chart" title="{{customlabel}} Measures"
+                            customlabel="{{customlabel}}"
+                            updatefunc="updateRoutine" initfunc="initRoutine" updateinterval="intervals[customlabel]"
+                            ng-repeat="customlabel in operationArray"></hc-operation-chart>
     </div>
 
     <md-fab-speed-dial md-direction="up" md-open="false" class="md-scale fab-custom">

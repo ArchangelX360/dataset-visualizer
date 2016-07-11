@@ -14,7 +14,7 @@ You will need Java 8 and MongoDB to use this application :
 
 ### DB program
 
-Of course you will need a DB to benchmark, we are going to use memcached :
+You will need a DB to benchmark, we are going to use memcached :
 
     sudo apt-get install memcached
 
@@ -84,19 +84,27 @@ module.exports = {
 
 ### YCSB & benchmarked database
 
-You can configure the absolute path of YCSB stuff in the  _config/system.js_ file.
+Some more configuration are available in the  _config/system.js_ file.
 
 ``` javascript
-{
-    ycsbExecutable: '/absolute/path/to/ycsb/python/executable',
-    ycsbRoot: '/absolute/path/to/ycsb/root/folder/',
-    workloadFolder: '/absolute/path/to/ycsb/workload/folder/',
-}
+var ycsbRoot = "/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/";
+
+module.exports = {
+    countersCollectionName: 'counters',
+
+    ycsbExecutable: ycsbRoot + 'bin/ycsb',
+    ycsbPythonExecutable: ycsbRoot + 'bin/ycsb',
+    useBindingFile: true,
+    ycsbBindingsFile: ycsbRoot + 'bin/bindings.properties',
+    workloadFolder: ycsbRoot + 'workloads/',
+};
 ```
+
+You will find information on these variables in the file's comments.
 
 ### Client configuration
 
-You might want to configure the charts view.
+You might want to configure the charts view, here's a section for you.
 
 #### Explainations
 
@@ -174,9 +182,9 @@ You need to follow some points to be able to do so.
 
 Your benchmark measurement should have:
 
-* a label _operationType_ (in our case it is the operation type INSERT, UPDATE, ...) which will separate your graphs
+* a label _label_ (in our case it is the operation type INSERT, UPDATE, ...) which will separate your graphs
 * a unique number _num_ which will be use to sort your entries
-* a value _latency_ which is your measure
+* a value _measure_ which is your measure
 
 In order to make it work immediatly you need to have a measure that is only a number. (See [Candlestick section](#candlestick) for other type of measures)
 
@@ -191,7 +199,7 @@ In our benchmark, our measure value is an number, not multiple values, not an ar
  For example, you can fill your MongoDB database with object instead like this :
 
 ``` javascript
-latency : {
+measure : {
     open: 50.45,
     high: 50.93,
     low: 46.61,
@@ -208,7 +216,7 @@ function convertToSerie(rawValues) {
     return rawValues.map(function (measureObj) {
         return [
             measureObj.num,
-            Object.keys(measureObj.latency).map(key => obj[key])
+            Object.keys(measureObj.measure).map(key => obj[key])
         ]
     });
 }

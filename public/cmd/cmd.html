@@ -135,11 +135,11 @@
                                ng-click="killBenchmark()" ng-disabled="(isFinished)">Kill Benchmark
                     </md-button>
                     <md-button class="md-raised md-accent md-primary md-button md-ink-ripple"
-                               aria-label="Observe Latency"
+                               aria-label="Observe measures"
                                ng-href="#/stats/{{params.benchmarkname}}"
                                ng-disabled="!(hasBeenLaunched && params.pParams.measurementtype === 'frontend')">
                         Observe
-                        Latency
+                        measures
                     </md-button>
                     <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Clear Console"
                                ng-click="clearConsole()">Clear Console
