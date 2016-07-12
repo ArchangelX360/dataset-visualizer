@@ -79,6 +79,8 @@ module.exports = function (router, db) {
     router.get('/api/aggregate/:benchmark_name/:label/:from/:to/:limit/:bucket_size', function (req, res) {
         /* Warning: result could exceed limit by a few points */
 
+        //FIXME: won't work with candlestick !
+
         var limit = req.params.limit;
         var benchmarkName = req.params.benchmark_name;
         var bucketSize = parseInt(req.params.bucket_size);

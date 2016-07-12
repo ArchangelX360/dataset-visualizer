@@ -6,6 +6,7 @@ angular.module('stats', [])
             scope: {
                 series: '=',
                 customlabel: '@',
+                seriestype: '@',
                 updatefunc: '=',
                 initfunc: '=',
                 updateinterval: '='
@@ -35,10 +36,27 @@ angular.module('stats', [])
                         formatter: function () {
                             var s = 'Measure #<b>' + this.x + '</b>';
 
-                            this.points.forEach(function (point) {
+                            this.points.forEach(function (seriesObject) {
+                                var pointValueStr;
+                                /* NOTE : you can make your own formatter base on your series type by adding a new case entry */
+                                switch (seriesObject.series.type) {
+                                    case "line":
+                                        pointValueStr = seriesObject.y;
+                                        break;
+                                    case "candlestick":
+                                        pointValueStr = '<br/>' +
+                                            'open: ' + seriesObject.point.open + '<br/>' +
+                                            'high: ' + seriesObject.point.close + '<br/>' +
+                                            'low: ' + seriesObject.point.low + '<br/>' +
+                                            'close: ' + seriesObject.point.close + '<br/>';
+                                        break;
+                                    default:
+                                        throw "Series type not supported yet, see our documentation to know how to implement it.";
+                                        break;
+                                }
                                 s += '<br/><span style="color:'
-                                    + point.series.color + '">\u25CF</span> '
-                                    + point.series.name + ': <b>' + point.y + '</b>';
+                                    + seriesObject.series.color + '">\u25CF</span> '
+                                    + '<b> ' + seriesObject.series.name + '</b>: ' + pointValueStr;
                             });
                             return s;
 
@@ -101,13 +119,15 @@ angular.module('stats', [])
                     },
                     series: [
                         {
+                            type: scope.seriestype,
                             id: scope.customlabel + '_measures',
                             name: scope.customlabel + ' measures',
                             data: []
                         },
                         {
+                            type: 'line',
                             id: scope.customlabel + '_measures_average',
-                            name: scope.customlabel + 'average',
+                            name: scope.customlabel + ' average',
                             data: []
                         }
                     ],
@@ -124,9 +144,22 @@ angular.module('stats', [])
                                                                    $mdDialog, $mdToast, $location, ToastService, $log) {
 
             /** CONFIGURATION VARIABLES **/
-            $scope.MAX_POINTS = 20000; // maximal number of points you can get from MongoDB
-            // (depends on your browser/computer performance) and has a undetermined upper limit with NodeJS
-            $scope.operationArray = ["INSERT", "READ", "UPDATE", "READ-MODIFY-WRITE", "CLEANUP", "SCAN", "DELETE"];
+            $scope.MAX_POINTS = 20000;
+            /* maximal number of points you can get from MongoDB (depends on your
+             browser/computer performance) and has a undetermined upper limit with NodeJS */
+            /* Show average series or not (false is recommanded for non-single value measures) */
+            $scope.showAverage = true;
+            /* Map with associate label from DB to series type you want */
+            $scope.labelTypeMap = {
+                "INSERT": "line",
+                "READ": "line",
+                "UPDATE": "line",
+                "READ-MODIFY-WRITE": "line",
+                "CLEANUP": "line",
+                "SCAN": "line",
+                //"DELETE" : "line",
+                "AAPL Stock Price": "candlestick"
+            };
 
             /* VARIABLE INITIALIZATION */
 
@@ -139,11 +172,13 @@ angular.module('stats', [])
             $scope.benchmarkName = $routeParams.benchmarkName;
             $scope.updateSemaphore = {}; // Map of semaphores for synchronizing updates
             $scope.packetSizes = {};
-            $scope.operationArray.forEach(function (label) {
-                $scope.updateSemaphore[label] = true;
-                $scope.packetSizes[label] = 0;
-                $scope.intervals[label] = null;
-            });
+            for (var label in $scope.labelTypeMap) {
+                if ($scope.labelTypeMap.hasOwnProperty(label)) {
+                    $scope.updateSemaphore[label] = true;
+                    $scope.packetSizes[label] = 0;
+                    $scope.intervals[label] = null;
+                }
+            }
             $scope.updateIntervalsActive = false;
 
             /* CHART FUNCTIONS */
@@ -157,17 +192,58 @@ angular.module('stats', [])
             }
 
             /**
-             * Convert stored raw values from YCSB to Highchart formatting
-             *
-             * NOTE : this function could be overwritten to handle every kind of dataset like candlestick for example
+             * Convert stored raw values from YCSB to Highchart formatting for line series
              *
              * @param rawValues YCSB raw DB values
              * @returns {*} Highchart formatted data
              */
-            function convertToSerie(rawValues) {
+            function convertToLineSerie(rawValues) {
                 return rawValues.map(function (measureObj) {
                     return [measureObj.num, measureObj.measure]
                 });
+            }
+
+            /**
+             * Convert stored raw values from YCSB to Highchart formatting for candlestick series
+             *
+             * @param rawValues YCSB raw DB values
+             * @returns {*} Highchart formatted data
+             */
+            function convertToCandlestickSerie(rawValues) {
+                return rawValues.map(function (measureObj) {
+                    return [
+                        measureObj.num,
+                        measureObj.measure.open,
+                        measureObj.measure.high,
+                        measureObj.measure.low,
+                        measureObj.measure.close
+                    ]
+                });
+            }
+
+            /**
+             * Select the conversion function based on the series type
+             *
+             * NOTE : you can add you own convertToSerie functions to support any series type!
+             *
+             * @param seriesType
+             * @param rawValues
+             * @returns {*}
+             */
+            function convertToSerieByChartType(seriesType, rawValues) {
+                var serie;
+                switch (seriesType) {
+                    case "line":
+                        serie = convertToLineSerie(rawValues);
+                        break;
+                    case "candlestick":
+                        serie = convertToCandlestickSerie(rawValues);
+                        break;
+                    default:
+                        throw "Series type not supported yet, see our documentation to know how to implement it.";
+                        break;
+                }
+                return serie;
             }
 
             /**
@@ -216,7 +292,7 @@ angular.module('stats', [])
                 var xData = chart.get(id).xData;
                 var yData = chart.get(id).yData;
                 for (var i = 0; i < xData.length; i++) {
-                    points.push([xData[i], yData[i]]);
+                    points.push([xData[i]].concat(yData[i]));
                 }
                 return points;
             }
@@ -233,19 +309,19 @@ angular.module('stats', [])
                     $log.info('[' + label + '] Updating series');
 
                     $scope.packetSizes[label] = packetSize;
-                    var newPointsData = convertToSerie(rawPoints);
-                    var originalSerieLength = chart.get(label + '_measures').xData.length;
-                    var average = chart.get(label + '_measures_average').yData[0];
-
-                    newPointsData.forEach(function (point) {
-                        average = updateAverage(average, originalSerieLength, point[1]);
-                    });
-
+                    var newPointsData = convertToSerieByChartType(chart.get(label + '_measures').type, rawPoints);
                     var oldPoints = getAllDataPoints(chart, label + '_measures');
                     var completeData = oldPoints.concat(newPointsData);
-
                     chart.get(label + '_measures').setData(completeData);
-                    chart.get(label + '_measures_average').setData(createAverageData(completeData, average));
+
+                    if ($scope.showAverage) {
+                        var originalSerieLength = chart.get(label + '_measures').xData.length;
+                        var average = chart.get(label + '_measures_average').yData[0];
+                        newPointsData.forEach(function (point) {
+                            average = updateAverage(average, originalSerieLength, point[1]);
+                        });
+                        chart.get(label + '_measures_average').setData(createAverageData(completeData, average));
+                    }
 
                     $log.info('%c[' + label + '] Chart updated', 'color: green');
                 } else {
@@ -321,11 +397,12 @@ angular.module('stats', [])
 
                     $scope.packetSizes[label] = packetSize;
 
-                    var points = convertToSerie(rawPoints);
-
+                    var points = convertToSerieByChartType(chart.get(label + '_measures').type, rawPoints);
                     chart.get(label + '_measures').setData(points);
-                    chart.get(label + '_measures_average')
-                        .setData(createAverageData(points, getAverage(points)));
+
+                    if ($scope.showAverage) {
+                        chart.get(label + '_measures_average').setData(createAverageData(points, getAverage(points)));
+                    }
 
                     $log.info('%c[' + label + '] Chart initialized', 'color: green');
                     chart.hideLoading();

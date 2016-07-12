@@ -19,9 +19,9 @@
 
     <div id="highcharts-container" flex layout="row" layout-align="center center" layout-wrap>
         <hc-operation-chart id="{{customlabel | lowercase}}-chart" title="{{customlabel}} Measures"
-                            customlabel="{{customlabel}}"
+                            customlabel="{{customlabel}}" seriestype="{{seriesType}}"
                             updatefunc="updateRoutine" initfunc="initRoutine" updateinterval="intervals[customlabel]"
-                            ng-repeat="customlabel in operationArray"></hc-operation-chart>
+                            ng-repeat="(customlabel, seriesType) in labelTypeMap"></hc-operation-chart>
     </div>
 
     <md-fab-speed-dial md-direction="up" md-open="false" class="md-scale fab-custom">

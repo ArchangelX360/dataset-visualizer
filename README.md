@@ -1,6 +1,6 @@
 # Yahoo! Cloud Serving Benchmark Web Application
 
-A web application which communicate with the visualisation part of Yahoo! Cloud Service Benchmark.
+A web application which displays measures stored by the visualisation part of Yahoo! Cloud Service Benchmark or other softwares.
 
 ## Requirements
 
@@ -12,13 +12,15 @@ You will need Java 8 and MongoDB to use this application :
 
     sudo apt-get install openjdk-8-jre mongodb
 
-### DB program
+### YCSB specific requirements
+
+#### DB program
 
 You will need a DB to benchmark, we are going to use memcached :
 
     sudo apt-get install memcached
 
-### YCSB supported version
+#### YCSB supported version
 
 You will also need YCSB "visualisation" version.
 
@@ -104,13 +106,15 @@ You will find information on these variables in the file's comments.
 
 ### Client configuration
 
-You might want to configure the charts view, here's a section for you.
+You might want to configure the charts view, here's a section for you. This configuration is optional for YCSB users.
 
-#### Explainations
+#### Chart view optimization
 
-You can set the _MAX\_POINTS_ variables, this variable is based on your browser and PC performance.
+If you want to make a large number of measure, our client won't be able to display all measures. Our client has an automatic aggregating process to overcome the problem.
 
-MongoDB is grouping value and making averages to optimise the view and make nodejs serve results faster. This grouping process reduces measurements' precision. For example, you would get 5 buckets of average each based on 4 successive values instead of getting 20 measures:
+##### Explainations<a name="aggregation-explaination"></a>
+
+MongoDB is grouping value and making averages to optimise the view and make NodeJS serve results faster. This grouping process reduces measurements' precision. For example, you would get 5 buckets of average each based on 4 successive values instead of getting 20 measures:
 
 ``` javascript
 // MongoDB aggregation illustration
@@ -123,13 +127,67 @@ MongoDB is grouping value and making averages to optimise the view and make node
 
  The better your computer and browser are, the higher you can set the _MAX\_POINTS_ value and the smaller these buckets will be. You will have a more precise dataset.
 
-#### Variable location
+#### Label definition
+
+In order to generate a chart, you need to declare the different label you will have in your storage database and which Highcharts series type you want to use for this label.
+
+For example, we have these documents in your storage database:
+``` javascript
+[
+    {
+        label: "INSERT",
+        num: 0,
+        measure: 4854
+    },
+    {
+        label: "INSERT",
+        num: 2,
+        measure: 1254
+    },
+    {
+        label: "CLEANUP",
+        num: 0,
+        measure: 105
+    },
+    {
+        label: "INSERT",
+        num: 3,
+        measure: 45
+    },
+    ...
+]
+```
+
+We need to declare the "INSERT" and "CLEANUP" label like that:
+
+
+``` javascript
+...
+$scope.labelTypeMap = {
+    "INSERT" : "line",
+    "CLEANUP" : "line",
+};
+...
+```
+
+The visualization view will know display two charts, a cleanup and an insert one and automatically filled it with the corresponding data.
+
+#### Variables' location
 
  The variable is located in _public/stats/stats.controller.js_.
 
 ``` javascript
 /** CONFIGURATION VARIABLES **/
-$scope.MAX_POINTS = 20000; // maximal number of points you can get from MongoDB
+$scope.MAX_POINTS = 20000; /* maximal number of points you can get from MongoDB */
+$scope.showAverage = true; /* show average series or not */
+$scope.labelTypeMap = {
+    "INSERT" : "line",
+    "READ" : "line",
+    "UPDATE" : "line",
+    "READ-MODIFY-WRITE" : "line",
+    "CLEANUP" : "line",
+    "SCAN" : "line",
+};
 ```
 
 ## Deployment
@@ -139,7 +197,6 @@ $scope.MAX_POINTS = 20000; // maximal number of points you can get from MongoDB
 Go to the root folder of the application where the file _package.json_ is located and execute:
 
     npm install
-
 
 ### Client modules installation
 
@@ -159,44 +216,85 @@ You need to start the NodeJS server:
 
 Then go to <http://localhost:5555> !
 
-**NOTE:** adapt the _max-old-space-size_ regarding your machine.
+**NOTE:** adapt the _max-old-space-size_ relying on your machine performances.
 
 ## Compatibility
 
-### Database
+### YCSB
 
-YCSB "visualisation" version should be available for all kind of database regarding of its implementation.
-It is currently tested only with memcached.
+#### _"Launching Benchmark"_ view
 
-### Make it work with custom things
+We discourage you to use our _"Launching Benchmark"_ view for launching benchmarks with very large dataset (multiple millions of points). Indeed, it might be drastically slower than a YCSB command line launch due to NodeJS limited memory and processing.
 
-// **TODO : refact, revise explaination into a whole**
+### What about not YCSB ?
 
-#### What about not YCSB ?
+At first, our vizualizer was made for YCSB, but during the development we thought it would be great for it to support any kind of benchmarking software or more generally every software that output data.
 
-You may want to use our visualisation with another benchmark system.
+These following points explain how to use our visualizer without YCSB.
 
-You need to follow some points to be able to do so.
+#### MongoDB Population
 
-##### MongoDB Population
+First, your software should be able to populate a MongoDB database.
 
-Your benchmark measurement should have:
+Each benchmark, group of measurement should be on a separate collection.
+Inside those collections, your documents have to respect the following scheme :
 
-* a label _label_ (in our case it is the operation type INSERT, UPDATE, ...) which will separate your graphs
+* a string label _label_ (in our case it is the operation type INSERT, UPDATE, ...) which will separate your graphs
 * a unique number _num_ which will be use to sort your entries
-* a value _measure_ which is your measure
+* an object _measure_ which is your measure
 
-In order to make it work immediatly you need to have a measure that is only a number. (See [Candlestick section](#candlestick) for other type of measures)
+This last attribute of your documents can be at least whatever you want. This can be an object with fields, a single value, an array, etc. We will see how we handle this on the client side.
 
-#### I want to make Candlestick charts (boxplot) !<a name="candlestick"></a>
+##### Example: our YCSB scheme
 
-// **TODO : refact, revise explaination into a whole**
+``` javascript
+[
+    {
+        label: "INSERT",
+        num: 0,
+        measure: 4854
+    },
+    {
+        label: "INSERT",
+        num: 2,
+        measure: 1254
+    },
+    {
+        label: "CLEANUP",
+        num: 0,
+        measure: 105
+    },
+    {
+        label: "INSERT",
+        num: 3,
+        measure: 45
+    },
+    ...
+]
+```
 
-This section is about modifying some of our code to make it work with any kind of data you want to display.
+#### MongoDB/Client interface
 
-In our benchmark, our measure value is an number, not multiple values, not an array BUT this can change.
+Now that your MongoDB DB is filled with bunch of your measurements, you need to make the client understand what is your scheme. (See [Supported Scheme](#supported-scheme) to know if you need to follow this section)
 
- For example, you can fill your MongoDB database with object instead like this :
+For that, you will need to create a new _convertToSerie_ adapter.
+
+##### Create your own conversion adapter
+
+Your _convertToSerie_ adapter will transform your DB scheme into an array of values understandable by Highcharts library.
+
+So, in order to make your DB scheme work with the client you will need to:
+
+* check if Highcharts library can display your type of data
+* create a new _convertToSerie_ adapter function to match Highcharts way of displaying the data
+* add a switch case to the _convertToSerieByChartType_ switch function to link the highchart type to your custom adapter
+* add your label and series type into the _$scope.labelTypeMap_ map.
+
+See the following [Boxplot Example](#boxplot-example) to understand where and how to do it.
+
+##### Example: boxplot support implementation<a name="boxplot-example"></a>
+
+YCSB produce a single value measure which is the latency. To support boxplot, we need to handle a measure object a bit more complex which looks like the following:
 
 ``` javascript
 measure : {
@@ -207,58 +305,109 @@ measure : {
 }
 ```
 
-You will need to change a few lines of code into our codebase to make it work.
-
-The _convertToSerie_ function which process the storage DB data and make it understandable for Highcharts :
+As explain, we need to design a new _convertToSerie_ adapter which process the storage DB data and make it understandable for Highcharts:
 
 ``` javascript
-function convertToSerie(rawValues) {
+/**
+ * Convert stored raw values from YCSB to Highchart formatting for candlestick series
+ *
+ * @param rawValues YCSB raw DB values
+ * @returns {*} Highchart formatted data
+ */
+function convertToCandlestickSerie(rawValues) {
     return rawValues.map(function (measureObj) {
         return [
             measureObj.num,
-            Object.keys(measureObj.measure).map(key => obj[key])
+            measureObj.measure.open,
+            measureObj.measure.high,
+            measureObj.measure.low,
+            measureObj.measure.close
         ]
     });
 }
 ```
 
-And finally, add a type to the series:
+Then we need to tell our client to use this adapter when candlestick type is selected so we add a switch entry to the _convertToSerieByChartType_ switch function:
 
 ``` javascript
- series: [
-    {
-        type : 'candlestick',
-        ...
-    },
-    ...
+/**
+ * Select the conversion function based on the series type
+ *
+ * NOTE : you can add you own convertToSerie functions to support any series type!
+ *
+ * @param seriesType
+ * @param rawValues
+ * @returns {*}
+ */
+function convertToSerieByChartType(seriesType, rawValues) {
+    var serie;
+    switch (seriesType) {
+        case "line":
+            serie = convertToLineSerie(rawValues);
+            break;
+        case "candlestick":
+            serie = convertToCandlestickSerie(rawValues);
+            break;
+        default:
+            throw "Series type not supported yet, see our documentation to know how to implement it.";
+            break;
+    }
+    return serie;
 }
 ```
 
-Be careful to the _getAverage_ function which will make average of all your *open* values. You might want to modify it too.
+Finally, we need to declare our label as a "candlestick" type series:
 
+``` javascript
+$scope.labelTypeMap = {
+    "AAPL Stock Price" : "candlestick"
+};
+```
 
+Now, we might want to disable the average series by setting the _$scope.showAverage_ to false, otherwise the average function will make average of our first value which is the *open* values, this doesn't make any sense. You still could modify the average functions if you really want the average series.
 
-// **TODO : change name of fields in YCSB/Mongo to be more generic**
+#### Supported Scheme <a name="supported-scheme"></a>
 
-#### Custom db adapter
+The application supports only two schemes for the moment which are:
 
-// **TODO**
+* The simple line scheme with *Highchart* "line" type
 
-#### Other DB than MongoDB
+``` javascript
+{
+        label: "mylabel",
+        num: 0,
+        measure: 105
+},
+...
+```
 
-// **TODO**
+* The boxplot scheme with *Highchart* "candlestick" type
+
+``` javascript
+{
+    label: "mylabel",
+    num: 0,
+    measure: {
+        open: 50.45,
+        high: 50.93,
+        low: 46.61,
+        close: 47.24
+    }
+}
+```
 
 ## Limitations
 
-### Makes YCSB a bit slower
-
-This frontend slows YCSB a bit because of the storage DB insertion.
-
-
-// **TODO: determine how much & fill this !**
+###
 
 ### Linear loss of accurary
 
-Our application use a grouping system to handle millions of values.
+As we see in [MongoDB Aggregation Explaination Section](#aggregation-explaination), our application uses an aggregating process to handle millions of values. This aggregation process is reducing the precision of our displayed charts.
+
+We made a quick evaluation to see how much does it lacks of precision:
 
 // **TODO: fill this !**
+
+### Almost stuck with MongoDB
+
+You could rebuild the entire NodeJS MongoDB API to make it work with another DB but it wasn't our goal to achieve this compatibility.
