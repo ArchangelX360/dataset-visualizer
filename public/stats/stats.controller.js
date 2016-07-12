@@ -144,7 +144,7 @@ angular.module('stats', [])
                                                                    $mdDialog, $mdToast, $location, ToastService, $log) {
 
             /** CONFIGURATION VARIABLES **/
-            $scope.MAX_POINTS = 500;
+            $scope.MAX_POINTS = 20000;
             /* maximal number of points you can get from MongoDB (depends on your
              browser/computer performance) and has a undetermined upper limit with NodeJS */
             /* Show average series or not (false is recommanded for non-single value measures) */
@@ -152,13 +152,13 @@ angular.module('stats', [])
             /* Map with associate label from DB to series type you want */
             $scope.labelTypeMap = {
                 "INSERT": "line",
-                /*"READ": "line",
+                "READ": "line",
                  "UPDATE": "line",
                  "READ-MODIFY-WRITE": "line",
                  "CLEANUP": "line",
-                 "SCAN": "line",*/
+                "SCAN": "line",
                 //"DELETE" : "line",
-                "AAPL Stock Price": "candlestick"
+                //"AAPL Stock Price": "candlestick"
             };
 
             /* VARIABLE INITIALIZATION */
