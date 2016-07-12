@@ -144,7 +144,7 @@ angular.module('stats', [])
                                                                    $mdDialog, $mdToast, $location, ToastService, $log) {
 
             /** CONFIGURATION VARIABLES **/
-            $scope.MAX_POINTS = 20000;
+            $scope.MAX_POINTS = 500;
             /* maximal number of points you can get from MongoDB (depends on your
              browser/computer performance) and has a undetermined upper limit with NodeJS */
             /* Show average series or not (false is recommanded for non-single value measures) */
@@ -152,11 +152,11 @@ angular.module('stats', [])
             /* Map with associate label from DB to series type you want */
             $scope.labelTypeMap = {
                 "INSERT": "line",
-                "READ": "line",
-                "UPDATE": "line",
-                "READ-MODIFY-WRITE": "line",
-                "CLEANUP": "line",
-                "SCAN": "line",
+                /*"READ": "line",
+                 "UPDATE": "line",
+                 "READ-MODIFY-WRITE": "line",
+                 "CLEANUP": "line",
+                 "SCAN": "line",*/
                 //"DELETE" : "line",
                 "AAPL Stock Price": "candlestick"
             };
@@ -353,7 +353,7 @@ angular.module('stats', [])
                             }
 
                             Benchmarks.getByNameByLabelByQuality($scope.benchmarkName, label,
-                                lastInserted, "MAX", $scope.MAX_POINTS, packetSize)
+                                lastInserted, "MAX", $scope.MAX_POINTS, packetSize, chart.get(label + '_measures').type)
                                 .then(function (result) {
                                     var newPoints = result.data;
                                     if (packetSize != $scope.packetSizes[label]) {
@@ -428,12 +428,14 @@ angular.module('stats', [])
                     if (datasetSize > $scope.MAX_POINTS) {
                         var packetSize = Math.floor(datasetSize / $scope.MAX_POINTS) + 1;
                         Benchmarks.getByNameByLabelByQuality($scope.benchmarkName, label, 0,
-                            "MAX", $scope.MAX_POINTS, packetSize).then(function (result) {
-                            var rawPoints = result.data;
-                            initSeries(chart, label, rawPoints, packetSize);
-                        }, function (err) {
-                            ToastService.showToast(err.data, 'error');
-                        });
+                            "MAX", $scope.MAX_POINTS, packetSize, chart.get(label + '_measures').type)
+                            .then(function (result) {
+                                var rawPoints = result.data;
+                                initSeries(chart, label, rawPoints, packetSize);
+                            }, function (err) {
+                                console.log(err);
+                                ToastService.showToast(err.data, 'error');
+                            });
                     } else {
                         Benchmarks.getByNameByLabel($scope.benchmarkName, label)
                             .then(function (result) {

@@ -13,9 +13,9 @@ angular.module('benchmarkService', [])
                 return $http.get('/api/benchmarks/' + benchmarkName + '/' + label + '/' + fromDateTimestamp);
             },
             getByNameByLabelByQuality: function (benchmarkName, label,
-                                                 fromDateTimestamp, toDateTimestamp, limit, bucketSize) {
+                                                 fromDateTimestamp, toDateTimestamp, limit, bucketSize, seriesType) {
                 return $http.get('/api/aggregate/' + benchmarkName + '/' + label + '/'
-                    + fromDateTimestamp + '/' + toDateTimestamp + '/' + limit + '/' + bucketSize);
+                    + fromDateTimestamp + '/' + toDateTimestamp + '/' + limit + '/' + bucketSize + '/' + seriesType);
             },
             getSize: function (benchmarkName, label) {
                 return $http.get('/api/infos/benchmarks/size/' + benchmarkName + '/' + label);

@@ -226,6 +226,8 @@ Then go to <http://localhost:5555> !
 
 We discourage you to use our _"Launching Benchmark"_ view for launching benchmarks with very large dataset (multiple millions of points). Indeed, it might be drastically slower than a YCSB command line launch due to NodeJS limited memory and processing.
 
+// **TODO: complete this with knowing the exact cause !**
+
 ### What about not YCSB ?
 
 At first, our vizualizer was made for YCSB, but during the development we thought it would be great for it to support any kind of benchmarking software or more generally every software that output data.
@@ -308,6 +310,8 @@ measure : {
 As explain, we need to design a new _convertToSerie_ adapter which process the storage DB data and make it understandable for Highcharts:
 
 ``` javascript
+// stats.controller.js
+
 /**
  * Convert stored raw values from YCSB to Highchart formatting for candlestick series
  *
@@ -330,6 +334,8 @@ function convertToCandlestickSerie(rawValues) {
 Then we need to tell our client to use this adapter when candlestick type is selected so we add a switch entry to the _convertToSerieByChartType_ switch function:
 
 ``` javascript
+// stats.controller.js
+
 /**
  * Select the conversion function based on the series type
  *
@@ -356,15 +362,19 @@ function convertToSerieByChartType(seriesType, rawValues) {
 }
 ```
 
-Finally, we need to declare our label as a "candlestick" type series:
+Then, we need to declare our label as a "candlestick" type series:
 
 ``` javascript
+// stats.controller.js
+
 $scope.labelTypeMap = {
     "AAPL Stock Price" : "candlestick"
 };
 ```
 
 Now, we might want to disable the average series by setting the _$scope.showAverage_ to false, otherwise the average function will make average of our first value which is the *open* values, this doesn't make any sense. You still could modify the average functions if you really want the average series.
+
+Finally, we want to support very large dataset so we added a new aggregating function within the switch of the aggregating route, *see _app/routes/benchmarks.js_ for more details*.
 
 #### Supported Scheme <a name="supported-scheme"></a>
 
