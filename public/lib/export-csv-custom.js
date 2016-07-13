@@ -233,7 +233,7 @@
      * Call this on click of 'Download CSV (Whole series)' button
      */
     Highcharts.Chart.prototype.downloadCSV = function () {
-        var csv = this.getCSV(true, true);
+        var csv = this.getCSV(false, true);
         getContent(
             this,
             'data:text/csv,\uFEFF' + csv.replace(/\n/g, '%0A'),
@@ -247,7 +247,7 @@
      * Call this on click of 'Download CSV (Current Points)' button
      */
     Highcharts.Chart.prototype.downloadCSVCurrent = function () {
-        var csv = this.getCSV(true, false);
+        var csv = this.getCSV(false, false);
         getContent(
             this,
             'data:text/csv,\uFEFF' + csv.replace(/\n/g, '%0A'),
