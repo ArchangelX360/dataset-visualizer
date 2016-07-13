@@ -5,6 +5,7 @@ angular.module('stats', [])
             template: '<div></div>',
             scope: {
                 series: '=',
+                title: '@',
                 customlabel: '@',
                 seriestype: '@',
                 updatefunc: '=',
@@ -132,7 +133,7 @@ angular.module('stats', [])
                         }
                     ],
                     title: {
-                        text: scope.customlabel + ' measures'
+                        text: scope.title
                     }
                 });
             }
@@ -153,12 +154,12 @@ angular.module('stats', [])
             $scope.labelTypeMap = {
                 "INSERT": "line",
                 "READ": "line",
-                 "UPDATE": "line",
-                 "READ-MODIFY-WRITE": "line",
-                 "CLEANUP": "line",
+                "UPDATE": "line",
+                "READ-MODIFY-WRITE": "line",
+                "CLEANUP": "line",
                 "SCAN": "line",
                 //"DELETE" : "line",
-                //"AAPL Stock Price": "candlestick"
+                "AAPL Stock Price": "candlestick"
             };
 
             /* VARIABLE INITIALIZATION */
