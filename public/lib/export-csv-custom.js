@@ -23,8 +23,7 @@
 
     Highcharts.setOptions({
         lang: {
-            downloadCSV: 'Download CSV (Whole series)',
-            downloadCSVCurrent: 'Download CSV (Current Points)'
+            DownloadCSV: 'Download CSV (of currently displayed)'
         }
     });
 
@@ -32,7 +31,7 @@
     /**
      * Get the data rows as a two dimensional array
      */
-    Highcharts.Chart.prototype.getDataRows = function (wholeSeries) {
+    Highcharts.Chart.prototype.getDataRows = function () {
         var options = (this.options.exporting || {}).csv || {},
             xAxis = this.xAxis[0],
             rows = {},
@@ -71,14 +70,7 @@
                     j = j + 1;
                 }
 
-                var pointsToIterate = series.points;
-                if (wholeSeries) {
-                    pointsToIterate = series.options.data
-                }
-                each(pointsToIterate, function (point, pIdx) {
-                    if (wholeSeries) {
-                        point = {x: point[0], y: point[1]};
-                    }
+                each(series.points, function (point, pIdx) {
                     var key = requireSorting ? point.x : pIdx,
                         prop,
                         val;
@@ -120,7 +112,7 @@
 
         // Add header row
         if (!xTitle) {
-            xTitle = xAxis.isDatetimeAxis ? 'Number' : 'Category';
+            xTitle = xAxis.isDatetimeAxis ? 'DateTime' : 'Category';
         }
         dataRows = [[xTitle].concat(names)];
 
@@ -153,9 +145,9 @@
     /**
      * Get a CSV string
      */
-    Highcharts.Chart.prototype.getCSV = function (useLocalDecimalPoint, wholeSeries) {
+    Highcharts.Chart.prototype.getCSV = function (useLocalDecimalPoint) {
         var csv = '',
-            rows = this.getDataRows(wholeSeries),
+            rows = this.getDataRows(),
             options = (this.options.exporting || {}).csv || {},
             itemDelimiter = options.itemDelimiter || ',', // use ';' for direct import to Excel
             lineDelimiter = options.lineDelimiter || '\n'; // '\n' isn't working with the js csv data extraction
@@ -230,10 +222,10 @@
     }
 
     /**
-     * Call this on click of 'Download CSV (Whole series)' button
+     * Call this on click of 'Download CSV' button
      */
     Highcharts.Chart.prototype.downloadCSV = function () {
-        var csv = this.getCSV(false, true);
+        var csv = this.getCSV(false);
         getContent(
             this,
             'data:text/csv,\uFEFF' + csv.replace(/\n/g, '%0A'),
@@ -243,33 +235,16 @@
         );
     };
 
-    /**
-     * Call this on click of 'Download CSV (Current Points)' button
-     */
-    Highcharts.Chart.prototype.downloadCSVCurrent = function () {
-        var csv = this.getCSV(false, false);
-        getContent(
-            this,
-            'data:text/csv,\uFEFF' + csv.replace(/\n/g, '%0A'),
-            'csv',
-            csv,
-            'text/csv'
-        );
-    };
+
 
     // Add "Download CSV" to the exporting menu. Use download attribute if supported, else
     // run a simple PHP script that returns a file. The source code for the PHP script can be viewed at
     // https://raw.github.com/highslide-software/highcharts.com/master/studies/csv-export/csv.php
     if (Highcharts.getOptions().exporting) {
         Highcharts.getOptions().exporting.buttons.contextButton.menuItems.push({
-            textKey: 'downloadCSV',
+            textKey: 'DownloadCSV',
             onclick: function () {
                 this.downloadCSV();
-            }
-        }, {
-            textKey: 'downloadCSVCurrent',
-            onclick: function () {
-                this.downloadCSVCurrent();
             }
         });
     }
