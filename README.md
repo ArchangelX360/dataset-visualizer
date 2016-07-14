@@ -1,6 +1,16 @@
 # Web Dataset Visualizer
 
+## Presentation
+
 Originally design for Yahoo! Cloud Serving Benchmark, this web application displays measures stored in a MongoDB database. It could be used for any kind of data and series type but is mostly used for benchmark measures visualization.
+
+<p align="center">
+  <img src="/doc/images/archi-app.png" />
+</p>
+<p align="center">
+  <b>Place in the overall project architecture</b>
+</p>
+
 
 It supports large dataset (millions of points) and achieves view optimization to display them efficiently. Here's some chart examples:
 
