@@ -20,7 +20,7 @@ It supports large dataset (millions of points) and achieves view optimization to
 
 This application currently has a full YCSB support, you can launch benchmark using YCSB parameters and make your own workload with a Web UI.
 
-For now, only XYplot and Boxplot are supported. However, implementing a new series type is very easy! See [Create your own conversion adapter](own-conversion)
+For now, only XYplot and Boxplot are supported. However, implementing a new series type is very easy! See [Create your own conversion adapter](#own-conversion)
 
 ## Getting started
 
