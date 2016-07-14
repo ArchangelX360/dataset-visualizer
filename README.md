@@ -2,13 +2,21 @@
 
 Originally design for Yahoo! Cloud Serving Benchmark, this web application displays measures stored in a MongoDB database. It could be used for any kind of data and series type but is mostly used for benchmark measures visualization.
 
-It supports large dataset (millions of points) and achieves view optimization to display them efficiently.
+It supports large dataset (millions of points) and achieves view optimization to display them efficiently. Here's some chart examples:
 
-![XYPlot](/doc/images/xy.png)
-*XY chart example*
+<p align="center">
+  <img src="/doc/images/xy.png" />
+</p>
+<p align="center">
+  <b>XY chart example</b>
+</p>
 
-![BoxPlot](/doc/images/boxplot.png)
-*Boxplot chart example*
+<p align="center">
+  <img src="/doc/images/boxplot.png" />
+</p>
+<p align="center">
+  <b>Boxplot example</b>
+</p>
 
 This application currently has a full YCSB support, you can launch benchmark using YCSB parameters and make your own workload with a Web UI.
 
