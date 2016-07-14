@@ -1,8 +1,20 @@
-# Yahoo! Cloud Serving Benchmark Web Application
+# Web Dataset Visualizer
 
-A web application which displays measures stored by the visualisation part of Yahoo! Cloud Service Benchmark or other softwares.
+Originally design for Yahoo! Cloud Serving Benchmark, this web application displays measures stored in a MongoDB database. It could be used for any kind of data and series type but is mostly used for benchmark measures visualization.
 
-## Requirements
+It supports large dataset (millions of points) and achieves view optimization to display them efficiently.
+
+![XYPlot](/doc/images/xy.png)
+*XY chart example*
+
+![BoxPlot](/doc/images/boxplot.png)
+*Boxplot chart example*
+
+This application currently has a full YCSB support, you can launch benchmark using YCSB parameters and make your own workload with a Web UI.
+
+For now, only XYplot and Boxplot are supported. However, implementing a new series type is very easy! See [Create your own conversion adapter](own-conversion)
+
+## Getting started
 
 ### Core programs
 
@@ -281,8 +293,7 @@ Now that your MongoDB DB is filled with bunch of your measurements, you need to 
 
 For that, you will need to create a new _convertToSerie_ adapter.
 
-##### Create your own conversion adapter
-
+##### Create your own conversion adapter<a name="own-conversion"></a>
 Your _convertToSerie_ adapter will transform your DB scheme into an array of values understandable by Highcharts library.
 
 So, in order to make your DB scheme work with the client you will need to:
