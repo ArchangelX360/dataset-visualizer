@@ -6,6 +6,13 @@ var debug = require('debug')('benchmark');
 
 var findDocuments = function (db, collectionName, selector, options, callback, res) {
     db.collection(collectionName).find(selector, options).toArray(function (err, docs) {
+        if (docs) {
+            debug('[' + selector.label + '] Benchmark: ' + collectionName);
+            if (selector.num) {
+                debug('[' + selector.label + '] FROM: ' + selector.num.$gt);
+            }
+            debug('[' + selector.label + '] Result length: ' + docs.length);
+        }
         callback(res, err, docs);
     });
 };
@@ -72,12 +79,15 @@ module.exports = function (router, db) {
     router.get('/api/infos/benchmarks/size/:benchmark_name/:label', function (req, res) {
         db.collection(req.params.benchmark_name).count({label: req.params.label},
             function (err, count) {
+                debug('[' + req.params.label + '] Benchmark: ' + req.params.benchmark_name);
+                debug('[' + req.params.label + '] Size: ' + count);
                 utilities.sendResult(res, err, parseInt(count));
             });
     });
 
     router.get('/api/aggregate/:benchmark_name/:label/:from/:to/:limit/:bucket_size/:series_type', function (req, res) {
         /* Warning: result could exceed limit by a few points */
+
 
         var limit = req.params.limit;
         var benchmarkName = req.params.benchmark_name;
@@ -92,6 +102,13 @@ module.exports = function (router, db) {
                 }
             }
         };
+
+        debug('[' + req.params.label + '] Dataset too large, aggregating...');
+        debug('[' + req.params.label + '] Benchmark: ' + benchmarkName);
+        debug('[' + req.params.label + '] Bucket size: ' + bucketSize);
+        debug('[' + req.params.label + '] Front limit: ' + limit);
+        debug('[' + req.params.label + '] FROM: ' + req.params.from);
+        debug('[' + req.params.label + '] TO: ' + req.params.to);
 
         var parseFunction;
         var project;
@@ -166,7 +183,7 @@ module.exports = function (router, db) {
                         },
                         "label": {$first: "$label"},
                         "num": {$first: "$num"},
-                        // TODO : find a way to construct the measure object since here and avoir parsing function
+                        // TODO : find a way to construct the measure object since here and avoid parsing function
                         "open": {"$avg": "$measure.open"},
                         "low": {"$avg": "$measure.low"},
                         "close": {"$avg": "$measure.close"},
@@ -174,10 +191,12 @@ module.exports = function (router, db) {
                     }
                 };
                 break;
+            default:
+                utilities.sendResult(res, "Series type not supported for large dataset yet," +
+                    " see our documentation to know how to implement it.", null);
+                return;
         }
 
-
-        debug('[' + req.params.label + '] Aggregating with bucket size: ' + bucketSize);
         db.collection(benchmarkName).aggregate([match, project, group, sort], {allowDiskUse: true})
             .toArray(function (err, results) {
                 if (results) {
