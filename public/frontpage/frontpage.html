@@ -101,7 +101,7 @@
             text-align: center;
         }
 
-        .ycsb-title {
+        .software-title {
             color: #2196f3;
             text-align: center;
         }
@@ -123,13 +123,13 @@
 
     </style>
 
-    <style ng-if="ycsb">
-        .ycsb-rectangle {
+    <style ng-if="software">
+        .software-rectangle {
             position: relative;
             z-index: 10
         }
 
-        .ycsb-rectangle:before {
+        .software-rectangle:before {
             content: "";
             display: block;
             position: absolute;
@@ -157,7 +157,7 @@
             border-left: dashed 2px #2196f3;
         }
     </style>
-    <style ng-if="(visualizer || ycsb)">
+    <style ng-if="(visualizer || software)">
         .db-rectangle {
             position: relative;
             z-index: 10
@@ -176,7 +176,7 @@
             </h3>
             <div class="architecture-arrow-horizontal-placeholder">&nbsp;</div>
             <div class="architecture-icon-horizontal-placeholder">&nbsp;</div>
-            <h3 class="md-headline ycsb-title architecture-icon-horizontal-placeholder"><span ng-if="ycsb">YCSB&nbsp;Module</span>
+            <h3 class="md-headline software-title architecture-icon-horizontal-placeholder"><span ng-if="software">Software&nbsp;Module</span>
             </h3>
             <div class="architecture-icon-horizontal-placeholder">&nbsp;</div>
         </div>
@@ -185,13 +185,15 @@
             <div layout="column" layout-align="center center">
                 <md-icon class="architecture-icon" md-svg-src="/icons/architecture/scientist.svg"></md-icon>
                 <span class="md-headline">User</span>
-                <span class="md-headline technology">(ex: Robert)</span>
+                <span class="md-headline technology">(e.g. Robert)</span>
             </div>
 
-            <div layout="column" layout-align="center center">
-                <md-icon class="material-icons architecture-icon">&#xE8E4;</md-icon>
-                <span class="md-headline interface">Keyboard</span>
-                <span class="md-headline interface technology">(Brain)</span>
+            <div layout="column" layout-align="center center" class="architecture-icon">
+                <div layout="column" layout-align="center center" ng-show="arrows">
+                    <md-icon class="material-icons architecture-icon">&#xE8E4;</md-icon>
+                    <span class="md-headline interface">Keyboard</span>
+                    <span class="md-headline interface technology">(Brain)</span>
+                </div>
             </div>
 
             <div layout="row" layout-align="center center" class="app-rectangle">
@@ -201,11 +203,13 @@
                     <span class="md-headline technology">(AngularJS)</span>
                 </div>
 
-                <div layout="column" layout-align="center center">
-                    <md-icon class="material-icons architecture-arrow upper-arrow">&#xE8E4;</md-icon>
-                    <md-icon class="material-icons architecture-arrow lower-arrow">&#xE8E4;</md-icon>
-                    <span class="md-headline interface">RestAPI</span>
-                    <span class="md-headline interface technology">(Express Routes)</span>
+                <div layout="column" layout-align="center center" class="architecture-icon">
+                    <div layout="column" layout-align="center center" ng-show="arrows">
+                        <md-icon class="material-icons architecture-arrow upper-arrow">&#xE8E4;</md-icon>
+                        <md-icon class="material-icons architecture-arrow lower-arrow">&#xE8E4;</md-icon>
+                        <span class="md-headline interface">RestAPI</span>
+                        <span class="md-headline interface technology">(Express Routes)</span>
+                    </div>
                 </div>
 
                 <div layout="column" layout-align="center center">
@@ -214,11 +218,13 @@
                     <span class="md-headline technology">(NodeJS)</span>
                 </div>
 
-                <div layout="column" layout-align="center center">
-                    <md-icon class="material-icons architecture-arrow upper-arrow">&#xE8E4;</md-icon>
-                    <md-icon class="material-icons architecture-arrow lower-arrow">&#xE8E4;</md-icon>
-                    <span class="md-headline interface">DB Driver</span>
-                    <span class="md-headline interface technology">(NodeJS Driver)</span>
+                <div layout="column" layout-align="center center" class="architecture-icon">
+                    <div layout="column" layout-align="center center" ng-show="arrows">
+                        <md-icon class="material-icons architecture-arrow upper-arrow">&#xE8E4;</md-icon>
+                        <md-icon class="material-icons architecture-arrow lower-arrow">&#xE8E4;</md-icon>
+                        <span class="md-headline interface">DB Driver</span>
+                        <span class="md-headline interface technology">(NodeJS Driver)</span>
+                    </div>
                 </div>
             </div>
             <div layout="row" layout-align="center center" class="db-rectangle">
@@ -229,18 +235,20 @@
                 </div>
             </div>
 
-            <div layout="row" layout-align="center center" class="ycsb-rectangle">
+            <div layout="row" layout-align="center center" class="software-rectangle">
 
-                <div layout="column" layout-align="center center">
-                    <md-icon class="material-icons architecture-icon lower-arrow">&#xE8E4;</md-icon>
-                    <span class="md-headline interface">DB Driver</span>
-                    <span class="md-headline interface technology">(Java Driver)</span>
+                <div layout="column" layout-align="center center" class="architecture-icon">
+                    <div layout="column" layout-align="center center" ng-show="arrows">
+                        <md-icon class="material-icons architecture-icon lower-arrow">&#xE8E4;</md-icon>
+                        <span class="md-headline interface">DB Driver</span>
+                        <span class="md-headline interface technology">(Java Driver)</span>
+                    </div>
                 </div>
 
                 <div layout="column" layout-align="center center">
                     <md-icon class="architecture-icon" md-svg-src="/icons/architecture/settings.svg"></md-icon>
                     <span class="md-headline">Software</span>
-                    <span class="md-headline technology">(ex: YCSB)</span>
+                    <span class="md-headline technology">(e.g. YCSB)</span>
                 </div>
             </div>
         </div>
@@ -249,16 +257,21 @@
 </div>
 
 
-<md-fab-speed-dial md-direction="up" md-open="false" class="md-scale fab-custom" ng-if="presentation">
+<md-fab-speed-dial md-direction="up" md-open="false" class="md-scale fab-custom" ng-if="presentation"
+                   style="z-index: 999">
     <md-fab-trigger>
         <md-button aria-label="menu" class="md-fab md-primary">
             <md-icon aria-label="Menu"><i class="material-icons">&#xE5D2;</i></md-icon>
         </md-button>
     </md-fab-trigger>
     <md-fab-actions>
-        <md-button aria-label="Toggle YCSB rectangle" ng-click="toggleYCSB()"
+        <md-button aria-label="Toggle arrows" ng-click="toggleArrows()"
+                   class="md-fab md-raised md-mini md-primary">
+            <md-icon aria-label="Toggle arrows"><i class="material-icons">&#xE915;</i></md-icon>
+        </md-button>
+        <md-button aria-label="Toggle software rectangle" ng-click="toggleSoftware()"
                    class="md-fab md-raised md-mini md-accent">
-            <md-icon aria-label="Toggle YCSB rectangle"><i class="material-icons">&#xE8B9;</i></md-icon>
+            <md-icon aria-label="Toggle software rectangle"><i class="material-icons">&#xE8B9;</i></md-icon>
         </md-button>
         <md-button aria-label="Toggle Visualizer App rectangle" class="md-fab md-raised md-mini"
                    style="background-color: #f44336;"

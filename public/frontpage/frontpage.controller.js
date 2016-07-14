@@ -4,14 +4,19 @@ angular.module('frontpageController', [])
         $rootScope.pageTitle = 'What do you want to do ?';
         $scope.presentation = true;
 
-        $scope.ycsb = false;
+        $scope.software = false;
         $scope.visualizer = false;
+        $scope.arrows = false;
 
-        $scope.toggleYCSB = function () {
-            $scope.ycsb = !$scope.ycsb;
+        $scope.toggleSoftware = function () {
+            $scope.software = !$scope.software;
         };
 
         $scope.toggleVisualizerApp = function () {
             $scope.visualizer = !$scope.visualizer;
+        };
+
+        $scope.toggleArrows = function () {
+            $scope.arrows = !$scope.arrows;
         };
     });
