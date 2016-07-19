@@ -79,7 +79,10 @@ var executeCommand = function (program, params, benchmarkName) {
     var child = child_process.spawn(program, params);
     var client = clients[benchmarkName]; // Only emitting on the right client
 
-    client.removeAllListeners();
+    if (typeof client !== "undefined") {
+        client.removeAllListeners('kill');
+        client.removeAllListeners('exit');
+    }
 
     client.emit('begin');
 
@@ -112,8 +115,8 @@ module.exports = function (router, io) {
         debug('Client connected with id : ' + socket.id);
 
         socket.on('authentication', function (benchmarkName) {
-            debug("Authenticate with : " + benchmarkName);
             clients[benchmarkName] = socket;
+            debug("Authenticate with : " + benchmarkName);
         });
 
         socket.on('disconnect', function () {

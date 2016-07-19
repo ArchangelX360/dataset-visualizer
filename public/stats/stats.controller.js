@@ -155,7 +155,7 @@ angular.module('stats', [])
                 "INSERT": "line",
                 "READ": "line",
                 "UPDATE": "line",
-                //"READ-MODIFY-WRITE": "line",
+                "READ-MODIFY-WRITE": "line",
                 "CLEANUP": "line",
                 //"SCAN": "line",
                 //"DELETE" : "line",
