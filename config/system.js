@@ -1,4 +1,4 @@
-var ycsbRoot = "/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/";
+var ycsbRoot = "/home/titouan/Documents/ycsb-web-app/ycsb-0.11.1-custom-release/"; // FrontendConcurrencyMap version
 
 module.exports = {
     countersCollectionName: 'counters',

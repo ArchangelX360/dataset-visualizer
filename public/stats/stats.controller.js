@@ -29,7 +29,7 @@ angular.module('stats', [])
                                 scope.updateinterval = setInterval(function () {
                                     var extremesObject = chart.xAxis[0].getExtremes();
                                     scope.updatefunc(chart, scope.customlabel, Math.round(extremesObject.dataMax));
-                                }, 3000);
+                                }, 1500);
                             }
                         }
                     },
@@ -155,9 +155,9 @@ angular.module('stats', [])
                 "INSERT": "line",
                 "READ": "line",
                 "UPDATE": "line",
-                "READ-MODIFY-WRITE": "line",
+                //"READ-MODIFY-WRITE": "line",
                 "CLEANUP": "line",
-                "SCAN": "line",
+                //"SCAN": "line",
                 //"DELETE" : "line",
                 "AAPL Stock Price": "candlestick"
             };
