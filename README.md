@@ -432,7 +432,7 @@ As we see in [MongoDB Aggregation Explaination Section](#aggregation-explainatio
 The precision reduction grow linearly when your benchmark points are increasing. The coefficient of this linear reduction is the value the user sets based on his computer performances. We have the following equation:
 
 <p align="center">
-  <img src="/doc/images/CodeCogsEqn.gif" />
+  <img src="/doc/images/bucket-eq.png" />
 </p>
 <p align="center">
   <b>Bucket size precision equation</b>
