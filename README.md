@@ -429,9 +429,14 @@ The application supports only two schemes for the moment which are:
 
 As we see in [MongoDB Aggregation Explaination Section](#aggregation-explaination), our application uses an aggregating process to handle millions of values. This aggregation process is reducing the precision of our displayed charts.
 
-We made a quick evaluation to see how much does it lacks of precision:
+The precision reduction grow linearly when your benchmark points are increasing. The coefficient of this linear reduction is the value the user sets based on his computer performances. We have the following equation:
 
-// **TODO: fill this !**
+<p align="center">
+  <img src="/doc/images/CodeCogsEqn.gif" />
+</p>
+<p align="center">
+  <b>Bucket size precision equation</b>
+</p>
 
 ### Almost stuck with MongoDB
 
