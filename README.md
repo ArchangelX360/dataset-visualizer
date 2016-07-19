@@ -425,7 +425,7 @@ The application supports only two schemes for the moment which are:
 
 ## Limitations
 
-### Linear loss of accurary
+### Linear loss of accuracy
 
 As we see in [MongoDB Aggregation Explaination Section](#aggregation-explaination), our application uses an aggregating process to handle millions of values. This aggregation process is reducing the precision of our displayed charts.
 
