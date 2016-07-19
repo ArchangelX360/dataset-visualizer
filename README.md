@@ -144,16 +144,14 @@ If you want to make a large number of measure, our client won't be able to displ
 
 ##### Explainations<a name="aggregation-explaination"></a>
 
-MongoDB is grouping value and making averages to optimise the view and make NodeJS serve results faster. This grouping process reduces measurements' precision. For example, you would get 5 buckets of average each based on 4 successive values instead of getting 20 measures:
+MongoDB is grouping value and making averages to optimise the view and make NodeJS serve results faster. This grouping process reduces measurements' precision. For example, you would get 3 buckets of average each based on 3 successive values instead of getting 9 measures:
 
-``` javascript
-// MongoDB aggregation illustration
-
-[15,15,15,15,0,10,10,0,10,20,25,25,0,0,0,0,10,5,10,15]  // Original array
-==> [15, 5, 20, 0, 10]                                  // Aggregated array
-```
-
-**// TODO : do a illustration as a map reduce illustration in docs**
+<p align="center">
+  <img src="/doc/images/mongodb-agg.png" />
+</p>
+<p align="center">
+  <b>Simple illustration of MongoDB aggregation process</b>
+</p>
 
  The better your computer and browser are, the higher you can set the _MAX\_POINTS_ value and the smaller these buckets will be. You will have a more precise dataset.
 
