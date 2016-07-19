@@ -248,23 +248,13 @@ Then go to <http://localhost:5555> !
 
 **NOTE:** adapt the _max-old-space-size_ relying on your machine performances.
 
-## Compatibility
-
-### YCSB
-
-#### _"Launching Benchmark"_ view
-
-We discourage you to use our _"Launching Benchmark"_ view for launching benchmarks with very large dataset (multiple millions of points). Indeed, it might be drastically slower than a YCSB command line launch due to NodeJS limited memory and processing.
-
-// **TODO: complete this with knowing the exact cause !**
-
-### What about not YCSB ?
+## What about not using YCSB ?
 
 At first, our vizualizer was made for YCSB, but during the development we thought it would be great for it to support any kind of benchmarking software or more generally every software that output data.
 
 These following points explain how to use our visualizer without YCSB.
 
-#### MongoDB Population
+### MongoDB Population
 
 First, your software should be able to populate a MongoDB database.
 
@@ -277,7 +267,7 @@ Inside those collections, your documents have to respect the following scheme :
 
 This last attribute of your documents can be at least whatever you want. This can be an object with fields, a single value, an array, etc. We will see how we handle this on the client side.
 
-##### Example: our YCSB scheme
+#### Example: our YCSB scheme
 
 ``` javascript
 [
@@ -305,13 +295,13 @@ This last attribute of your documents can be at least whatever you want. This ca
 ]
 ```
 
-#### MongoDB/Client interface
+### MongoDB/Client interface
 
 Now that your MongoDB DB is filled with bunch of your measurements, you need to make the client understand what is your scheme. (See [Supported Scheme](#supported-scheme) to know if you need to follow this section)
 
 For that, you will need to create a new _convertToSerie_ adapter.
 
-##### Create your own conversion adapter<a name="own-conversion"></a>
+#### Create your own conversion adapter<a name="own-conversion"></a>
 Your _convertToSerie_ adapter will transform your DB scheme into an array of values understandable by Highcharts library.
 
 So, in order to make your DB scheme work with the client you will need to:
@@ -323,7 +313,7 @@ So, in order to make your DB scheme work with the client you will need to:
 
 See the following [Boxplot Example](#boxplot-example) to understand where and how to do it.
 
-##### Example: boxplot support implementation<a name="boxplot-example"></a>
+#### Example: boxplot support implementation<a name="boxplot-example"></a>
 
 YCSB produce a single value measure which is the latency. To support boxplot, we need to handle a measure object a bit more complex which looks like the following:
 
@@ -405,7 +395,7 @@ Now, we might want to disable the average series by setting the _$scope.showAver
 
 Finally, we want to support very large dataset so we added a new aggregating function within the switch of the aggregating route, *see _app/routes/benchmarks.js_ for more details*.
 
-#### Supported Scheme <a name="supported-scheme"></a>
+### Supported Scheme <a name="supported-scheme"></a>
 
 The application supports only two schemes for the moment which are:
 
@@ -436,8 +426,6 @@ The application supports only two schemes for the moment which are:
 ```
 
 ## Limitations
-
-###
 
 ### Linear loss of accurary
 
