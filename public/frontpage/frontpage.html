@@ -1,6 +1,6 @@
 <div layout="column" layout-gt-md="row" layout-align="center center">
 
-    <div flex="33" layout-fill>
+    <div flex="25" layout-fill>
         <a ng-href="#/cmd/" class="nostyle">
             <md-card md-whiteframe="3" class="frontpage-card">
                 <md-icon class="material-icons frontpage-icon" md-svg-src="icons/rocket.svg"></md-icon>
@@ -13,7 +13,7 @@
         </a>
     </div>
 
-    <div flex="33" layout-fill>
+    <div flex="25" layout-fill>
         <a ng-href="#/stats" class="nostyle">
             <md-card md-whiteframe="3" class="frontpage-card">
                 <md-icon class="material-icons frontpage-icon" md-svg-src="icons/presentation.svg"></md-icon>
@@ -27,13 +27,26 @@
         </a>
     </div>
 
-    <div flex="33" layout-fill>
+    <div flex="25" layout-fill>
         <a ng-href="#/workloads" class="nostyle">
             <md-card md-whiteframe="3" class="frontpage-card">
                 <md-icon class="material-icons frontpage-icon" md-svg-src="icons/settings.svg"></md-icon>
                 <md-card-title>
                     <md-card-title-text>
                         <span class="md-display-1">Manage Workloads</span>
+                    </md-card-title-text>
+                </md-card-title>
+            </md-card>
+        </a>
+    </div>
+
+    <div flex="25" layout-fill>
+        <a ng-href="#/evaluations" class="nostyle">
+            <md-card md-whiteframe="3" class="frontpage-card">
+                <md-icon class="material-icons frontpage-icon" md-svg-src="icons/bar-chart.svg"></md-icon>
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-display-1">See Evaluation Results</span>
                     </md-card-title-text>
                 </md-card-title>
             </md-card>
@@ -97,7 +110,7 @@
         }
 
         .app-title {
-            color: #f44336;
+            color: #f44256;
             text-align: center;
         }
 
@@ -110,15 +123,15 @@
     <style ng-if="visualizer">
 
         .app-rectangle {
-            border-top: dashed 2px #f44336;
-            border-bottom: dashed 2px #f44336;
-            border-left: dashed 2px #f44336;
+            border-top: dashed 2px #f44256;
+            border-bottom: dashed 2px #f44256;
+            border-left: dashed 2px #f44256;
         }
 
         .db-rectangle {
-            border-top: dashed 2px #f44336;
-            border-bottom: dashed 2px #f44336;
-            border-right: dashed 2px #f44336;
+            border-top: dashed 2px #f44256;
+            border-bottom: dashed 2px #f44256;
+            border-right: dashed 2px #f44256;
         }
 
     </style>
@@ -317,7 +330,7 @@
             <md-icon aria-label="Toggle software rectangle"><i class="material-icons">&#xE8B9;</i></md-icon>
         </md-button>
         <md-button aria-label="Toggle Visualizer App rectangle" class="md-fab md-raised md-mini"
-                   style="background-color: #f44336;"
+                   style="background-color: #f44256;"
                    ng-click="toggleVisualizerApp()">
             <md-icon aria-label="Toggle Visualizer App rectangle"><i class="material-icons" style="color: white">
                 &#xE8F4;</i></md-icon>

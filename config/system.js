@@ -21,5 +21,8 @@ module.exports = {
     memcachedUser: 'titouan',
     memcachedAddress: '127.0.0.1',
     memcachedPort: 11211,
-    memcachedMaxMemory: 10240
+    memcachedMaxMemory: 10240,
+
+    /* FOR EVALUATION ONLY */
+    evaluationsLocation: '/home/titouan/Documents/ycsb-web-app/public/evaluations/'
 };
