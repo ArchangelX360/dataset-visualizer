@@ -1,0 +1,305 @@
+\documentclass[a4paper,11pt]{article}
+
+% --- Packages generaux --------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{lscape}
+\usepackage{ucs}
+\usepackage[T1]{fontenc}
+%\usepackage{eurosym}
+%\usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+%\graphicspath{{photos/}{schemas/}}
+\usepackage[hidelinks]{hyperref}
+\usepackage{pdfpages}
+\usepackage{capt-of}
+
+% --- Package specifiques ------------------------------------------------------
+
+%\usepackage{amsmath,amssymb} % pour la gestion facile des trucs orientes maths
+\usepackage{listingsutf8} % pour introduire du code source
+%\lstloadlanguages{Java}
+\usepackage{verbatim}
+\usepackage{url}
+\usepackage{multicol} % pour les environnement a plusieurs colonnes
+\usepackage{vmargin} % pour regler finement les marges (ne pas combiner avec fullpage)
+\usepackage{fancyhdr} % pour des en-tetes plus pousses
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+% --- Mise en forme ------------------------------------------------------------
+
+\setlength{\parindent}{7mm}
+\setmarginsrb{25mm}{20mm}{25mm}{20mm}{14pt}{5mm}{0pt}{7mm}
+% marges gauche, haut, droite, bas
+% hauteur de l'entête
+% distance entre l'entête et le texte
+% hauteur du pied de page
+% distance entre le texte et le pied de page
+
+\pagestyle{fancy}
+\fancyhead[L]{YCSB Web Visualization - Internship Report - 2016}
+\fancyhead[R]{\leftmark}
+
+\lstset{
+         basicstyle=\footnotesize\ttfamily, % Standardschrift
+         numbers=left,               % Ort der Zeilennummern
+         numberstyle=\tiny,          % Stil der Zeilennummern
+         %stepnumber=2,               % Abstand zwischen den Zeilennummern
+         numbersep=5pt,              % Abstand der Nummern zum Text
+         tabsize=2,                  % Groesse von Tabs
+         extendedchars=true,         %
+         breaklines=true,            % Zeilen werden Umgebrochen
+         keywordstyle=\color{red},
+    		frame=b,
+         %keywordstyle=[1]\textbf{},    % Stil der Keywords
+         %keywordstyle=[2]\textbf{},    %
+         %keywordstyle=[3]\textbf{},    %
+        %keywordstyle=[4]\textbf{},  % \sqrt{\sqrt{}} %
+         stringstyle=\color{white}\ttfamily, % Farbe der String
+         showspaces=false,           % Leerzeichen anzeigen ?
+         showtabs=false,             % Tabs anzeigen ?
+         xleftmargin=17pt,
+         framexleftmargin=17pt,
+         framexrightmargin=5pt,
+         framexbottommargin=4pt,
+         %backgroundcolor=\color{lightgray},
+         showstringspaces=false      % Leerzeichen in Strings anzeigen ?
+ }
+
+% --- Macros generales ---------------------------------------------------------
+
+% macros pour la page de titre
+\newcommand*{\HRule}{\rule{\linewidth}{0.4mm}}  % trait horizontal epais
+\newcommand*{\auteur}[2]{\large #1~\textsc{#2}} % mise en forme du nom d'auteur
+
+% tableaux
+\newcommand*{\alignloc}[2]{\multicolumn{1}{|#1|}{#2}} % change l'alignement
+
+% macros pour gerer les choses a faire lors de l'ecriture du tex
+\newcommand*{\tocheck}{\textcolor{red}{\bf \emph{A VERIFIER}}}
+\newcommand*{\checked}{\textcolor{green}{\bf \emph{(vérifié)}}}
+\newcommand*{\todo}[1]{\textcolor{blue}{[A FAIRE : \emph{#1}]}}
+
+% --- Mots mal coupes ----------------------------------------------------------
+
+\hyphenation{} % separer les syllabes par des tirets
+
+% --- Elements de la page de titre ---------------------------------------------
+
+\newcommand{\pretitre}{Yahoo! Cloud Serving Benchmark Web Interface visualisation}
+\newcommand{\grostitre}{Internship Report}
+\newcommand{\auteurs}{Author : \auteur{Titouan}{Bion} \\ Second year engineering student at the EISTI (Pau).}
+\newcommand{\correcteurs}{Addressed to Mr \auteur{Peio}{Loubière} \& Mr \auteur{Robert}{Krahn}}
+\newcommand{\madate}{\today} % \today pour mettre la date a la compilation
+
+% ==============================================================================
+\begin{document}
+% ==============================================================================
+
+% --- Page de titre personnalisee ----------------------------------------------
+
+\begin{titlepage}
+\begin{figure}[h]
+\includegraphics[scale=1]{images/Logo_EISTI.png}
+\hfill
+\includegraphics[scale=0.6]{images/Logo_TUD.png}
+\end{figure}
+  \begin{center}
+    ~
+    \vfill
+    {\Large\pretitre\\}           % pre-titre
+    \vspace{2cm}
+    \HRule \\[0.4cm]
+    {\Huge\bf\grostitre\\[0.4cm]} % gros titre
+    \HRule \\[0.4cm]
+    \vspace{2cm}
+    \auteurs\\                    % auteur(s)
+    \medskip
+    \vfill
+   	\correcteurs
+    \vfill
+    {\large\madate}               % date
+  \end{center}
+\end{titlepage}
+
+% --- Table des matieres -------------------------------------------------------
+
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+\todo{PAGE DE GARDE AVEC LEUR MODELE}
+
+% cadre, problem, cahier des charges
+La chair de recherche utilise YCSB et d'autres logiciels de benchmark afin de benchmarker des BDD clouds (vérifier)
+
+YCBS fournit un resultat à la fin
+Temps réel demandé
+Résultat text peu facile à manipuler
+Interface web de visualization
+
+Enjeu : ne pas ralentir YCSB
+\todo{}
+
+\newpage
+
+\section{An university internship}\label{partnership}
+
+The EISTI enable us to have three internships and I seized this opportunity to discover the more different working possibilities my field of study can offer. As I was considering a PhD. after my engineering school, I needed to know if I would have suited me.
+
+I decided to use the EISTI partnership to achieve an intership at the Technische Universität Dresden in Germany. I chose this particular university because I heard positive feedbacks from acquaintances that studied there. I have been able to discover a research environment and discuss with doctors or PhD. students which nourished my thought and helped me make a choice for the next step of my career.
+
+\section{Internship environment}
+
+\subsection{Technische Universität Dresden : global overview}
+
+\todo{}
+
+\subsection{System engineering chair}
+
+\todo{}
+
+\subsection{Personal observations and induction}
+
+\todo{}
+
+mettre ici l'organisation du projet et le ressenti de l'environment
+
+\subsection{Working method}
+
+I used an AGILE method to develop this project. As I was working alone on the implementation side, I needed to confront my features quickly to future users in order to have feedbacks.
+My cycle was simple, I began with a strong implementation phase followed by a testing and debugging phase. Then I used my tools to evaluate my solution and judge if it was suitable according to the expectations and use cases.
+
+For example, at the end of my first cycle, my application was working great for small datasets but when it needed to handle thousands of points it was crashing both on server and client side.
+So, I made a complete review of my code to find bottlenecks and fixed them one by one. I will technically develop these optimizations in section \ref{optimizations}.
+
+\clearpage
+
+\section{Building a solution}
+
+\subsection{Exploration phase}
+
+\paragraph{API between YCSB and the NodeJS server}
+
+At first, I wish to expose a RestAPI directly from the YCSB Java application. I wished to use technology like Hazelcast for example. Sadly, it was drastically slowing the warmup phase of YCSB so I tried a lightweight solution with ActiveJDBC and Spark Java (not to be confused with Apache Spark). Even this lightweight solution was solution YCSB too much. Also, it forces the user to let YCSB running in the back even if no benchmark was launch. The application modularity was not good enough for the maintenability of the solution.
+
+I finally decided to let a MongoDB storage database be my API between the YCSB application and my web server. The database connection is quicker thus has a reduced impact on the warmup phase compared to the former solutions. Also, this modularity provided by the storage DB allows my client/server application to communicate with every software capable of storing data into a MongoDB database.
+
+The web interface was a prerequisite to this project. Multiple chart library are available but I chose Highcharts library because of its display optimization. I will develop these optimizations later in this document.
+
+\paragraph{YCSB points fetching routine}
+
+As my solution needed not to slow YCSB, I made all storage operation in a different thread. The data was stored into other threads variables --- YCSB client threads --- and the way of fetching values was our top priority. Indeed, this operation is the one that impact YCSB the most.
+
+I though of multiple approaches to retrieve YCSB data. First, I designed what I called a Database Hook that would launch a task in the storage thread at each measurement. As the first method was not efficient and slowed YCSB too much, I implemented a periodic fetching process that was handle by the storage thread. Again, I will elaborate on benefits of this process in the next section. \todo{REF ?}
+
+\subsection{Application architecture}
+
+\subsubsection{Overall workflow}
+
+\todo{Schema}
+
+\todo{}
+\subsubsection{Backend specifications}
+
+\todo{}
+\paragraph{Fetching method}
+
+\todo{}
+Executor not to disturb YCSB
+
+Fail safe process and easy shutdown
+
+concurrency map for handling problem
+
+\paragraph{Communication with Storage DB}
+
+\todo{}
+Native driver and BULK writes for efficiency
+
+\subsubsection{Frontend specifications}
+
+\todo{}
+\paragraph{NodeJS Server}
+
+\todo{}
+Lightweight, its modularity is very efficient with our small scale project
+Handle MongoDB and expose a RestAPI easily
+
+\paragraph{Communication with Storage DB}
+
+\todo{}
+Native NodeJS driver, mongoose was too slow and useless in our case (very simple requests and aggregation)
+
+\paragraph{Handling multi millions benchmark}
+
+\todo{}
+Mongo aggregation process
+
+\subsubsection{AngularJS Client}
+
+\todo{}
+Maintainable solution and structured client, updates and dynamic behaviour way simply handled, RestAPI request Encapsulated into services for a better use
+
+Providing also Angular Material for an easy style and good looking client
+
+\paragraph{Highcharts library}
+
+\todo{}
+client aggregation process for view optimisation (DataGrouping)
+
+\subsection{Optimizations}\label{optimizations}
+
+\todo{}
+\subsection{Increasing support}
+
+\todo{}
+
+\subsection{Performances}
+
+\todo{}
+\subsection{Limitations}
+
+\todo{}
+
+\clearpage
+\section{Internship benefits}
+
+\todo{}
+As I pointed out in section \ref{partnership}, this internship did help me discover the research environment. It is an interesting place to work as it is different from a company working atmosphere. Despite a colorful and pleasant environment, I wish to continue my career by some company years before. I'm still interested in a PhD. but I think I lack of company experiences at the moment and I spend too much years of my life in school and universities. We all need some changes at a given moment.
+
+\clearpage
+
+\section{Conclusion}
+
+\todo{}
+
+\todo{CV A LA FIN}
+\clearpage
+
+\bibliographystyle{plain}
+\bibliography{report}
+
+\newpage
+
+%\begin{center}
+%\begin{figure}[ht]
+%\includegraphics[width=1\linewidth]{images/use_case_with_controller.png}
+%\caption{Scheduler client workflow chart.}
+%\label{schedclt_implementation_png}
+%\end{figure}
+%\end{center}
+
+% ==============================================================================
+\end{document}
+% ==============================================================================
