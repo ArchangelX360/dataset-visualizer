@@ -47,6 +47,12 @@ app.factory('socket', function (socketFactory) {
     return socketFactory();
 });
 
+app.filter('evaluationsanitize', function () {
+    return function (input) {
+        return input.replace(/\.json|results\-/g, '');
+    };
+});
+
 app.run(function ($rootScope) {
     $rootScope.classView = 'view';
     $rootScope.pageTitle = '';

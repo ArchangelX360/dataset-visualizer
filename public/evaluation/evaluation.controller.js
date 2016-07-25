@@ -20,6 +20,7 @@ angular.module('evaluationController', [])
                 Highcharts.chart(element[0], {
                     chart: {
                         width: 400,
+                        height: 380,
                         type: scope.charttype,
                         events: {
                             load: function () {
@@ -47,7 +48,7 @@ angular.module('evaluationController', [])
             }
         };
     })
-    .controller('EvaluationController', function ($scope, $rootScope, $routeParams, Evaluations, ToastService) {
+    .controller('EvaluationController', function ($scope, $rootScope, $routeParams, $mdSidenav, $location, Evaluations, ToastService) {
         $scope.loading = true;
 
         $scope.initDataChart = function (chart, filename, phase) {
@@ -68,15 +69,18 @@ angular.module('evaluationController', [])
                         }
                     });
 
-                    chart.addSeries({
-                        name: 'Frontend',
-                        data: frontendData
-                    });
+                    chart.xAxis[0].setTitle({text: "Iteration number"}, true);
 
                     chart.addSeries({
                         name: 'Raw',
                         data: rawData
                     });
+
+                    chart.addSeries({
+                        name: 'Frontend',
+                        data: frontendData
+                    });
+
 
                 },
                 function (err) {
@@ -95,6 +99,7 @@ angular.module('evaluationController', [])
                             var value = data[cycleType];
                             if (resultType === "percents") {
                                 value -= 100;
+                                chart.yAxis[0].setExtremes(-100, 100, true)
                             }
                             highchartsData.push([cycleType, value])
                         }
@@ -126,10 +131,49 @@ angular.module('evaluationController', [])
             });
         };
 
+        function parseEvaluationName(name) {
+            var array = name.split('-');
+            array.forEach(function (e) {
+                switch (e[0]) {
+                    case 'I':
+                        $scope.iterationNumber = e.substr(1).replace(/\.json/g, '');
+                        break;
+                    case 'W':
+                        $scope.workload = e.substr(1).replace(/\.json/g, '');
+                        break;
+                    case 'M':
+                        $scope.memcachedAddress = e.substr(1).replace(/\.json/g, '');
+                        if ($scope.memcachedAddress.split(':')[0] !== "127.0.0.1" && $scope.memcachedAddress.split(':')[0] !== "localhost")
+                            $scope.memcachedAddress = "Memcached: Remote (" + $scope.memcachedAddress + ')';
+                        else
+                            $scope.memcachedAddress = "Memcached: Local (" + $scope.memcachedAddress + ')';
+                        break;
+                    case 'S':
+                        $scope.mongo = e.substr(1).replace(/\.json/g, '');
+                        if ($scope.mongo.split(':')[0] !== "127.0.0.1" && $scope.mongo.split(':')[0] !== "localhost")
+                            $scope.mongo = "MongoDB: Remote (" + $scope.mongo + ')';
+                        else
+                            $scope.mongo = "MongoDB: Local (" + $scope.mongo + ')';
+                        break;
+                    case 'T':
+                        $scope.threadNumber = e.substr(1).replace(/\.json/g, '');
+                        break;
+                }
+            });
+
+
+        }
+
+        $scope.switchEvaluation = function () {
+            $location.path('evaluations/' + $scope.evaluationName);
+        };
+
         $scope.getEvaluations();
         $scope.evaluationName = $routeParams.evaluationName;
         $rootScope.pageTitle = ($scope.evaluationName) ? 'Evaluation results' : 'Select an evaluation';
         $scope.currentNavItem = 'nav-' + $scope.evaluationName;
+        if ($scope.evaluationName)
+            parseEvaluationName($scope.evaluationName);
 
     })
 ;
