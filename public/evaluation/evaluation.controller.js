@@ -473,5 +473,6 @@ angular.module('evaluationController', [])
 
         $scope.loading = true;
         $scope.fixedScale = true;
+        $rootScope.pageTitle = "Select a parameter you want to compare";
         initController();
     });
