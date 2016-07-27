@@ -12,8 +12,8 @@
 </head>
 <body ng-app="visualisationYCSB" flex>
 
-<div layout="column" flex layout-fill>
-    <md-toolbar class="main-nav">
+<div layout="column" flex>
+    <md-toolbar id="main-nav">
         <div class="md-toolbar-tools">
             <a ng-href="#/">
                 <md-button class="md-icon-button" aria-label="Home">
@@ -24,10 +24,8 @@
             <span flex></span>
         </div>
     </md-toolbar>
-    <div style="height: 64px; max-height: 64px; min-height: 64px"></div>
-    <div ng-class="classView" ng-view></div>
-    <div class="footer" layout="row" layout-align="center center">
-    </div>
+    <div class="main-nav-placeholder"></div>
+    <div ng-class="classView" ng-view class="view-container"></div>
 </div>
 
 </body>

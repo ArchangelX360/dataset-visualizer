@@ -15,10 +15,6 @@
         <h1 class="md-display-1">Select an evaluation file to see its results.</h1>
     </div>
     <div ng-if="evaluationName">
-        <div layout="row">
-
-
-        </div>
         <div layout="column" layout-align="center center">
             <div layout="column" layout-gt-md="row" layout-align="center start" layout-wrap>
                 <div flex style="width: 400px;">
@@ -32,26 +28,26 @@
                             <md-list-item class="md-2-line" ng-click="null">
                                 <div class="md-list-item-text" layout="column">
                                     <h3>Iteration number</h3>
-                                    <p>{{iterationNumber}}</p>
+                                    <p>{{infos.iterationNumber}}</p>
                                 </div>
                             </md-list-item>
                             <md-list-item class="md-2-line" ng-click="null">
                                 <div class="md-list-item-text" layout="column">
                                     <h3>Workload</h3>
-                                    <p>{{workload}}</p>
+                                    <p>{{infos.workload}}</p>
                                 </div>
                             </md-list-item>
                             <md-list-item class="md-2-line" ng-click="null">
                                 <div class="md-list-item-text" layout="column">
                                     <h3>Databases</h3>
-                                    <p>{{memcachedAddress}}</p>
-                                    <p>{{mongo}}</p>
+                                    <p>{{infos.memcachedAddress}}</p>
+                                    <p>{{infos.mongo}}</p>
                                 </div>
                             </md-list-item>
                             <md-list-item class="md-2-line" ng-click="null">
                                 <div class="md-list-item-text" layout="column">
                                     <h3>Thread number</h3>
-                                    <p>{{threadNumber}}</p>
+                                    <p>{{infos.threadNumber}}</p>
                                 </div>
                             </md-list-item>
                         </md-list>

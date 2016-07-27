@@ -20,6 +20,7 @@ angular.module('toastService', [])
                 $mdToast.show(
                     $mdToast.simple()
                         .textContent(label + str)
+                        .parent(document.querySelectorAll('#main-nav'))
                         .position("top right")
                         .hideDelay(3000)
                         .theme(type + '-toast'));

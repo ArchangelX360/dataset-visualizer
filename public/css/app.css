@@ -63,7 +63,7 @@ md-toast.md-warn-toast-theme div.md-toast-content {
     background-color: #ffc107 !important;
 }
 
-.main-nav {
+#main-nav {
     height: 64px;
     min-height: 64px;
     padding: 0 16px;
@@ -73,6 +73,25 @@ md-toast.md-warn-toast-theme div.md-toast-content {
     left: 0;
     right: 0;
     z-index: 5;
+}
+
+.main-nav-placeholder {
+    height: 64px;
+    min-height: 64px;
+    max-height: 64px;
+}
+
+.view-container {
+    height: -moz-calc(100% - 64px);
+    height: -webkit-calc(100% - 64px);
+    height: calc(100% - 64px);
+    min-height: -moz-calc(100% - 64px);
+    min-height: -webkit-calc(100% - 64px);
+    min-height: calc(100% - 64px);
+    max-height: -moz-calc(100% - 64px);
+    max-height: -webkit-calc(100% - 64px);
+    max-height: calc(100% - 64px);
+    overflow-y: auto;
 }
 
 .fab-custom {

@@ -6,6 +6,9 @@ angular.module('evaluationService', [])
             },
             getResults: function (filename) {
                 return $http.get('/api/evaluations/' + filename);
+            },
+            getInfos: function () {
+                return $http.get('/api/infos/evaluations/');
             }
         }
     }]);

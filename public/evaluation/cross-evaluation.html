@@ -1,0 +1,67 @@
+<style>
+    md-input-container, md-radio-group {
+        width: 290px;
+        margin-left: 10px;
+    }
+</style>
+
+<md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="!loading"
+                    ng-if="loading"></md-progress-linear>
+
+<div layout="column" layout-gt-sm="row" layout-align="center stretch">
+    <div layout="column">
+        <div layout="row">
+            <div layout="column">
+                <md-subheader>Compare by</md-subheader>
+                <md-radio-group class="compare-radios" ng-model="notFixedParameter">
+                    <md-radio-button ng-repeat="(label, parameter) in params" ng-value="parameter.name"
+                                     class="md-primary">
+                        {{parameter.name}}
+                    </md-radio-button>
+                </md-radio-group>
+            </div>
+
+            <div layout="column" ng-if="notFixedParameter">
+                <md-subheader>Parameters</md-subheader>
+                <div ng-repeat="(label, parameter) in params">
+                    <div ng-if="parameter.isFixed()">
+                        <md-input-container>
+                            <label for="{{parameter.id}}-select">{{parameter.selectStr}}</label>
+                            <md-select id="{{parameter.id}}-select" required ng-model="parameter.selectedValues[0]">
+                                <md-option ng-repeat="item in parameter.collection">{{item}}</md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div ng-if="!parameter.isFixed()">
+                        <md-input-container ng-repeat="item in parameter.collection" layout="column">
+                            <md-checkbox ng-checked="exists(item, parameter.selectedValues)"
+                                         ng-click="toggle(item, parameter.selectedValues)">{{ item }}
+                            </md-checkbox>
+                        </md-input-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <md-button ng-if="generationMode" class="md-raised md-accent md-button md-ink-ripple"
+                   aria-label="Update efficiency charts" ng-click="generateComparaison()">Update efficiency charts
+        </md-button>
+        <md-button ng-if="!generationMode" class="md-raised md-primary md-button md-ink-ripple"
+                   aria-label="Generate efficiency charts" ng-click="generateComparaison()">Generate efficiency charts
+        </md-button>
+    </div>
+
+    <div ng-if="generationMode" layout="column" layout-align="center center">
+        <div layout="column" layout-gt-md="row">
+            <hc-comparaison-chart title="Average Load Efficiency Evolution" type="average_load"
+                                  initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
+            <hc-comparaison-chart title="Average Run Efficiency Evolution" type="average_run"
+                                  initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
+        </div>
+        <div layout="column" layout-gt-md="row">
+            <hc-comparaison-chart title="Execution Time Efficiency Evolution" type="execution_time"
+                                  initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
+        </div>
+    </div>
+</div>
+

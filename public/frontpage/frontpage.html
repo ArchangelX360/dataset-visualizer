@@ -1,52 +1,66 @@
 <div layout="column" layout-gt-md="row" layout-align="center center">
 
-    <div flex="25" layout-fill>
+    <div flex="20" layout-fill>
         <a ng-href="#/cmd/" class="nostyle">
             <md-card md-whiteframe="3" class="frontpage-card">
                 <md-icon class="material-icons frontpage-icon" md-svg-src="icons/rocket.svg"></md-icon>
                 <md-card-title>
                     <md-card-title-text class="plan-titre-part">
-                        <span class="md-display-1">Launch a YCSB Benchmark</span>
+                        <span class="md-headline">Launch a YCSB Benchmark</span>
                     </md-card-title-text>
                 </md-card-title>
             </md-card>
         </a>
     </div>
 
-    <div flex="25" layout-fill>
+    <div flex="20" layout-fill>
         <a ng-href="#/stats" class="nostyle">
             <md-card md-whiteframe="3" class="frontpage-card">
                 <md-icon class="material-icons frontpage-icon" md-svg-src="icons/presentation.svg"></md-icon>
 
                 <md-card-title>
                     <md-card-title-text class="plan-titre-part">
-                        <span class="md-display-1">Watch Benchmark results</span>
+                        <span class="md-headline">Watch Benchmark results</span>
                     </md-card-title-text>
                 </md-card-title>
             </md-card>
         </a>
     </div>
 
-    <div flex="25" layout-fill>
+    <div flex="20" layout-fill>
         <a ng-href="#/workloads" class="nostyle">
             <md-card md-whiteframe="3" class="frontpage-card">
                 <md-icon class="material-icons frontpage-icon" md-svg-src="icons/settings.svg"></md-icon>
                 <md-card-title>
                     <md-card-title-text>
-                        <span class="md-display-1">Manage Workloads</span>
+                        <span class="md-headline">Manage Workloads</span>
                     </md-card-title-text>
                 </md-card-title>
             </md-card>
         </a>
     </div>
 
-    <div flex="25" layout-fill>
+    <div flex="20" layout-fill>
         <a ng-href="#/evaluations" class="nostyle">
             <md-card md-whiteframe="3" class="frontpage-card">
                 <md-icon class="material-icons frontpage-icon" md-svg-src="icons/bar-chart.svg"></md-icon>
                 <md-card-title>
                     <md-card-title-text>
-                        <span class="md-display-1">See Evaluation Results</span>
+                        <span class="md-headline">See Evaluation Results</span>
+                    </md-card-title-text>
+                </md-card-title>
+            </md-card>
+        </a>
+    </div>
+
+
+    <div flex="20" layout-fill>
+        <a ng-href="#/cross-evaluations" class="nostyle">
+            <md-card md-whiteframe="3" class="frontpage-card">
+                <md-icon class="material-icons frontpage-icon" md-svg-src="icons/bar-chart.svg"></md-icon>
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-headline">See Cross-evaluation Results</span>
                     </md-card-title-text>
                 </md-card-title>
             </md-card>
@@ -63,7 +77,7 @@
             font-size: 150px;
             height: 150px;
             width: 150px;
-            margin: 20px 30px;
+            margin: 20px 5px;
             color: #424242;
         }
 
@@ -188,7 +202,6 @@
             <h3 class="md-headline app-title architecture-icon-horizontal-placeholder"><span ng-if="visualizer">Visualizer&nbsp;App</span>
             </h3>
             <div class="architecture-arrow-horizontal-placeholder">&nbsp;</div>
-            <div class="architecture-icon-horizontal-placeholder">&nbsp;</div>
             <h3 class="md-headline software-title architecture-icon-horizontal-placeholder"><span ng-if="software">Software&nbsp;Module</span>
             </h3>
             <div class="architecture-icon-horizontal-placeholder">&nbsp;</div>
