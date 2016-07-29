@@ -8,62 +8,55 @@
     }
 
     .console-container {
-        min-width: 620px;
-        max-width: 620px;
-        height: 75vh;
+        width: 100%;
         border: 1px solid #757575;
         background-color: #e0e0e0;
         overflow-y: auto;
+        margin: 5px;
     }
 
     .stderr {
         color: #bf360c;
     }
 
-    .form-column {
-        margin-left: 10px;
-        margin-right: 10px;
+    .column-container {
+        height: 75vh;
     }
 
     md-input-container {
         width: 290px;
     }
+
 </style>
 
 <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="isFinished"></md-progress-linear>
 
-<div flex layout="column" layout-align="center center">
-
-    <div flex layout-gt-md="row" layout="column">
-        <div flex layout="column">
-            <h1 class="md-headline">YCSB Parameters</h1>
+<div layout-gt-md="row" layout="column" layout-align="center center">
+    <div layout="column" class="column-container" flex="50" flex-gt-md="45" flex-offset-gt-md="5" flex-gt-lg="40"
+         flex-offset-gt-lg="10">
+        <h2 class="md-headline">YCSB Parameters</h2>
             <form name="paramsForm">
-
-                <div flex layout="row" layout-xs="column" layout-align="center center">
-                    <md-input-container>
-                        <label for="benchmarkname-input">Benchmark name</label>
-                        <input id="benchmarkname-input" type="text" ng-model="params.benchmarkname"
-                               name="benchmarkname" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
-                        <div ng-messages="paramsForm.benchmarkname.$error" role="alert">
-                            <div ng-message="required">This is required!</div>
-                            <div ng-message="pattern">No special chars allowed!</div>
-                        </div>
-                        <md-tooltip md-direction="bottom" class="tt-multiline">
-                            BE CAREFUL : if you use the same name two times, <br> it will refer to the same
-                            benchmark for YCSB Visualisation
-                        </md-tooltip>
-                        <div class="hint"
-                             ng-if="(showHints && !paramsForm.benchmarkname.$error.required && !paramsForm.benchmarkname.$error.pattern)">
-                            Benchmark UNIQUE name for DB
-                        </div>
-                    </md-input-container>
-                </div>
-
-                <div flex layout="row" layout-xs="column">
-
-                    <div flex layout="column" class="form-column">
+                <div layout-gt-sm="row" layout="column">
+                    <div layout="column">
+                        <md-input-container>
+                            <label for="benchmarkname-input">Benchmark name</label>
+                            <input id="benchmarkname-input" type="text" ng-model="params.benchmarkname"
+                                   name="benchmarkname" ng-pattern="/^[a-zA-Z0-9]*$/" ng-required="true"/>
+                            <div ng-messages="paramsForm.benchmarkname.$error" role="alert">
+                                <div ng-message="required">This is required!</div>
+                                <div ng-message="pattern">No special chars allowed!</div>
+                            </div>
+                            <md-tooltip md-direction="bottom" class="tt-multiline">
+                                BE CAREFUL : if you use the same name two times, <br> it will refer to the same
+                                benchmark for YCSB Visualisation
+                            </md-tooltip>
+                            <div class="hint"
+                                 ng-if="(showHints && !paramsForm.benchmarkname.$error.required && !paramsForm.benchmarkname.$error.pattern)">
+                                Benchmark UNIQUE name for DB
+                            </div>
+                        </md-input-container>
                         <div>
-                            <p>YCSB Target</p>
+                            <md-subheader>YCSB phase</md-subheader>
                             <md-radio-group id="target-input" ng-model="params.target" aria-label="Target">
                                 <md-radio-button value="load" aria-label="load">Load</md-radio-button>
                                 <md-radio-button value="run" aria-label="run">Run</md-radio-button>
@@ -84,8 +77,7 @@
                             </div>
                         </md-input-container>
                     </div>
-
-                    <div flex layout="column" class="form-column">
+                    <div layout="column">
                         <md-input-container>
                             <label for="workloadfile-select">Workload file</label>
                             <md-select id="workloadfile-select" ng-model="params.workloadfile" required
@@ -122,9 +114,8 @@
                             </md-tooltip>
                         </md-input-container>
                     </div>
-
                 </div>
-                <div flex layout="row" layout-align="center center">
+                <div layout-gt-sm="row" layout="column">
                     <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Launch Benchmark"
                                ng-click="launchCmd()" ng-disabled="(!isFinished)">Launch Benchmark
                     </md-button>
@@ -143,30 +134,15 @@
                     </md-button>
                 </div>
             </form>
+    </div>
 
-            <form name="memcachedFrom">
-                <div flex layout="column" layout-align="center start">
-                    <div flex layout="row">
-                        <h1 class="md-headline">FOR TESTING ONLY</h1>
-                    </div>
-
-                    <div flex layout="row" layout-align="center center">
-                        <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Start Memcached"
-                                   ng-click="startMemcached()">Start Memcached
-                        </md-button>
-                        <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Kill Memcached"
-                                   ng-click="killMemcached()">Kill Memcached
-                        </md-button>
-                    </div>
-                </div>
-            </form>
+    <div layout="column" class="column-container" flex="50" flex-gt-lg="40" flex-gt-md="45">
+        <h2 class="md-headline">Standard output feedback</h2>
+        <div class="console-container">
+            <pre id="std-container"></pre>
         </div>
+    </div>
+    <div flex-gt-lg="10" flex-gt-md="5">
 
-        <div flex layout="column">
-            <h1 class="md-headline">Standard output</h1>
-            <div class="console-container">
-                <pre id="std-container"></pre>
-            </div>
-        </div>
     </div>
 </div>

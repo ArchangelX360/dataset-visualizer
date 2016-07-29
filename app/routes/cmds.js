@@ -105,10 +105,6 @@ var executeCommand = function (program, params, benchmarkName) {
 
 };
 
-/* FOR TESTING ONLY */
-var memcachedChild = null;
-/* */
-
 module.exports = function (router, io) {
 
     io.sockets.on('connection', function (socket) {
@@ -137,35 +133,5 @@ module.exports = function (router, io) {
             err = 'Please enter a valid Benchmark Name.';
         }
         utilities.sendResult(res, err, response, 400);
-    });
-
-
-    /* FOR TESTING ONLY */
-
-    router.get('/cmd/memcached', function (req, res) {
-        var parameters = [];
-        parameters.push("-m");
-        parameters.push(systemConfig.memcachedMaxMemory);
-        parameters.push("-p");
-        parameters.push(systemConfig.memcachedPort);
-        parameters.push("-u");
-        parameters.push(systemConfig.memcachedUser);
-        parameters.push("-l");
-        parameters.push(systemConfig.memcachedAddress);
-        memcachedChild = child_process.spawn(systemConfig.memcachedExecutable, parameters);
-        utilities.sendResult(res, null, 'Memcached is running on ' + systemConfig.memcachedAddress
-            + ':' + systemConfig.memcachedPort + ' by ' + systemConfig.memcachedUser + '.\n');
-    });
-
-    router.delete('/cmd/memcached', function (req, res) {
-        var response = null;
-        var err = null;
-        if (memcachedChild) {
-            kill(memcachedChild.pid);
-            response = 'Your memcached instance is killed.\n';
-        } else {
-            err = 'No instance to kill.';
-        }
-        utilities.sendResult(res, err, response);
     });
 };
