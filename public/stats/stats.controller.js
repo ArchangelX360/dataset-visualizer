@@ -120,7 +120,10 @@ angular.module('stats', [])
                         events: {
                             afterSetExtremes: function (e) {
                                 if (e.trigger === "navigator") {
-                                    if (scope.seriestype === "line") {
+                                    if (scope.seriestype === "line" && this.chart
+                                            .get(scope.customlabel + '_measures_average').processedYData.length > 0) {
+                                        // TODO: do a better processing for other types
+                                        // TODO: do a better processing for showAverage = false
                                         // Draw the current window average line
                                         var xArray = this.chart.get(scope.customlabel + '_measures').processedXData;
                                         var yArray = this.chart.get(scope.customlabel + '_measures').processedYData;
@@ -131,7 +134,8 @@ angular.module('stats', [])
                                         var averageDataSeries = xArray.map(function (point) {
                                             return [point, average];
                                         });
-                                        this.chart.get(scope.customlabel + '_measures_average_current_window').setData(averageDataSeries);
+                                        this.chart.get(scope.customlabel + '_measures_average_current_window')
+                                            .setData(averageDataSeries);
                                     }
                                 }
                             }
