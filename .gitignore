@@ -44,3 +44,7 @@ boxplotExample
 *.aux
 *.toc
 *.gz
+*.bbl
+*.blg
+*.dvi
+*.lof

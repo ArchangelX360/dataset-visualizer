@@ -1,4 +1,4 @@
-\documentclass[a4paper,11pt]{article}
+\documentclass[a4paper,11pt]{report}
 
 % --- Packages generaux --------------------------------------------------------
 \usepackage[utf8]{inputenc}
@@ -15,8 +15,14 @@
 \usepackage{pdfpages}
 \usepackage{capt-of}
 
-% --- Package specifiques ------------------------------------------------------
+\setcounter{secnumdepth}{3}
 
+
+% --- Package specifiques ------------------------------------------------------
+\usepackage{csquotes} % pour les citations
+\usepackage[begintext=``, endtext='']{quoting}
+\SetBlockEnvironment{quoting}
+\SetBlockThreshold{1}
 %\usepackage{amsmath,amssymb} % pour la gestion facile des trucs orientes maths
 \usepackage{listingsutf8} % pour introduire du code source
 %\lstloadlanguages{Java}
@@ -44,7 +50,7 @@
 % distance entre le texte et le pied de page
 
 \pagestyle{fancy}
-\fancyhead[L]{YCSB Web Visualization - Internship Report - 2016}
+\fancyhead[L]{YCSB Web Visualization - 2016}
 \fancyhead[R]{\leftmark}
 
 \lstset{
@@ -93,10 +99,10 @@
 
 % --- Elements de la page de titre ---------------------------------------------
 
-\newcommand{\pretitre}{Yahoo! Cloud Serving Benchmark Web Interface visualisation}
-\newcommand{\grostitre}{Internship Report}
-\newcommand{\auteurs}{Author : \auteur{Titouan}{Bion} \\ Second year engineering student at the EISTI (Pau).}
-\newcommand{\correcteurs}{Addressed to Mr \auteur{Peio}{Loubière} \& Mr \auteur{Robert}{Krahn}}
+\newcommand{\pretitre}{Second year internship report \\ (01/06/2016 --- 14/10/2016)}
+\newcommand{\grostitre}{Yahoo! Cloud Serving Benchmark \\ Web Interface visualization}
+\newcommand{\auteurs}{Written by \auteur{Titouan}{Bion} \\ Second year engineering student at the \\ École Internationale des Sciences du Traitement de l'Information (Pau).}
+\newcommand{\correcteurs}{Supervised by Mr \auteur{Peio}{Loubière} (EISTI) \& Mr \auteur{Robert}{Krahn} (TUD)}
 \newcommand{\madate}{\today} % \today pour mettre la date a la compilation
 
 % ==============================================================================
@@ -120,185 +126,464 @@
     {\Huge\bf\grostitre\\[0.4cm]} % gros titre
     \HRule \\[0.4cm]
     \vspace{2cm}
-    \auteurs\\                    % auteur(s)
+   	\correcteurs
     \medskip
     \vfill
-   	\correcteurs
+    \auteurs\\                    % auteur(s)
     \vfill
     {\large\madate}               % date
   \end{center}
 \end{titlepage}
 
-% --- Table des matieres -------------------------------------------------------
+\chapter*{Abstract}
 
+Benchmark text results are often hard to read. We create parsing tools and chart generator to create chart based on end results.
+
+This document presents a web visualizer originally made for Yahoo! Cloud Serving Benchmark but extensible to any software. It generates charts in pseudo real-time based on ongoing benchmark results with the help of a storage database.
 
 \tableofcontents
 
 \newpage
 
-\section{Introduction}
+\listoffigures  % table des figures
 
-\todo{PAGE DE GARDE AVEC LEUR MODELE}
+\newpage
+\chapter*{Acknowledgements}
 
-% cadre, problem, cahier des charges
-La chair de recherche utilise YCSB et d'autres logiciels de benchmark afin de benchmarker des BDD clouds (vérifier)
+I am highly indebted to Mr \auteur{Robert}{Krahn} for his precious help and support for all this internship as well as his understanding and soft management that allowed me to go further and faster than expected.
 
-YCBS fournit un resultat à la fin
-Temps réel demandé
-Résultat text peu facile à manipuler
-Interface web de visualization
+I would like to thank Mr \auteur{Peio}{Loubière} for his availability and advices regarding report writing.
 
-Enjeu : ne pas ralentir YCSB
-\todo{}
+I also would like to express my special gratitude and thanks to Mr \auteur{Franz}{Gregor} for his valuable inputs on certain aspect of the solution and his cheerfulness.
+
+Finally, I would like to thank Ms. \auteur{Emy}{Sicard-Delage} for spell checking this document and also her kind and warmhearted support.
+
+\chapter*{Introduction}
+
+Yahoo! Cloud Serving Benchmark --- YCSB in a shorten form intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate of "key-value" and "cloud" serving stores. These benchmarks are often use to make an architectural decision: which database should we use for our use case?
+
+The Chair of Systems Engineering at The Technische Universität Dresden is using this software in their research. They want to make longer benchmark than the high majority of people who use this software. YCSB is producing results or output at the end of the benchmark phase and this is not convenient as a single benchmark phase could last days in our scenario.
+
+First, we decided to implement an extension module of YCSB to include a pseudo real-time display of the results. The major challenge was not to slow down the processing speed of YCSB neither influence the benchmark results. 
+
+Then, we wanted to implement a web interface able to display these results by generating and updating pretty charts on the fly.
+
+\bigskip
+
+This project was conduct as part of an internship based on a partnership between The Technische Universität Dresden and the École Internationale des Sciences du Traitement de l'Information --- EISTI --- thus will begin by a small Human Resources chapter. People external to this internship context are invited to skip this chapter.
+
+We will then describe the project organization and elaborate on the application specifications to clarify the context of our work.
+
+After that, a complete technical overview of the application will develop on  the implementation and technologies choices of the solution alongside with some optimizations explanations.
+
+Finally, we will report on the evaluation of both our extension module of YCSB and our web visualizer. We will discuss the performances and the limitations of our solution for our use case and more.
 
 \newpage
 
-\section{An university internship}\label{partnership}
+\chapter{An university internship}\label{partnership}
 
-The EISTI enable us to have three internships and I seized this opportunity to discover the more different working possibilities my field of study can offer. As I was considering a PhD. after my engineering school, I needed to know if I would have suited me.
+\section{Why did I choose this kind of internship?}
 
-I decided to use the EISTI partnership to achieve an intership at the Technische Universität Dresden in Germany. I chose this particular university because I heard positive feedbacks from acquaintances that studied there. I have been able to discover a research environment and discuss with doctors or PhD. students which nourished my thought and helped me make a choice for the next step of my career.
+The EISTI offers us to have three internships during our studies and I seized this opportunity to discover as many working possibilities as my field of study can offer. As I was considering a PhD. after my engineering school, I needed to know if this possibility would have suited me.
+
+\bigskip
+
+I decided to use the EISTI partnership to achieve an internship at the Technische Universität Dresden in Germany. I chose this particular university because I heard positive feedbacks from acquaintances that studied there. I have been able to discover a research environment and discuss with doctors or PhD. students which nourished my thoughts and helped me make a choice for the next step of my career.
 
 \section{Internship environment}
 
-\subsection{Technische Universität Dresden : global overview}
+\subsection{The Technische Universität Dresden: global overview}
 
-\todo{}
+The Technische Universität Dresden has a wide campus separate into buildings. I was in the Andreas-Pfitzmann-Bau, the Faculty of Computer Science building (See Figure \ref{informatik_bau}).
 
-\subsection{System engineering chair}
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/informatik_bau.jpg}
+\caption{Faculty of Computer Science building: Andreas-Pfitzmann-Bau.}
+\label{informatik_bau}
+\end{center}
+\end{figure}
 
-\todo{}
+I would not make a better technical description of this university than its own website \cite{tud:website}:
 
-\subsection{Personal observations and induction}
+\blockquote{The Technische Universität Dresden (TUD) is one of the largest “Technische Universitäten” in Germany and one of the leading and most dynamic universities in Germany. As a full-curriculum university with 14 faculties in five schools it offers a broad variety of 125 disciplines and covers a wide research spectrum. Its focuses of Biomedicine, Bioengineering, Materials sciences, Information technology, Microelectronics as well as Energy and Environment are considered exemplary in Germany and throughout Europe.
 
-\todo{}
+Since 2012 TUD is officially one of the "Universities of Excellence". Its core elements are the "Institutional Strategy", the Clusters of Excellence "Center for Advancing Electronics Dresden" (cfaed), "Center for Regenerative Therapies Dresden (CRTD) and the Graduate School "Dresden International Graduate School for Biomedicine and Bioengineering" (DIGS-BB).
 
-mettre ici l'organisation du projet et le ressenti de l'environment
+About 36.000 students are enrolled at TUD – more than three times as many as in 1990 (11.220 students). Internationally, the TUD has earned a good reputation, about one eighths of its students come from abroad. Today, about 5.000 scientists from 70 countries are working at the Technische Universität Dresden.}
 
-\subsection{Working method}
+\subsection{Institute of Systems Architecture: Chair of Systems Engineering}
 
-I used an AGILE method to develop this project. As I was working alone on the implementation side, I needed to confront my features quickly to future users in order to have feedbacks.
-My cycle was simple, I began with a strong implementation phase followed by a testing and debugging phase. Then I used my tools to evaluate my solution and judge if it was suitable according to the expectations and use cases.
+I was working in the Faculty of Computer Science under the Chair of Systems Engineering at the Institute of Systems Architecture. The following sections gives you more details about this chair.
 
-For example, at the end of my first cycle, my application was working great for small datasets but when it needed to handle thousands of points it was crashing both on server and client side.
-So, I made a complete review of my code to find bottlenecks and fixed them one by one. I will technically develop these optimizations in section \ref{optimizations}.
+\subsubsection{Head of the chair: Prof. Dr. Christof Fetzer}
 
-\clearpage
+The head of the chair is Prof. Dr. Christof Fetzer, as for the university I will not paraphrase so here is a quote from the university website \cite{tud:chair:head} regarding his background:
 
-\section{Building a solution}
+\blockquote{Christof Fetzer received his Ph.D. from UC San Diego (1997). 
+As a student he received a two-year scholarship from the DAAD and won two best student paper awards (SRDS and DSN). 
 
-\subsection{Exploration phase}
+He was a finalist of the 1998 Council of Graduate Schools/UMI distinguished dissertation award and won an IEE mather premium in 1999. Dr. Fetzer joined AT\&T Labs-Research in August 1999 and was a principal member of technical staff until March 2004. 
 
-\paragraph{API between YCSB and the NodeJS server}
+Since April 2004, he is head of the Systems Engineering Chair in the Computer Science Department at the Dresden University of Technology. He is the chair of the Distributed Systems Engineering International Masters Program at the Computer Science Department. Prof. 
 
-At first, I wish to expose a RestAPI directly from the YCSB Java application. I wished to use technology like Hazelcast for example. Sadly, it was drastically slowing the warmup phase of YCSB so I tried a lightweight solution with ActiveJDBC and Spark Java (not to be confused with Apache Spark). Even this lightweight solution was solution YCSB too much. Also, it forces the user to let YCSB running in the back even if no benchmark was launch. The application modularity was not good enough for the maintenability of the solution.
+Dr. Fetzer has published over 130 research papers in the field of dependable systems.}
+ 
+\subsubsection{Fields of study}
 
-I finally decided to let a MongoDB storage database be my API between the YCSB application and my web server. The database connection is quicker thus has a reduced impact on the warmup phase compared to the former solutions. Also, this modularity provided by the storage DB allows my client/server application to communicate with every software capable of storing data into a MongoDB database.
+This chair's fields of study are:
+\begin{itemize}
+\item
+Fault tolerance
+\item
+Secure Cloud Application
+\item
+Stream Processing
+\item
+Parallel and distributed systems in general
+\end{itemize}
 
-The web interface was a prerequisite to this project. Multiple chart library are available but I chose Highcharts library because of its display optimization. I will develop these optimizations later in this document.
+I will follow an Engineering of Cloud Computing specialization for my third and last engineering year, so I was glad to be able to discover a few notions in advance like cluster computing systems as Apache Spark.
 
-\paragraph{YCSB points fetching routine}
+\subsubsection{What do they do?}
 
-As my solution needed not to slow YCSB, I made all storage operation in a different thread. The data was stored into other threads variables --- YCSB client threads --- and the way of fetching values was our top priority. Indeed, this operation is the one that impact YCSB the most.
+Their main project is SERECA --- Secure Enclaves for REactive Cloud Applications --- which is proposing a solution to secure cloud computing environment. Indeed, the adoption of cloud computing in Europe is slowed down by a lack of security guarantees \cite{tud:chair:project}.
 
-I though of multiple approaches to retrieve YCSB data. First, I designed what I called a Database Hook that would launch a task in the storage thread at each measurement. As the first method was not efficient and slowed YCSB too much, I implemented a periodic fetching process that was handle by the storage thread. Again, I will elaborate on benefits of this process in the next section. \todo{REF ?}
+They also do research on fields like Fault Tolerance \cite{tud:chair:papers:fault}, Event Stream Processing \cite{ tud:chair:papers:stream} and so on.
 
-\subsection{Application architecture}
+\subsection{Working environment}\label{working_environment}
 
-\subsubsection{Overall workflow}
+People that I encountered were welcoming and interested in the work I did there. They did not hesitate to help me through my work by discussing some dark points even if they were not part of my team. Their feedbacks on features and inputs on some of my problems were essential.
 
-\todo{Schema}
+The workstation provided by the university was perfect, I had strong personal machines that I could use without any restriction. This "liberal" working environment is crucial for me when developing applications. For example, system administration restrictions could be a large obstacle to quick development and progress.
 
-\todo{}
-\subsubsection{Backend specifications}
 
-\todo{}
-\paragraph{Fetching method}
-
-\todo{}
-Executor not to disturb YCSB
-
-Fail safe process and easy shutdown
-
-concurrency map for handling problem
-
-\paragraph{Communication with Storage DB}
-
-\todo{}
-Native driver and BULK writes for efficiency
-
-\subsubsection{Frontend specifications}
-
-\todo{}
-\paragraph{NodeJS Server}
-
-\todo{}
-Lightweight, its modularity is very efficient with our small scale project
-Handle MongoDB and expose a RestAPI easily
-
-\paragraph{Communication with Storage DB}
-
-\todo{}
-Native NodeJS driver, mongoose was too slow and useless in our case (very simple requests and aggregation)
-
-\paragraph{Handling multi millions benchmark}
-
-\todo{}
-Mongo aggregation process
-
-\subsubsection{AngularJS Client}
-
-\todo{}
-Maintainable solution and structured client, updates and dynamic behaviour way simply handled, RestAPI request Encapsulated into services for a better use
-
-Providing also Angular Material for an easy style and good looking client
-
-\paragraph{Highcharts library}
-
-\todo{}
-client aggregation process for view optimisation (DataGrouping)
-
-\subsection{Optimizations}\label{optimizations}
-
-\todo{}
-\subsection{Increasing support}
-
-\todo{}
-
-\subsection{Performances}
-
-\todo{}
-\subsection{Limitations}
-
-\todo{}
-
-\clearpage
 \section{Internship benefits}
 
-\todo{}
-As I pointed out in section \ref{partnership}, this internship did help me discover the research environment. It is an interesting place to work as it is different from a company working atmosphere. Despite a colorful and pleasant environment, I wish to continue my career by some company years before. I'm still interested in a PhD. but I think I lack of company experiences at the moment and I spend too much years of my life in school and universities. We all need some changes at a given moment.
+As I pointed out in chapter \ref{partnership}, this internship did help me discover the research environment. It was interesting to realize that a PhD. student work was not quite as expected before working there. It is more a time management work to handle lecture exercises, side work like chair projects and last but not least your actual research work.
+
+I think it would be an interesting place to work as it is different from a company working atmosphere. Despite a colorful and pleasant environment, I wish to continue my career by some company years before. 
+
+I'm still interested in a PhD. but I think I lack of company experiences at the moment and I spend too much years of my life in school and universities. We all need some changes at a given moment.
 
 \clearpage
 
-\section{Conclusion}
+\chapter{YCSB Web Interface visualization}
+
+\section{Project organization}
+
+\subsection{Team}
+
+My supervisor --- Robert Krahn --- was the only person I actually work with. Nonetheless, people from the chair were also there to discuss ideas as I said in \ref{working_environment}. His inputs were valuable and he assisted me for decisive choices. He also guided me through the realization of this project as he will be one of its first user.
+
+Robert presented me the purpose of the application and features I needed to implement as an extension module of Yahoo! Cloud Serving Benchmark code base. We refined these specifications over the development to make it suits future users needs.
+
+\subsection{Working method}\label{working_method}
+
+We used an AGILE like method to develop this project. As I was working alone on the implementation side, I needed to confront my features quickly to future users in order to get feedbacks.
+The development cycle was simple. I began with a strong implementation phase followed by a testing and debugging phase. Then we used our tools to evaluate the solution and judge if it was suitable according to the expectations and use cases.
+
+For example, at the end of the first cycle, our application was working great for small datasets but was crashing both on server and client side when it needed to handle thousands of points.
+So, we made a complete review of the code to find bottlenecks and fixed them one by one like MongoDB aggregation, removal of useless layers, etc. We will elaborate on these optimizations in \ref{techical_chapter}.
+
+\section{Application specifications}
+
+The aim of this section is not to cover technical details but to explain in an accessible way what our application is offering. For more technical details, please go to \ref{techical_chapter}.
+
+\subsection{Purpose of the application}
+
+\subsubsection{Yahoo! Cloud Serving Benchmark}\label{ycsb}
+
+As introduce beforehand, Yahoo! Cloud Serving Benchmark is used to evaluate performance of "key-value" and "cloud" serving stores. But how does it actually work?
+
+The user defines a custom workload --- set of parameters which define how the benchmark will be executed --- or chose to use an existing one. Then, he starts the database he wants to benchmark and first launches YCSB \texttt{load} phase to fill the database with values --- INSERT operations. Finally he launches the \texttt{run} phase that executes operations --- READ, UPDATE, SCAN operations --- on the previously inserted values. All settings regarding proportions and quantity of these operations are defined in the workload file.
+
+YCSB work is to store each CRUD operation execution time --- called \texttt{latency}. It provides measurement results --- \texttt{latencies} --- of the operations made during both \texttt{load} and \texttt{run} phase at the end of each phase.
+
+YCSB has different way of displaying results, the most simple way is the RAW measurement type made by Google\footnote{Google RAW measurement type source code: \url{https://github.com/brianfrankcooper/YCSB/blob/master/core/src/main/java/com/yahoo/ycsb/measurements/OneMeasurementRaw.java}} as it simply displays a list of operations alongside with timestamps and latency results for each operation. Other measurement types exist and provide more information like quantiles or reducing precision to make results easier to read as timeseries average.
+
+\subsubsection{What is the goal of our module and application?}
+
+As you might have understood, YCSB is only producing results at the end of the execution process. If you want to perform a long benchmark that will run for hours, you might want to be able to watch final results fragments before the end of YCSB execution.
+
+\bigskip
+
+Our work was to make results available in a pseudo real-time --- low latency --- fashion without slowing YCSB performance. This last part is crucial: we must not slow YCSB in a non-acceptable manner.
+
+There is no point of making a low latency result provider if there is no tool to visualize it. So we needed to implement a visualizer and we chose to implement a cool web interface that has pretty and convenient charts.
+
+\subsection{General implementation ideas}
+
+\subsubsection{YCSB extension module}
+
+Providing low latency results to the user is achieved by storing measurements periodically into a storage database. This is the job of our YCSB extension module. The fetch of measures must be efficient and not disturbing for YCSB ongoing measurements.
+
+\subsubsection{Web visualization}
+
+Our web visualization is fetching the storage database measures and processing it to provide pretty and dynamic charts.
+
+\clearpage
+
+\chapter{Technical details}\label{techical_chapter}
+
+Before the beginning of this chapter, we would like to inform you that two \texttt{README.md} files are available for both the visualization application and the YCSB extension module. They have a lot of valuable information about application parameters, tweaks and so on. We deeply encourage you to consult these files at the end of this chapter if you want more details as some parts will not be presented in this report.
+
+\section{Application architecture}\label{app_archi_section}
+
+The proposed solution architecture is made of two major parts that could operate separately. We have a software module that stores measures into the storage database and a visualizer application that displays these measures.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/archi_small_complete.png}
+\caption{Application architecture visual.}
+\label{app_archi_fig}
+\end{center}
+\end{figure}
+
+You can see on Figure \ref{app_archi_fig} the different application module and the technology that we used, AngularJS, NodeJS, MongoDB, etc. We will elaborate on our technology choices when describing each module in section \ref{technical_description}. 
+
+\subsection{Architectural choices}
+
+At first, we wished to expose a RestAPI directly from the YCSB Java application with technologies like Hazelcast. Sadly, it was drastically slowing the warm-up phase of YCSB so we tried a lightweight solution with ActiveJDBC and Spark Java --- not to be confused with Apache Spark and even this lightweight solution was slowing YCSB too much. 
+
+Moreover, it forces the user to let YCSB running in the back even if no benchmark was launch thus the application modularity was not good enough for the maintainability of the solution. 
+
+We realized that the performance reduction was inherent to the solution we proposed, we tried to bundle our solution too much. So we finally decided to let a MongoDB storage database be our "API" between the YCSB application and our web server. The database connection is quicker thus has a reduced impact on the warm-up phase compared to the former solutions. Also, the modularity provided by the storage DB allows my client/server application to communicate with \textit{every software capable of storing data into a MongoDB database}.
+
+\section{Solution features}\label{technical_description}
+
+\subsection{Software Module}
+
+As mention in section \ref{app_archi_section}, the software module has to store the software measures into the storage database. In our case, our software was YCSB so we needed to extend YCSB functionalities to achieve a real-time storage of its measurements. 
+
+Here, we will explain how the fetching process works and how does it store measures into the storage database.
+
+\subsubsection{Frontend MeasurementType} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentHashMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need the concurrent aspect.
+
+\paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentHashMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database.
+
+\subsubsection{Fetching method}
+
+We created a new thread into YCSB, indeed this is the most efficient way not to slow down YCSB too much. We used a scheduled thread pool executor of Java with only one thread. This scheduled executor thread periodically check the two integers of each \texttt{ConcurrentHashMap} --- one by client thread by operation type due to YCSB way of handling measures. These indicates which lists are available --- full and not designated as the current list --- without scanning the whole or even a part of our collection. 
+
+Then, all available lists are processed into the executor thread to be stored into the storage database. Once a list has been processed, it is deleted from the \texttt{ConcurrentHashMap} in order to save some memory which is interesting with millions points benchmarks.
+
+\paragraph{Fail-safe system}
+
+There is two identical tasks that handles this fetching process and relaunch themselves after finishing their fetch. If one task fails, there is a fail-safe process that periodically relaunches a task if less than two fetching tasks are in the queue or running. At the end of the benchmark, all tasks are interrupted and a final task is run to fetch all remaining points --- even in the current list as the benchmark is done.
+
+\subsubsection{Communication with the storage database}
+
+A single connection is issued with our MongoDB storage database in the executor thread. We used the native driver of MongoDB and unordered BULK writes for efficiency in insertion.
+
+Indeed, as we had a large amount of measures to store at the same time on only one collection, we could use the performance advantage of a BULK write. Also, as we used a number to identify the order of our documents, we did not need to store them in an ordered fashion. This is much more efficient as MongoDB has full control on the insertions and makes the right performance choice regarding order. 
+
+As lists are filled with BSON Documents, we did not have to do any processing before the insertion which is also a performance gain. 
+
+\bigskip
+
+We could have used the asynchronous driver or a larger pool of executor but we did not due to a lack of time evaluating this solution.
+
+\subsection{Visualizer Application}
+
+Again, as mention in section \ref{app_archi_section}, the visualizer application part is made to display measures that have been stored into the storage database. In our case, we displayed YCSB results. 
+
+Here, we will elaborate on the purpose of each of our architecture module and explain why we chose these technologies.
+
+\subsubsection{Implemented features}
+
+\paragraph{Chart features}
+
+Charts are automatically and periodically updating their points based on the storage database content. You only have to define which operation and type of chart you want to show and the chart will be initialized and updated over the time. We organize our views by benchmark identified by an unique name.
+
+On top of this, Highcharts library \cite{highcharts:website} provides us a large set of interesting features. 
+The navigator is useful to zoom and get a precise view of our dataset as you can see on Figure \ref{chart_not_zoomed_zoomed}. 
+Chart axes are automatically adjusting regarding of the data it displays which is convenient. 
+It also provides exportation into CSV, PNG, SVG or PDF files which can be useful to include results into documents as you can see on Figure \ref{chart_exportation}.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/chart_not_zoomed_zoomed.png}
+\caption{Navigator functionality: zoom comparison.}
+\label{chart_not_zoomed_zoomed}
+\end{center}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.5\linewidth]{images/chart_exportation.png}
+\caption{Exportation functionality: dropdown menu.}
+\label{chart_exportation}
+\end{center}
+\end{figure}
+
+\clearpage
+
+\paragraph{Better than a simple visualizer for YCSB}
+
+\subparagraph{YCSB benchmark launcher}
+
+We implemented a benchmark launcher view to easily start YCSB benchmark from our web application. You can choose your benchmark name, YCSB phase, client thread number, workload file, etc. and then launch your benchmark (See Figure \ref{launcher_ui}).
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/launcher_ui.png}
+\caption{Our benchmark launcher User Interface.}
+\label{launcher_ui}
+\end{center}
+\end{figure}
+
+We provide a standard output/error feedback (Figure \ref{cli_feedback}) thus the user interface launcher will not alter former users' experience as they will still have YCSB console output information like they used to have.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/cli_feedback.png}
+\caption{Command Line Interface feedback within the web application.}
+\label{cli_feedback}
+\end{center}
+\end{figure}
+
+\bigskip
+
+This interface is \textit{totally optional} and you can obviously use YCSB with its command line interface. The latter will work just as good as our launcher view with our visualizer.
+
+This interface is specific to YCSB and does not support other benchmark software.
+
+\subparagraph{Workload editor}
+
+We also implemented a simple workload editor that save yourself wasting time by looking for your workloads file and edit them in your favorite text editor (See Figure \ref{workload_editor}).
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/workload_editor.png}
+\caption{Simple workload editor.}
+\label{workload_editor}
+\end{center}
+\end{figure}
+
+\clearpage
+
+\paragraph{Server role}
+
+The main role of our server is to retrieve measures from the storage database and deliver them to the client. Furthermore, it handles the YCSB benchmark launch, provide the CLI feedback and execute file operations asked by the workload editor. 
+
+\subsubsection{Server side technology choices}
+
+We chose NodeJS because we needed a lightweight and easy to deploy server. NodeJS is perfect for this use case and can communicate easily with a MongoDB database as well as simply exposing a RestAPI and handling web-sockets.
+
+\paragraph{Communication with Storage DB}\label{server:mongo}
+
+We used the native NodeJS driver made by the MongoDB developers. We could have use the well known Mongoose ODM but our queries and server was so simple that we did not need to add this layer. Moreover, Mongoose is reducing performance as it add some logic layers between the code and the actual query execution or result \cite{mongo}.
+
+\paragraph{Handling large datasets}
+
+Our server is capable of handling multi-millions points benchmarks. We used MongoDB aggregation functions to do so.
+
+When handling large datasets, NodeJS asks MongoDB to use aggregations to group measures by making averages thus optimize the view fluidity. This grouping process reduces measurements' precision. This loss is illustrated by the example on Figure \ref{mongo_agg}. Here, you would get 3 average measures --- buckets --- each based on 3 successive values instead of getting 9 plain measures.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=0.5]{images/mongodb-agg.png}
+\caption{Simple illustration of MongoDB aggregation process.}
+\label{mongo_agg}
+\end{center}
+\end{figure}
+
+The limit between a large and small dataset is fixed by a user parameter called \texttt{MAX\_POINTS}. The better your computer and browser are, the higher you can set the value and the smaller the average buckets will be thus you will have a more precise dataset. Again, please consult the \texttt{README.md} file for more information.
+
+\subsubsection{Client side technology choices}
+
+We develop our client with AngularJS first of his name because it is easy to maintain and it forces a structured code base with a Model View Controller like pattern. Moreover, Angular provides helpful functionalities for updates and dynamic behaviors of our application pages, forms, RestAPI communications, etc. \cite{angular:website}
+
+\paragraph{Angular Material} We used a style framework because we did not have plenty of time to spend making our application look good. Angular Material provides amazing features to quickly make responsive websites that look great.
+
+\paragraph{Highcharts library: data grouping}\label{data_grouping} There is plenty of chart libraries for web applications but Highcharts most valuable asset is its DataGrouping and that is why we chose it.
+
+Indeed, Highcharts automatically groups points based on there proximity --- pixel wise --- and if you zoom in you will get your precision back as the chart will be repopulated by missing points. It makes charts look great and readable as well as keeping the original precision.
+
+We have then two optimizations for large dataset, Highcharts client side data grouping that reduces the number of points display on charts without loosing information and MongoDB server side aggregation process for larger benchmark that reduces precision of measurements a bit.
+
+Moreover, this library provides easily "tweakable" graphs and that handles update properly. Highcharts developers also made possible the integration within Angular with a directive.
+
+\clearpage
+
+\section{Increasing support}
+
+\subsection{Other software than YCSB}
+
+At first, the main idea was to provide a visualization web interface for YCSB benchmarks. Nonetheless, we realized that as we build this modular solution, we could support any software that could store data into a MongoDB database.
+
+If you want to use a different software than YCSB, you need to respect the way we insert data into our storage database and our application would be automatically display your results. For more information consult the \texttt{README.md} file of the visualization application.
+
+\subsection{Multiple chart type}
+
+We also implement our chart view in a way that supporting multiple chart types is a child's play. Indeed, you just need to:
+
+\begin{itemize}
+\item
+tell our application how you stored you data in the storage database
+\item
+tell our application how should Highcharts understand it
+\item
+which Highcharts chart type you wish to display
+\item
+No, that's it! No more bullet point!
+\end{itemize}
+
+These three points are, in fact, trivial functions that are obvious and effortless to write. On the contrary, supporting large dataset with your custom type would be a little bit harder to do, depending on your chart type, because it would require some MongoDB aggregation understandings.
+
+\subsubsection{Boxplot example}
+
+We implemented boxplot --- candlestick --- charts support to prove our point and providing a solid example for the documentation. See Figure \ref{boxplot} to see the result!
+
+Again, for more specific details of implementation, please consult the \texttt{README.md} file of the visualization application. It has a deeply detailed explanation of how to implement it.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/boxplot.png}
+\caption{Example of a boxplot chart.}
+\label{boxplot}
+\end{center}
+\end{figure}
+
+\chapter{Evaluation}
+
+\todo{}
+
+\section{Performances}
+
+\todo{}
+
+\section{Limitations}
+
+\subsection{YCSB extension module}
+
+The storage process, as it is implemented, should work regardless of the database thus you can also use your custom adapters.
+However, for now, it has been tested with memcached only.
+
+\subsection{Web visualizer}
+
+\subsubsection{Aggregation requests}
+
+Our visualizer will work regardless of the number of points the benchmark has. However, our NodeJS server would be very slow at serving point when dealing with millions or billions of points. Indeed, a ten millions points aggregation request is taking more than a minute to complete. \todo{Benchmark this!}
+
+\subsubsection{Display}
+
+\todo{bench le nombre de points environ sur un machine classique}
+
+\clearpage
+
+\chapter*{Conclusion}
 
 \todo{}
 
 \todo{CV A LA FIN}
 \clearpage
 
-\bibliographystyle{plain}
+\bibliographystyle{ieeetr}
 \bibliography{report}
 
 \newpage
-
-%\begin{center}
-%\begin{figure}[ht]
-%\includegraphics[width=1\linewidth]{images/use_case_with_controller.png}
-%\caption{Scheduler client workflow chart.}
-%\label{schedclt_implementation_png}
-%\end{figure}
-%\end{center}
 
 % ==============================================================================
 \end{document}
