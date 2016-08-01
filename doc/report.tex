@@ -362,6 +362,8 @@ Here, we will explain how the fetching process works and how does it store measu
 
 \paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentHashMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database.
 
+\todo{schéma}
+
 \subsubsection{Fetching method}
 
 We created a new thread into YCSB, indeed this is the most efficient way not to slow down YCSB too much. We used a scheduled thread pool executor of Java with only one thread. This scheduled executor thread periodically check the two integers of each \texttt{ConcurrentHashMap} --- one by client thread by operation type due to YCSB way of handling measures. These indicates which lists are available --- full and not designated as the current list --- without scanning the whole or even a part of our collection. 
