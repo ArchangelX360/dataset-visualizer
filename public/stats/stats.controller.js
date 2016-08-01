@@ -120,17 +120,19 @@ angular.module('stats', [])
                         events: {
                             afterSetExtremes: function (e) {
                                 if (e.trigger === "navigator") {
-                                    // Draw the current window average line
-                                    var xArray = this.chart.get(scope.customlabel + '_measures').processedXData;
-                                    var yArray = this.chart.get(scope.customlabel + '_measures').processedYData;
-                                    var total = yArray.reduce(function (previous, current) {
-                                        return previous + current;
-                                    }, 0);
-                                    var average = total / yArray.length;
-                                    var averageDataSeries = xArray.map(function (point) {
-                                        return [point, average];
-                                    });
-                                    this.chart.get(scope.customlabel + '_measures_average_current_window').setData(averageDataSeries);
+                                    if (scope.seriestype === "line") {
+                                        // Draw the current window average line
+                                        var xArray = this.chart.get(scope.customlabel + '_measures').processedXData;
+                                        var yArray = this.chart.get(scope.customlabel + '_measures').processedYData;
+                                        var total = yArray.reduce(function (previous, current) {
+                                            return previous + current;
+                                        }, 0);
+                                        var average = total / yArray.length;
+                                        var averageDataSeries = xArray.map(function (point) {
+                                            return [point, average];
+                                        });
+                                        this.chart.get(scope.customlabel + '_measures_average_current_window').setData(averageDataSeries);
+                                    }
                                 }
                             }
                         },
