@@ -1,24 +1,22 @@
 <style>
 
     md-input-container {
-        width: 500px;
+        width: 290px;
     }
 
-    .workload-content {
-        width: 1000px;
+    md-input-container.workload-content {
         height: 60vh;
+        width: 580px;
         overflow-y: auto;
         overflow-x: hidden;
     }
 
 </style>
 
-<div flex layout="column" layout-align="center center">
+<div layout="column" layout-align="center center">
+    <h1 class="md-headline">Create or edit Workloads</h1>
     <form name="workloadForm">
-        <div flex layout="row" layout-align="center start">
-            <h1 class="md-display-1">Create or edit Workloads</h1>
-        </div>
-        <div flex layout="column" layout-gt-md="row" layout-align="center start">
+        <div layout="column" layout-gt-md="row">
             <md-input-container>
                 <label for="filename-input">Workload filename</label>
                 <input id="filename-input" type="text" ng-model="workload.filename"
@@ -35,8 +33,7 @@
                 </md-select>
             </md-input-container>
         </div>
-
-        <div flex layout="row" layout-align="center center">
+        <div layout="column" layout-gt-md="row">
             <md-input-container class="workload-content">
                 <label for="content-input">Workload content</label>
                 <textarea data-role="none" id="content-input" ng-model="workload.content" name="content" required>
@@ -46,17 +43,16 @@
                 </div>
             </md-input-container>
         </div>
-
-        <div flex layout="row" layout-align="center center">
-            <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Save Workload"
-                       ng-click="saveWorkload($event)">Save Workload
-            </md-button>
-            <md-button class="md-raised md-accent md-button md-ink-ripple" aria-label="Clear"
-                       ng-click="clear()">Clear
-            </md-button>
-            <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Delete Workload"
-                       ng-click="deleteWorkload($event)">Delete Workload
-            </md-button>
-        </div>
     </form>
+    <div layout="column" layout-gt-sm="row">
+        <md-button class="md-raised md-primary md-button md-ink-ripple" aria-label="Save Workload"
+                   ng-click="saveWorkload($event)">Save Workload
+        </md-button>
+        <md-button class="md-raised md-accent md-button md-ink-ripple" aria-label="Clear"
+                   ng-click="clear()">Clear
+        </md-button>
+        <md-button class="md-raised md-warn md-button md-ink-ripple" aria-label="Delete Workload"
+                   ng-click="deleteWorkload($event)">Delete Workload
+        </md-button>
+    </div>
 </div>
