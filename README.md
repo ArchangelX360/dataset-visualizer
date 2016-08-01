@@ -129,6 +129,8 @@ module.exports = {
     useBindingFile: true,
     ycsbBindingsFile: ycsbRoot + 'bin/bindings.properties',
     workloadFolder: ycsbRoot + 'workloads/',
+    dbDumpsFolder: '/home/titouan/Documents/ycsb-web-app/public/dumps/'
+    evaluationsLocation: '/home/titouan/Documents/ycsb-web-app/public/evaluations/'
 };
 ```
 

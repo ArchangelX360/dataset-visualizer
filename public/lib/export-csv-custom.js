@@ -235,6 +235,19 @@
         );
     };
 
+    /**
+     * Call this on click of 'Download CSV' button
+     */
+    Highcharts.Chart.prototype.downloadDBDumpCSV = function () {
+        var csv = this.getCSV(false);
+        getContent(
+            this,
+            'data:text/csv,\uFEFF' + csv.replace(/\n/g, '%0A'),
+            'csv',
+            csv,
+            'text/csv'
+        );
+    };
 
 
     // Add "Download CSV" to the exporting menu. Use download attribute if supported, else

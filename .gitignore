@@ -48,3 +48,5 @@ boxplotExample
 *.blg
 *.dvi
 *.lof
+
+public/evaluations/*

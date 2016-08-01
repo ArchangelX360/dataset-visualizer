@@ -15,13 +15,8 @@ module.exports = {
     /* Absolute path to the binding.properties file (only needed if useBindingFile set to true) */
     workloadFolder: ycsbRoot + 'workloads/',
     /* Absolute path to the workloads folder */
-
-    /* FOR TESTING ONLY */
-    memcachedExecutable: '/usr/bin/memcached',
-    memcachedUser: 'titouan',
-    memcachedAddress: '127.0.0.1',
-    memcachedPort: 11211,
-    memcachedMaxMemory: 10240,
+    dbDumpsFolder: '/home/titouan/Documents/ycsb-web-app/public/dumps/',
+    /* Absolute path to the db dumps folder */
 
     /* FOR EVALUATION ONLY */
     evaluationsLocation: '/home/titouan/Documents/ycsb-web-app/public/evaluations/'

@@ -3,6 +3,7 @@
 var fs = require('fs');
 var systemConfig = require('../../config/system');
 var utilities = require('../utilities');
+var mkdirp = require('mkdirp');
 
 function verifyFilename(res, filename, callback, params) {
     if (typeof filename !== "undefined" && filename !== "") {
@@ -25,8 +26,14 @@ function getWorkloadContent(res, filename) {
 }
 
 function createWorkload(res, filename, content) {
-    fs.writeFile(systemConfig.workloadFolder + filename, content, 'utf8', function (err) {
-        utilities.sendResult(res, err, "File saved.")
+    mkdirp(systemConfig.workloadFolder, function (err) {
+        if (err) {
+            res.status(errorCode || 500).json(err);
+            return;
+        }
+        fs.writeFile(systemConfig.workloadFolder + filename, content, 'utf8', function (err) {
+            utilities.sendResult(res, err, "File saved.")
+        });
     });
 }
 

@@ -39,6 +39,11 @@
                        ng-disabled="!updateIntervalsActive" class="md-fab md-raised md-mini md-accent">
                 <md-icon aria-label="Stop Updates"><i class="material-icons">&#xE628;</i></md-icon>
             </md-button>
+            <md-button aria-label="Dump benchmark results into CSV file" ng-click="dumpResultsIntoCSV()"
+                       class="md-fab md-raised md-mini md-primary">
+                <md-icon aria-label="Dump benchmark results into CSV file"><i class="material-icons">&#xE884;</i>
+                </md-icon>
+            </md-button>
             <md-button aria-label="Delete current benchmark" class="md-fab md-raised md-mini md-warn"
                        ng-click="confirmDeletionBenchmark($event)">
                 <md-icon aria-label="Delete current benchmark"><i class="material-icons">&#xE92B;</i></md-icon>

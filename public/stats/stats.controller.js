@@ -524,5 +524,18 @@ angular.module('stats', [])
                 })
             }
 
+            /* DUMP FUNCTION */
+
+            $scope.dumpResultsIntoCSV = function () {
+                $scope.loading = true;
+                Benchmarks.generateRawDBDump($scope.benchmarkName).then(function (result) {
+                    ToastService.showToast(result.data.message, 'success');
+                    $scope.loading = false;
+                }, function (err) {
+                    ToastService.showToast(err.data, 'error');
+                    $scope.loading = false;
+                });
+            }
+
         }
     ]);
