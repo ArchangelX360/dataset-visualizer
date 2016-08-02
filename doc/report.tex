@@ -16,6 +16,9 @@
 \usepackage{capt-of}
 
 \setcounter{secnumdepth}{3}
+\usepackage{pdfpages}
+\usepackage[titletoc,title]{appendix}
+
 
 
 % --- Package specifiques ------------------------------------------------------
@@ -91,7 +94,7 @@
 % macros pour gerer les choses a faire lors de l'ecriture du tex
 \newcommand*{\tocheck}{\textcolor{red}{\bf \emph{A VERIFIER}}}
 \newcommand*{\checked}{\textcolor{green}{\bf \emph{(vérifié)}}}
-\newcommand*{\todo}[1]{\textcolor{blue}{[A FAIRE : \emph{#1}]}}
+\newcommand*{\todo}[1]{\textcolor{blue}{[TODO: \emph{#1}]}}
 
 % --- Mots mal coupes ----------------------------------------------------------
 
@@ -137,9 +140,9 @@
 
 \chapter*{Abstract}
 
-Benchmark text results are often hard to read. We create parsing tools and chart generator to create chart based on end results.
+Benchmark text results are often hard to read. Developers usually create parsing tools and chart generator to generate chart based on end results when dealing with their evaluation phase.
 
-This document presents a web visualizer originally made for Yahoo! Cloud Serving Benchmark but extensible to any software. It generates charts in pseudo real-time based on ongoing benchmark results with the help of a storage database.
+This document presents a web visualizer originally made for Yahoo! Cloud Serving Benchmark but extensible to any software. It generates charts in pseudo real-time based on results of ongoing benchmarks stored on-the-fly in a storage database. \todo{reformulate..}
 
 \tableofcontents
 
@@ -358,21 +361,32 @@ As mention in section \ref{app_archi_section}, the software module has to store 
 
 Here, we will explain how the fetching process works and how does it store measures into the storage database.
 
-\subsubsection{Frontend MeasurementType} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentHashMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need the concurrent aspect.
+\subsubsection{Frontend MeasurementType} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need the concurrent aspect.
 
-\paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentHashMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database.
-
-\todo{schéma}
+\paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database. Do not worry, we have made a cool diagram (Figure \ref{concurrent_map_scheme}) for you to summarize all this.
 
 \subsubsection{Fetching method}
 
-We created a new thread into YCSB, indeed this is the most efficient way not to slow down YCSB too much. We used a scheduled thread pool executor of Java with only one thread. This scheduled executor thread periodically check the two integers of each \texttt{ConcurrentHashMap} --- one by client thread by operation type due to YCSB way of handling measures. These indicates which lists are available --- full and not designated as the current list --- without scanning the whole or even a part of our collection. 
+We created a new thread into YCSB, indeed this is the most efficient way not to slow down YCSB too much. We used a scheduled thread pool executor of Java with only one thread. This scheduled executor thread periodically check the two integers of each \texttt{ConcurrentMap} --- one by client thread by operation type due to YCSB way of handling measures. These indicates which lists are available --- full and not designated as the current list --- without scanning the whole or even a part of our collection. 
 
-Then, all available lists are processed into the executor thread to be stored into the storage database. Once a list has been processed, it is deleted from the \texttt{ConcurrentHashMap} in order to save some memory which is interesting with millions points benchmarks.
+Then, all available lists are processed into the executor thread to be stored into the storage database. Once a list has been stored, it is deleted from the \texttt{ConcurrentMap} in order to save some memory which is interesting with millions points benchmarks. This delete phase is not shown in Figure \ref{concurrent_map_scheme} for understanding purpose.
+
 
 \paragraph{Fail-safe system}
 
 There is two identical tasks that handles this fetching process and relaunch themselves after finishing their fetch. If one task fails, there is a fail-safe process that periodically relaunches a task if less than two fetching tasks are in the queue or running. At the end of the benchmark, all tasks are interrupted and a final task is run to fetch all remaining points --- even in the current list as the benchmark is done.
+
+\subsubsection{Summary diagram}
+
+We summarized the fetching process with an example that shows the \texttt{ConcurrentMap} states through a YCSB benchmark on Figure \ref{concurrent_map_scheme}.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/concurrent_map_scheme.png}
+\caption{\texttt{ConcurrentMap} states through a YCSB benchmark.}
+\label{concurrent_map_scheme}
+\end{center}
+\end{figure}
 
 \subsubsection{Communication with the storage database}
 
@@ -400,11 +414,18 @@ Charts are automatically and periodically updating their points based on the sto
 
 On top of this, Highcharts library \cite{highcharts:website} provides us a large set of interesting features. 
 The navigator is useful to zoom and get a precise view of our dataset as you can see on Figure \ref{chart_not_zoomed_zoomed}. 
-
-\todo{Valeur ajouté sur le fait qu'on peut enlever facilement la warmup phase de YCSB en resizant, et mettre en garde les utilisateurs de YCSB classique sur ce point}
-
-Chart axes are automatically adjusting regarding of the data it displays which is convenient. 
+Moreover, chart axes are automatically adjusting regarding of the data it displays which is convenient. 
 It also provides exportation into CSV, PNG, SVG or PDF files which can be useful to include results into documents as you can see on Figure \ref{chart_exportation}.
+
+The chart view generates two average series each based on:
+\begin{itemize}
+\item
+points of the whole series
+\item
+points currently displayed (current navigator window)
+\end{itemize}
+
+These lines are available for line charts only and can be disabled in the code with a simple parameter\footnote{Please consult the README.md file of the visualization application for more information}.  \todo{image zoomed not zoomed with the second average}
 
 \begin{figure}[ht]
 \begin{center}
@@ -421,6 +442,10 @@ It also provides exportation into CSV, PNG, SVG or PDF files which can be useful
 \label{chart_exportation}
 \end{center}
 \end{figure}
+
+\subparagraph{YCSB warm-up phase suppressor}
+
+During our experimentation, we noticed YCSB warm-up phase is drastically altering the average as the first operation latency measure includes the warm-up phase duration. We recommend that YCSB users remove the first point of their results if they want an cleaned average. The chart navigator can be used to do so by shrinking the window to remove the first point. The second average line will indicate an adjusted average that reflects the overall latency of the benchmark better.
 
 \clearpage
 
@@ -480,7 +505,7 @@ We chose NodeJS because we needed a lightweight and easy to deploy server. NodeJ
 
 We used the native NodeJS driver made by the MongoDB developers. We could have use the well known Mongoose ODM but our queries and server was so simple that we did not need to add this layer. Moreover, Mongoose is reducing performance as it add some logic layers between the code and the actual query execution or result \cite{mongo}.
 
-\paragraph{Handling large datasets}
+\paragraph{Handling large datasets}\label{server:handling_large_dataset}
 
 Our server is capable of handling multi-millions points benchmarks. We used MongoDB aggregation functions to do so.
 
@@ -509,8 +534,6 @@ Indeed, Highcharts automatically groups points based on there proximity --- pixe
 We have then two optimizations for large dataset, Highcharts client side data grouping that reduces the number of points display on charts without loosing information and MongoDB server side aggregation process for larger benchmark that reduces precision of measurements a bit.
 
 Moreover, this library provides easily "tweakable" graphs and that handles update properly. Highcharts developers also made possible the integration within Angular with a directive.
-
-\clearpage
 
 \section{Increasing support}
 
@@ -545,7 +568,7 @@ Again, for more specific details of implementation, please consult the \texttt{R
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=1\linewidth]{images/boxplot.png}
+\includegraphics[width=0.60\linewidth]{images/boxplot.png}
 \caption{Example of a boxplot chart.}
 \label{boxplot}
 \end{center}
@@ -553,11 +576,25 @@ Again, for more specific details of implementation, please consult the \texttt{R
 
 \chapter{Evaluation}
 
-\todo{}
-
 \section{Performances}
 
-\todo{}
+YCSB speed is based on the operation it can achieve by seconds --- ops/sec or Throughputs/sec \tocheck. The main challenge for our YCSB extension module was not to slow down the whole benchmarking process. We explained in previous chapters the precautions taken in our implementation.
+
+This evaluation will be comparing the RAW measurement of Google and our custom measurement that stores into the storage database.
+
+We will evaluate two indicators, the first one is the operation by seconds of YCSB and the second one is the overall execution time of a benchmark phase. Indeed, this second parameter appears like a interesting comparison indicator of our module as our measurement type requires a database connexion and an additional thread.
+
+\subsection{Operations by second efficiency}
+
+\todo{continuer}
+
+\subsection{Execution time efficiency}
+
+\todo{continuer}
+
+\subsection{Remote storage database}
+
+\todo{continuer}
 
 \section{Limitations}
 
@@ -572,9 +609,28 @@ However, for now, it has been tested with memcached only.
 
 Our visualizer will work regardless of the number of points the benchmark has. However, our NodeJS server would be very slow at serving point when dealing with millions or billions of points. Indeed, a ten millions points aggregation request is taking more than a minute to complete. \todo{Benchmark this!}
 
-\subsubsection{Display}
+\subsubsection{Storage database}
 
-\todo{bench le nombre de points environ sur un machine classique}
+You could rebuild the entire NodeJS MongoDB API to make it work with another DB but it wasn't our goal to achieve this compatibility.
+
+\subsubsection{Display: linear loss of accuracy}
+
+As we see in \ref{server:handling_large_dataset}, our application uses an aggregating process to handle millions of values. This aggregation process is reducing the precision of our displayed charts.
+
+The precision reduction grow linearly when the number of points in your benchmark is increasing. The coefficient of this linear reduction is the constant the user sets based on his computer performances --- the better your machine is, the higher points you can display\footnote{Please consult the README.md file of the visualization application for more information}. 
+
+We have then the following trivial equation where: 
+\begin{itemize}
+\item
+$benchmarkLength$ is the number of points in the benchmark
+\item
+$fixedUserConstant$ is the constant set by the user in application parameter based on his computer performance
+\item
+$bucketSize$ is the size of the aggregation buckets --- the higher they are, the lower is the precision as the average is based on more points
+\end{itemize}
+
+$$ benchmarkLength = fixedUserConstant * bucketSize $$
+$$\Longleftrightarrow bucketSize = \frac{benchmarkLength}{fixedUserConstant} $$
 
 \clearpage
 
@@ -587,6 +643,11 @@ Our visualizer will work regardless of the number of points the benchmark has. H
 
 \bibliographystyle{ieeetr}
 \bibliography{report}
+
+\clearpage
+
+%python -m grip README.md --export README.html
+
 
 \newpage
 
