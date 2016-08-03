@@ -17,7 +17,7 @@
 
 \setcounter{secnumdepth}{3}
 \usepackage{pdfpages}
-\usepackage[titletoc,title]{appendix}
+\usepackage{afterpage}
 
 
 
@@ -199,14 +199,6 @@ I decided to use the EISTI partnership to achieve an internship at the Technisch
 
 The Technische Universität Dresden has a wide campus separate into buildings. I was in the Andreas-Pfitzmann-Bau, the Faculty of Computer Science building (See Figure \ref{informatik_bau}).
 
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[width=1\linewidth]{images/informatik_bau.jpg}
-\caption{Faculty of Computer Science building: Andreas-Pfitzmann-Bau.}
-\label{informatik_bau}
-\end{center}
-\end{figure}
-
 I would not make a better technical description of this university than its own website \cite{tud:website}:
 
 \blockquote{The Technische Universität Dresden (TUD) is one of the largest “Technische Universitäten” in Germany and one of the leading and most dynamic universities in Germany. As a full-curriculum university with 14 faculties in five schools it offers a broad variety of 125 disciplines and covers a wide research spectrum. Its focuses of Biomedicine, Bioengineering, Materials sciences, Information technology, Microelectronics as well as Energy and Environment are considered exemplary in Germany and throughout Europe.
@@ -214,6 +206,14 @@ I would not make a better technical description of this university than its own 
 Since 2012 TUD is officially one of the "Universities of Excellence". Its core elements are the "Institutional Strategy", the Clusters of Excellence "Center for Advancing Electronics Dresden" (cfaed), "Center for Regenerative Therapies Dresden (CRTD) and the Graduate School "Dresden International Graduate School for Biomedicine and Bioengineering" (DIGS-BB).
 
 About 36.000 students are enrolled at TUD – more than three times as many as in 1990 (11.220 students). Internationally, the TUD has earned a good reputation, about one eighths of its students come from abroad. Today, about 5.000 scientists from 70 countries are working at the Technische Universität Dresden.}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/informatik_bau.jpg}
+\caption{Faculty of Computer Science building: Andreas-Pfitzmann-Bau.}
+\label{informatik_bau}
+\end{center}
+\end{figure}
 
 \subsection{Institute of Systems Architecture: Chair of Systems Engineering}
 
@@ -491,7 +491,7 @@ We also implemented a simple workload editor that save yourself wasting time by 
 \end{center}
 \end{figure}
 
-\clearpage
+\afterpage{\clearpage}
 
 \paragraph{Server role}
 
@@ -509,23 +509,27 @@ We used the native NodeJS driver made by the MongoDB developers. We could have u
 
 Our server is capable of handling multi-millions points benchmarks. We used MongoDB aggregation functions to do so.
 
-When handling large datasets, NodeJS asks MongoDB to use aggregations to group measures by making averages thus optimize the view fluidity. This grouping process reduces measurements' precision. This loss is illustrated by the example on Figure \ref{mongo_agg}. Here, you would get 3 average measures --- buckets --- each based on 3 successive values instead of getting 9 plain measures.
+When handling large datasets, NodeJS asks MongoDB to use aggregations to group measures by making averages thus optimize the view fluidity. This grouping process reduces measurements' precision. This loss is illustrated by the example on Figure \ref{mongo_agg}. In this example, you would get 3 average measures --- buckets --- each based on 3 successive values instead of getting 9 plain measures.
+
+The limit between a large and small dataset is fixed by a user parameter called \texttt{MAX\_POINTS}. The better your computer and browser are, the higher you can set the value and the smaller the average buckets will be thus you will have a more precise dataset. Again, please consult the \texttt{README.md} file for more information.
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.5]{images/mongodb-agg.png}
+\includegraphics[scale=0.4]{images/mongodb-agg.png}
 \caption{Simple illustration of MongoDB aggregation process.}
 \label{mongo_agg}
 \end{center}
 \end{figure}
 
-The limit between a large and small dataset is fixed by a user parameter called \texttt{MAX\_POINTS}. The better your computer and browser are, the higher you can set the value and the smaller the average buckets will be thus you will have a more precise dataset. Again, please consult the \texttt{README.md} file for more information.
-
 \subsubsection{Client side technology choices}
 
-We develop our client with AngularJS first of his name because it is easy to maintain and it forces a structured code base with a Model View Controller like pattern. Moreover, Angular provides helpful functionalities for updates and dynamic behaviors of our application pages, forms, RestAPI communications, etc. \cite{angular:website}
+We develop our client with AngularJS because it is easy to maintain and forces a structured code base with a Model View Controller like pattern. Moreover, Angular provides helpful functionalities for forms, RestAPI communications, updates and dynamic behaviors of our application pages, etc. \cite{angular:website}.
 
-\paragraph{Angular Material} We used a style framework because we did not have plenty of time to spend making our application look good. Angular Material provides amazing features to quickly make responsive websites that look great.
+\paragraph{Initialization \& update processes}
+
+We made a custom directive for handling Highcharts charts generation based on the one provided by its developers. We added the initialization and update processes including an average calculation on top of this. These two processes simply modify Highcharts series with Highcharts API functions. Each chart gets its own initialization and update tasks.
+
+These tasks check the current size of the benchmark to decide if a MongoDB aggregation must be made or not. If a MongoDB aggregation is needed, they define the bucket size --- the size of the group of points made by the aggregation. Finally, they query the right points based on these parameters and update their chart.
 
 \paragraph{Highcharts library: data grouping}\label{data_grouping} There is plenty of chart libraries for web applications but Highcharts most valuable asset is its DataGrouping and that is why we chose it.
 
@@ -534,6 +538,8 @@ Indeed, Highcharts automatically groups points based on there proximity --- pixe
 We have then two optimizations for large dataset, Highcharts client side data grouping that reduces the number of points display on charts without loosing information and MongoDB server side aggregation process for larger benchmark that reduces precision of measurements a bit.
 
 Moreover, this library provides easily "tweakable" graphs and that handles update properly. Highcharts developers also made possible the integration within Angular with a directive.
+
+\paragraph{Angular Material} We used a style framework because we did not have plenty of time to spend making our application look good. Angular Material provides amazing features to quickly make responsive websites that look great.
 
 \section{Increasing support}
 
@@ -568,7 +574,7 @@ Again, for more specific details of implementation, please consult the \texttt{R
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.60\linewidth]{images/boxplot.png}
+\includegraphics[scale=0.7]{images/boxplot.png}
 \caption{Example of a boxplot chart.}
 \label{boxplot}
 \end{center}
@@ -578,32 +584,61 @@ Again, for more specific details of implementation, please consult the \texttt{R
 
 \section{Performances}
 
-YCSB speed is based on the operation it can achieve by seconds --- ops/sec or Throughputs/sec \tocheck. The main challenge for our YCSB extension module was not to slow down the whole benchmarking process. We explained in previous chapters the precautions taken in our implementation.
+YCSB speed is based on the operation it can achieve by seconds --- ops/sec or \textit{Throughput}. The main challenge for our YCSB extension module was not to slow down the whole benchmarking process as we explained in previous chapters.
 
-This evaluation will be comparing the RAW measurement of Google and our custom measurement that stores into the storage database.
+This evaluation will be comparing the RAW measurement type of Google and our custom measurement type that stores values into the storage database.
 
-We will evaluate two indicators, the first one is the operation by seconds of YCSB and the second one is the overall execution time of a benchmark phase. Indeed, this second parameter appears like a interesting comparison indicator of our module as our measurement type requires a database connexion and an additional thread.
+We will evaluate two indicators, the first one is the \textit{Throughput} of YCSB and the second one is the overall execution time of a benchmark phase. Indeed, this second parameter appears like a interesting comparison indicator of our module as our measurement type requires a database connexion and an additional thread.
 
-\subsection{Operations by second efficiency}
+\bigskip
+
+This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will not compare results between a remote and a local benchmarked database as we are doing a comparison between two YCSB measurement types. Indeed, the process involved by this parameter change is identical in the two measurement types and refer to a YCSB specific behavior. 
+
+However, we will compare the influence of a remote or local \textbf{storage} database as it will obviously influence the execution time of the extension module measurement type.
+
+We will also compare a major factor for the extension module measurement type: the number of points in the benchmark. We want to remind you that our module is made for large benchmarks and we do not expect it to work efficiently for small benchmarks.
+
+\subsection{\textit{Throughput} efficiency}
+
+\subsubsection{Comparison by number of points}
+
+As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. The latter could be assimilated as the writing of the results into file made in the RAW measurement and may not influence the execution time difference too much.
+
+\todo{schema}
+
+\subsubsection{Remote storage database}
 
 \todo{continuer}
 
 \subsection{Execution time efficiency}
 
+\subsubsection{Comparison by number of points}
+
+As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. The latter could be assimilated as the writing of the results into file made in the RAW measurement and may not influence the execution time difference too much.
+
+\todo{schema}
+
+\subsubsection{Remote storage database}
+
 \todo{continuer}
 
-\subsection{Remote storage database}
-
-\todo{continuer}
 
 \section{Limitations}
 
 \subsection{YCSB extension module}
 
-The storage process, as it is implemented, should work regardless of the database thus you can also use your custom adapters.
+\subsubsection{Benchmarked database}
+
+The storage process, as it is implemented, should work regardless of the benchmarked database thus you can also use your custom adapters.
 However, for now, it has been tested with memcached only.
 
 \subsection{Web visualizer}
+
+\subsubsection{Highcharts}
+
+Highcharts library is a proprietary software, it is allowed to use it for a personal website, a school site or a non-profit organisation which suited our case. However, it is a strong limitation for our application users. 
+
+As charts are handled by an AngularJS directive, we could plug another chart library by creating another directive to overcome this limitation. This new library would need functions to create, delete or modify series after a chart generation in order to work with our implementation.
 
 \subsubsection{Aggregation requests}
 
@@ -636,7 +671,7 @@ $$\Longleftrightarrow bucketSize = \frac{benchmarkLength}{fixedUserConstant} $$
 
 \chapter*{Conclusion}
 
-\todo{}
+Our YCSB extension module alongside with our visualizer application are made to
 
 \todo{CV A LA FIN}
 \clearpage

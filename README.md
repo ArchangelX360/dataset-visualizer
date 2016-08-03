@@ -38,7 +38,7 @@ For now, only XYplot and Boxplot are supported. However, implementing a new seri
 
 **WARNING: We assume that nodejs and npm are already installed on your machine**
 
-You will need Java 8 and MongoDB to use this application :
+You will need Java >=8 and MongoDB >=2.6.10 to use this application :
 
     sudo apt-get install openjdk-8-jre mongodb
 
@@ -443,3 +443,9 @@ The precision reduction grow linearly when your benchmark points are increasing.
 ### Almost stuck with MongoDB
 
 You could rebuild the entire NodeJS MongoDB API to make it work with another DB but it wasn't our goal to achieve this compatibility.
+
+### Highcharts library
+
+Highcharts library is a proprietary software, it is allowed to use it for a personal website, a school site or a non-profit organisation which suited our case. However, it is a strong limitation for our application users. 
+
+As charts are handled by an AngularJS directive, we could plug another chart library by creating another directive to overcome this limitation. This new library would need functions to create, delete or modify series after a chart generation in order to work with our implementation.
