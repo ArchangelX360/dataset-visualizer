@@ -1,10 +1,57 @@
 angular.module('stats', [])
-    .directive('hcOperationChart', function () {
+    .directive('hcOperationChart', function ($routeParams, Benchmarks, ToastService) {
+
+        function dumpResultsIntoCSV(label) {
+            Benchmarks.generateRawDBDump($routeParams.benchmarkName, label).then(function (results) {
+                downloadFile('data:text/csv;charset=utf-8;base64,' + btoa(results.data.csv),
+                    label + '-dump-' + Date.now() + '.csv',
+                    false
+                );
+                ToastService.showToast(results.data.message, 'success');
+            }, function (err) {
+                ToastService.showToast(err.data, 'error');
+            });
+        }
+
+        function downloadFile(uriStr, filename, alreadyEncoded) {
+            var encodedUri = alreadyEncoded ? uriStr : encodeURI(uriStr);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        function createSVGUri(containerId) {
+            //get svg element.
+            var svg = document.querySelector('#' + containerId + ' svg');
+
+            var serializer = new XMLSerializer();
+            var source = serializer.serializeToString(svg);
+
+            //add name spaces.
+            if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            if (!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+            }
+
+            //add xml declaration
+            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+            ToastService.showToast("SVG created.", 'success');
+
+            //convert svg source to URI data scheme.
+            return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+        }
+
         return {
             restrict: 'E',
             template: '<div></div>',
             scope: {
                 series: '=',
+                id: '@',
                 title: '@',
                 customlabel: '@',
                 seriestype: '@',
@@ -27,7 +74,7 @@ angular.module('stats', [])
                                 var chart = this;
                                 scope.initfunc(chart, scope.customlabel);
                                 scope.updateinterval = setInterval(function () {
-                                    var extremesObject = chart.xAxis[0].getExtremes();
+                                    var extremesObject = chart.get(scope.customlabel + '_xaxis').getExtremes();
                                     scope.updatefunc(chart, scope.customlabel, Math.round(extremesObject.dataMax));
                                 }, 1500);
                             }
@@ -64,6 +111,34 @@ angular.module('stats', [])
                         }
                     },
                     exporting: {
+                        enabled: true,
+                        buttons: {
+                            contextButton: {
+                                menuItems: [
+                                    {
+                                        text: 'Download SVG',
+                                        onclick: function () {
+                                            downloadFile(
+                                                createSVGUri(scope.id),
+                                                scope.customlabel + '-svg-' + Date.now() + '.svg', true
+                                            );
+                                        }
+                                    },
+                                    {
+                                        textKey: 'DownloadCSV',
+                                        onclick: function () {
+                                            this.downloadCSV();
+                                        }
+                                    },
+                                    {
+                                        text: 'Download whole series CSV (database drop)',
+                                        onclick: function () {
+                                            dumpResultsIntoCSV(scope.customlabel)
+                                        }
+                                    },
+                                ]
+                            }
+                        },
                         csv: {
                             dateFormat: '%Y-%m-%dT%H:%M:%S.%L'
                         }
@@ -112,6 +187,7 @@ angular.module('stats', [])
                         }
                     },
                     xAxis: {
+                        id: scope.customlabel + '_xaxis',
                         labels: {
                             formatter: function () {
                                 return this.value;
@@ -188,7 +264,7 @@ angular.module('stats', [])
                 "CLEANUP": "line",
                 //"SCAN": "line",
                 //"DELETE" : "line",
-                "AAPL Stock Price": "candlestick"
+                //"AAPL Stock Price": "candlestick"
             };
 
             /* VARIABLE INITIALIZATION */
@@ -551,19 +627,6 @@ angular.module('stats', [])
                 }, function (err) {
                     ToastService.showToast(err.data, 'error');
                 })
-            }
-
-            /* DUMP FUNCTION */
-
-            $scope.dumpResultsIntoCSV = function () {
-                $scope.loading = true;
-                Benchmarks.generateRawDBDump($scope.benchmarkName).then(function (result) {
-                    ToastService.showToast(result.data.message, 'success');
-                    $scope.loading = false;
-                }, function (err) {
-                    ToastService.showToast(err.data, 'error');
-                    $scope.loading = false;
-                });
             }
 
         }

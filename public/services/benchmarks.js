@@ -26,8 +26,8 @@ angular.module('benchmarkService', [])
             delete: function (benchmarkName) {
                 return $http.delete('/api/benchmarks/' + benchmarkName);
             },
-            generateRawDBDump: function (benchmarkName) {
-                return $http.get('/api/dump/' + benchmarkName);
+            generateRawDBDump: function (benchmarkName, label) {
+                return $http.get('/api/dump/' + benchmarkName + '/' + label);
             },
         }
     }]);

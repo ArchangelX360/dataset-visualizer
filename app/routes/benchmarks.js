@@ -210,8 +210,10 @@ module.exports = function (router, db) {
     });
 
     // dump benchmark result to CSV file
-    router.get('/api/dump/:benchmark_name', function (req, res) {
-        findDocuments(db, req.params.benchmark_name, {}, {}, utilities.dumpResult, res);
+    router.get('/api/dump/:benchmark_name/:label', function (req, res) {
+        var selector = {label: req.params.label};
+        var options = {"sort": "num"};
+        findDocuments(db, req.params.benchmark_name, selector, options, utilities.sendCSV, res);
     });
 
 };
