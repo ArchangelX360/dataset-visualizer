@@ -131,7 +131,7 @@ angular.module('stats', [])
                                         }
                                     },
                                     {
-                                        text: 'Download whole series CSV (database drop)',
+                                        text: 'Download CSV (whole series) [DB DUMP]',
                                         onclick: function () {
                                             dumpResultsIntoCSV(scope.customlabel)
                                         }
