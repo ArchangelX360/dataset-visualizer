@@ -140,7 +140,7 @@
 
 \chapter*{Abstract}
 
-Benchmark text results are often hard to read. Developers usually create parsing tools and chart generator to generate chart based on end results when dealing with their evaluation phase.
+Benchmark softwares often produce text results that are hard to read. Developers usually create parsing tools and chart generator to generate chart based on end results when dealing with their evaluation phase.
 
 This document presents a web visualizer originally made for Yahoo! Cloud Serving Benchmark but extensible to any software. It generates charts in pseudo real-time based on results of ongoing benchmarks stored on-the-fly in a storage database. \todo{reformulate..}
 
@@ -153,17 +153,17 @@ This document presents a web visualizer originally made for Yahoo! Cloud Serving
 \newpage
 \chapter*{Acknowledgements}
 
-I am highly indebted to Mr \auteur{Robert}{Krahn} for his precious help and support for all this internship as well as his understanding and soft management that allowed me to go further and faster than expected.
+I am highly indebted to Mr. \auteur{Robert}{Krahn} for his precious help and support for all this internship as well as his understanding and soft management that allowed me to go further and faster than expected.
 
-I would like to thank Mr \auteur{Peio}{Loubière} for his availability and advices regarding report writing.
+I would like to thank Mr. \auteur{Peio}{Loubière} for his availability and advices regarding report writing.
 
-I also would like to express my special gratitude and thanks to Mr \auteur{Franz}{Gregor} for his valuable inputs on certain aspect of the solution and his cheerfulness.
+I also would like to express my special gratitude and thanks to Mr. \auteur{Franz}{Gregor} for his valuable inputs on specific aspect of the solution and his cheerfulness.
 
 Finally, I would like to thank Ms. \auteur{Emy}{Sicard-Delage} for spell checking this document and also her kind and warmhearted support.
 
 \chapter*{Introduction}
 
-Yahoo! Cloud Serving Benchmark --- YCSB in a shorten form intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate of "key-value" and "cloud" serving stores. These benchmarks are often use to make an architectural decision: which database should we use for our use case?
+Yahoo! Cloud Serving Benchmark --- YCSB in a shorten form intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are often used to make an architectural decision by commonly answering the following question: which specific database should we use for this particular use case?
 
 The Chair of Systems Engineering at The Technische Universität Dresden is using this software in their research. They want to make longer benchmark than the high majority of people who use this software. YCSB is producing results or output at the end of the benchmark phase and this is not convenient as a single benchmark phase could last days in our scenario.
 
@@ -415,17 +415,18 @@ Charts are automatically and periodically updating their points based on the sto
 On top of this, Highcharts library \cite{highcharts:website} provides us a large set of interesting features. 
 The navigator is useful to zoom and get a precise view of our dataset as you can see on Figure \ref{chart_not_zoomed_zoomed}. 
 Moreover, chart axes are automatically adjusting regarding of the data it displays which is convenient. 
-It also provides exportation into CSV, PNG, SVG or PDF files which can be useful to include results into documents as you can see on Figure \ref{chart_exportation}.
+
+Charts are exportable into SVG image, CSV file of the whole series by a database dump or CSV file of the currently displayed series --- including averages.It can be useful to include results into documents as you can see on Figure \ref{chart_exportation}.
 
 The chart view generates two average series each based on:
 \begin{itemize}
 \item
-points of the whole series
+points of the whole series (in black on Figure \ref{chart_not_zoomed_zoomed})
 \item
-points currently displayed (current navigator window)
+points currently displayed --- current navigator window (in green on Figure \ref{chart_not_zoomed_zoomed})
 \end{itemize}
 
-These lines are available for line charts only and can be disabled in the code with a simple parameter\footnote{Please consult the README.md file of the visualization application for more information}.  \todo{image zoomed not zoomed with the second average}
+These lines are available for line charts only and can be disabled in the code with a simple parameter\footnote{Please consult the README.md file of the visualization application for more information}.
 
 \begin{figure}[ht]
 \begin{center}
@@ -437,17 +438,15 @@ These lines are available for line charts only and can be disabled in the code w
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.5\linewidth]{images/chart_exportation.png}
+\includegraphics[width=0.6\linewidth]{images/chart_exportation.png}
 \caption{Exportation functionality: dropdown menu.}
 \label{chart_exportation}
 \end{center}
 \end{figure}
-
+\clearpage
 \subparagraph{YCSB warm-up phase suppressor}
 
 During our experimentation, we noticed YCSB warm-up phase is drastically altering the average as the first operation latency measure includes the warm-up phase duration. We recommend that YCSB users remove the first point of their results if they want an cleaned average. The chart navigator can be used to do so by shrinking the window to remove the first point. The second average line will indicate an adjusted average that reflects the overall latency of the benchmark better.
-
-\clearpage
 
 \paragraph{Better than a simple visualizer for YCSB}
 
@@ -549,7 +548,7 @@ At first, the main idea was to provide a visualization web interface for YCSB be
 
 If you want to use a different software than YCSB, you need to respect the way we insert data into our storage database and our application would be automatically display your results. For more information consult the \texttt{README.md} file of the visualization application.
 
-\subsection{Multiple chart type}
+\subsection{Multiple chart types}
 
 We also implement our chart view in a way that supporting multiple chart types is a child's play. Indeed, you just need to:
 
@@ -574,7 +573,7 @@ Again, for more specific details of implementation, please consult the \texttt{R
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.7]{images/boxplot.png}
+\includegraphics[scale=0.6]{images/boxplot.png}
 \caption{Example of a boxplot chart.}
 \label{boxplot}
 \end{center}
@@ -612,16 +611,39 @@ As intended, the more points the benchmark has, the closer the execution time of
 
 \subsection{Execution time efficiency}
 
-\subsubsection{Comparison by number of points}
+The following Figure \ref{execution_50_local_local_1t} has been drawn after $50*2$ iterations of couple of load and run phases --- 50 iterations with the custom measurement type and 50 with the RAW measurement type.
+
+The variable parameter is:
+\begin{itemize}
+\item
+the number of points
+\end{itemize}
+
+The fixed parameters are:
+\begin{itemize}
+\item
+a local benchmarked database
+\item
+a local storage database
+\item
+1 client threads
+\end{itemize}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.6\linewidth]{images/execution_50_local_local_1t.png}
+\caption{Execution time efficiency evolution comparison chart.}
+\label{execution_50_local_local_1t}
+\end{center}
+\end{figure}
+
+The execution time efficiency is quasi identical when we tweak parameters like client thread number and local/remote storage database. We are around 75-85\% \textbf{slower} than YCSB on a 1000 points benchmark and this percentage is decreasing to 10-15\% around 50k points to finally be close to 0\% after 100k.
+
+\bigskip
 
 As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. The latter could be assimilated as the writing of the results into file made in the RAW measurement and may not influence the execution time difference too much.
 
-\todo{schema}
-
-\subsubsection{Remote storage database}
-
-\todo{continuer}
-
+\clearpage
 
 \section{Limitations}
 
@@ -642,7 +664,13 @@ As charts are handled by an AngularJS directive, we could plug another chart lib
 
 \subsubsection{Aggregation requests}
 
-Our visualizer will work regardless of the number of points the benchmark has. However, our NodeJS server would be very slow at serving point when dealing with millions or billions of points. Indeed, a ten millions points aggregation request is taking more than a minute to complete. \todo{Benchmark this!}
+Our visualizer will work regardless of the number of points the benchmark has. However, our NodeJS server would be very slow at serving point when dealing with millions of points. Indeed, here a few figures, aggregation requests take around:
+\begin{itemize}
+\item
+20 seconds for a 2 million points to complete on a remote server --- Intel(R) Core(TM) i3-2130 CPU @ 3.40GHz with 8GB of RAM with a 100Mbps connexion
+\item
+30 seconds for a 10 million points to complete on a local server --- Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz with 32GB of RAM
+\end{itemize}
 
 \subsubsection{Storage database}
 
