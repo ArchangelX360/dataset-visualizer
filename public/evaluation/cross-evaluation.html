@@ -1,19 +1,19 @@
 <style>
     md-input-container, md-radio-group {
-        width: 290px;
-        margin-left: 10px;
+        margin: 10px;
+        width: 200px;
     }
 </style>
 
 <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="!loading"
                     ng-if="loading"></md-progress-linear>
 
-<div layout="column" layout-gt-sm="row" layout-align="center stretch">
+<div layout="column" layout-align="center stretch">
     <div layout="column">
-        <div layout="row">
-            <div layout="column">
-                <md-subheader>Compare by</md-subheader>
-                <md-radio-group class="compare-radios" ng-model="notFixedParameter">
+        <div layout="row" layout-align="center start">
+            <div>
+                <md-subheader>Define X-Axis</md-subheader>
+                <md-radio-group class="compare-radios" ng-model="xAxisParameter">
                     <md-radio-button ng-repeat="(label, parameter) in params" ng-value="parameter.name"
                                      class="md-primary">
                         {{parameter.name}}
@@ -21,25 +21,14 @@
                 </md-radio-group>
             </div>
 
-            <div layout="column" ng-if="notFixedParameter">
-                <md-subheader>Parameters</md-subheader>
-                <div ng-repeat="(label, parameter) in params">
-                    <div ng-if="parameter.isFixed()">
-                        <md-input-container>
-                            <label for="{{parameter.id}}-select">{{parameter.selectStr}}</label>
-                            <md-select id="{{parameter.id}}-select" required ng-model="parameter.selectedValues[0]">
-                                <md-option ng-repeat="item in parameter.collection">{{item}}</md-option>
-                            </md-select>
-                        </md-input-container>
-                    </div>
-                    <div ng-if="!parameter.isFixed()">
-                        <md-input-container ng-repeat="item in parameter.collection" layout="column">
-                            <md-checkbox ng-checked="exists(item, parameter.selectedValues)"
-                                         ng-click="toggle(item, parameter.selectedValues)">{{ item }}
-                            </md-checkbox>
-                        </md-input-container>
-                    </div>
-                </div>
+            <div ng-repeat="(label, parameter) in params" ng-if="xAxisParameter">
+                <md-subheader>{{parameter.name}}<span ng-if="parameter.isXAxis()">(X-Axis)</span></md-subheader>
+
+                <md-input-container ng-repeat="item in parameter.collection" layout="column">
+                    <md-checkbox ng-checked="exists(item, parameter.selectedValues)"
+                                 ng-click="toggle(item, parameter.selectedValues)">{{ item }}
+                    </md-checkbox>
+                </md-input-container>
             </div>
         </div>
 
@@ -52,16 +41,12 @@
     </div>
 
     <div ng-if="generationMode" layout="column" layout-align="center center">
-        <div layout="column" layout-gt-md="row">
             <hc-comparaison-chart title="Average Load Efficiency Evolution" type="average_load"
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
             <hc-comparaison-chart title="Average Run Efficiency Evolution" type="average_run"
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
-        </div>
-        <div layout="column" layout-gt-md="row">
             <hc-comparaison-chart title="Execution Time Efficiency Evolution" type="execution_time"
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
-        </div>
     </div>
 </div>
 

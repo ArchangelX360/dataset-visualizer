@@ -192,14 +192,11 @@ angular.module('evaluationController', [])
                 type: '@',
             },
             link: function (scope, element) {
-                Highcharts.theme = {
-                    colors: ["#f44336", "#2196f3", "#cddc39"],
-                };
                 Highcharts.setOptions(Highcharts.theme);
                 Highcharts.chart(element[0], {
                     chart: {
-                        width: 400,
-                        height: 380,
+                        width: 1080,
+                        height: 800,
                         events: {
                             load: function () {
                                 var chart = this;
@@ -213,7 +210,16 @@ angular.module('evaluationController', [])
                     yAxis: {
                         title: {
                             text: "Efficiency (%)"
-                        }
+                        },
+                        plotLines: [{
+                            value: 0,
+                            color: 'black',
+                            width: 2,
+                        }]
+                    },
+                    legend: {
+                        layout: "vertical",
+                        useHTML: true
                     },
                     tooltip: {
                         shared: true
@@ -223,7 +229,7 @@ angular.module('evaluationController', [])
             }
         };
     })
-    .controller('CrossEvaluationController', function ($scope, $rootScope, $routeParams, $mdSidenav, $location, Evaluations, ToastService) {
+    .controller('CrossEvaluationController', function ($log, $scope, $rootScope, $routeParams, $mdSidenav, $location, Evaluations, ToastService) {
 
         /**
          * Sort a workload filenames array by number of points with the following format:
@@ -244,18 +250,31 @@ angular.module('evaluationController', [])
          *
          * @param chart the highcharts object
          * @param highchartsCategories the x-axis categories
-         * @param highchartsData the y-axis data (ordered the same way as categories)
+         * @param highchartsData the y-axis data (ordered the same way as categories) // FIXME
          */
         function initComparaisonChart(chart, highchartsCategories, highchartsData) {
+            $log.info('[CROSS] Initializing chart');
             if ($scope.fixedScale) {
-                chart.yAxis[0].setExtremes(-100, 100, true);
+                //chart.yAxis[0].setExtremes(-100, 100, true);
             }
             chart.xAxis[0].setCategories(highchartsCategories);
-            chart.addSeries({
-                type: "column",
-                showInLegend: false,
-                data: highchartsData
-            });
+
+            for (var fileId in highchartsData) {
+                if (highchartsData.hasOwnProperty(fileId)) {
+                    /*chart.addSeries({
+                     id: fileId,
+                     name: fileId,
+                     type: "column",
+                     data: highchartsData[fileId]
+                     });*/
+                    chart.addSeries({
+                        id: fileId + "-spline",
+                        name: fileId + "-spline",
+                        type: "spline",
+                        data: highchartsData[fileId]
+                    });
+                }
+            }
             $scope.loading = false;
         }
 
@@ -278,25 +297,15 @@ angular.module('evaluationController', [])
          * @param name the name of the parameter we want to check
          * @returns {boolean} true if the parameter with the specified name is a fixed parameter, false otherwise
          */
-        function isParamFixed(name) {
-            return $scope.notFixedParameter !== name;
-        }
-
-        /**
-         * Return the correct selected value based on the "fixed" state of the parameter
-         *
-         * @param parameter the parameter object
-         * @returns {Array|*}
-         */
-        function getSelectedValues(parameter) {
-            return (parameter.isFixed()) ? parameter.selectedValues[0] : parameter.selectedValues;
+        function isParamXAxis(name) {
+            return $scope.xAxisParameter === name;
         }
 
         /**
          * Initialize the controller by initializing all settings
          */
         function initController() {
-            $scope.notFixedParameter = $routeParams.notFixedParameter;
+            $scope.xAxisParameter = $routeParams.xAxisParameter;
 
             Evaluations.getInfos().then(function (response) {
                 var availableParameters = response.data;
@@ -305,56 +314,51 @@ angular.module('evaluationController', [])
                     iterationNumber: {
                         id: "iteration-number",
                         name: "iterationNumber",
-                        selectStr: "Select an iteration number",
                         filenameLetter: "I",
                         collection: availableParameters.I,
                         selectedValues: [],
-                        isFixed: function () {
-                            return isParamFixed("iterationNumber")
+                        isXAxis: function () {
+                            return isParamXAxis("iterationNumber")
                         }
                     },
                     mongoUri: {
                         id: "mongo-uri",
                         name: "mongoUri",
-                        selectStr: "Select a MongoDB URI",
                         filenameLetter: "S",
                         collection: availableParameters.S,
                         selectedValues: [],
-                        isFixed: function () {
-                            return isParamFixed("mongoUri")
+                        isXAxis: function () {
+                            return isParamXAxis("mongoUri")
                         }
                     },
                     memcachedUri: {
                         id: "memcached-uri",
                         name: "memcachedUri",
-                        selectStr: "Select a Memcached URI",
                         filenameLetter: "M",
                         collection: availableParameters.M,
                         selectedValues: [],
-                        isFixed: function () {
-                            return isParamFixed("memcachedUri")
+                        isXAxis: function () {
+                            return isParamXAxis("memcachedUri")
                         }
                     },
                     threadNumber: {
                         id: "thread-number",
                         name: "threadNumber",
-                        selectStr: "Select a thread number",
                         filenameLetter: "T",
                         collection: availableParameters.T,
                         selectedValues: [],
-                        isFixed: function () {
-                            return isParamFixed("threadNumber")
+                        isXAxis: function () {
+                            return isParamXAxis("threadNumber")
                         }
                     },
                     workloads: {
                         id: "workloads",
                         name: "workloads",
-                        selectStr: "Select a workload",
                         filenameLetter: "W",
                         collection: availableParameters.W.sort(sortWorkloadFilenames),
                         selectedValues: [],
-                        isFixed: function () {
-                            return isParamFixed("workloads")
+                        isXAxis: function () {
+                            return isParamXAxis("workloads")
                         }
                     }
                 };
@@ -378,27 +382,6 @@ angular.module('evaluationController', [])
 
         }
 
-        /**
-         * Returns the specific filename corresponding to the fixed parameter specified
-         *
-         * @param fixedParamFilenameLetter the filename letter ID of the fixed parameter
-         * @param fixedValue the fixed parameter value
-         * @returns {string} the specific filename corresponding to the fixed parameter specified
-         */
-        function getSpecificFilename(fixedParamFilenameLetter, fixedValue) {
-            var replaceFixedRegex = new RegExp("(" + fixedParamFilenameLetter + ")(.*?)(-)", "");
-            var filename = "I" + $scope.params.iterationNumber.selectedValues
-                + "-W" + $scope.params.workloads.selectedValues
-                + "-M" + $scope.params.memcachedUri.selectedValues
-                + "-T" + $scope.params.threadNumber.selectedValues
-                + "-S" + $scope.params.mongoUri.selectedValues
-                + "-";
-
-            filename = filename.replace(replaceFixedRegex, "$1" + fixedValue + "$3");
-            filename = filename.substr(0, filename.length - 1) + ".json";
-            return filename;
-        }
-
         $scope.toggle = function (item, list) {
             var idx = list.indexOf(item);
             if (idx > -1) {
@@ -416,12 +399,12 @@ angular.module('evaluationController', [])
         $scope.generateComparaison = function () {
             if (isGenerationMode($scope.params)) {
                 $location.path('cross-evaluations/'
-                    + $scope.notFixedParameter
-                    + '/' + getSelectedValues($scope.params.iterationNumber)
-                    + '/' + getSelectedValues($scope.params.mongoUri)
-                    + '/' + getSelectedValues($scope.params.memcachedUri)
-                    + '/' + getSelectedValues($scope.params.threadNumber)
-                    + '/' + getSelectedValues($scope.params.workloads));
+                    + $scope.xAxisParameter
+                    + '/' + $scope.params.iterationNumber.selectedValues.sort()
+                    + '/' + $scope.params.mongoUri.selectedValues.sort()
+                    + '/' + $scope.params.memcachedUri.selectedValues.sort()
+                    + '/' + $scope.params.threadNumber.selectedValues.sort()
+                    + '/' + $scope.params.workloads.selectedValues.sort(sortWorkloadFilenames));
             } else {
                 ToastService.showToast("Please select missing parameters", "error");
             }
@@ -429,45 +412,65 @@ angular.module('evaluationController', [])
 
         $scope.initComparaisonChartRoutine = function (chart, type) {
             $scope.loading = true;
-            var highchartsCategories = [];
+            var xAxisParam;
             var highchartsDataMap = {};
-            var fixedParamFilenameLetter = "";
 
             // Getting the non-fixed parameter
             for (var parameter in $scope.params) {
                 if ($scope.params.hasOwnProperty(parameter)) {
-                    if (!$scope.params[parameter].isFixed()) {
-                        highchartsCategories = $scope.params[parameter].selectedValues;
-                        fixedParamFilenameLetter = $scope.params[parameter].filenameLetter;
+                    if ($scope.params[parameter].isXAxis()) {
+                        xAxisParam = $scope.params[parameter];
                     }
                 }
             }
 
-            // For all different value of the non-fixed parameter
-            highchartsCategories.forEach(function (fixedValue) {
-                var filename = getSpecificFilename(fixedParamFilenameLetter, fixedValue);
+            var highchartsCategories = xAxisParam.selectedValues;
+            var replaceFixedRegex = new RegExp("(" + xAxisParam.filenameLetter + ")(.*?)(-)", "");
 
-                Evaluations.getResults(filename).then(function (response) {
-                        highchartsDataMap[fixedValue] = response.data.results["percents"][type] - 100;
+            var iterations = $scope.params['iterationNumber'].selectedValues.length
+                * $scope.params['mongoUri'].selectedValues.length
+                * $scope.params['memcachedUri'].selectedValues.length
+                * $scope.params['threadNumber'].selectedValues.length
+                * $scope.params['workloads'].selectedValues.length;
 
-                        // When we iterated all values of the non-fixed parameters
-                        if (Object.keys(highchartsDataMap).length >= highchartsCategories.length) {
+            $scope.params['iterationNumber'].selectedValues.forEach(function (iterationNumber) {
+                $scope.params['mongoUri'].selectedValues.forEach(function (mongoUri) {
+                    $scope.params['memcachedUri'].selectedValues.forEach(function (memcachedUri) {
+                        $scope.params['threadNumber'].selectedValues.forEach(function (threadNumber) {
+                            $scope.params['workloads'].selectedValues.forEach(function (workloads) {
 
-                            // Re-ordering the values to match the categories due to the async fetch
-                            var highchartsData = [];
-                            for (var category in highchartsDataMap) {
-                                if (highchartsDataMap.hasOwnProperty(category))
-                                    highchartsData[highchartsCategories.indexOf(category)] = highchartsDataMap[category];
-                            }
+                                var filename = "I" + iterationNumber
+                                    + "-W" + workloads
+                                    + "-M" + memcachedUri
+                                    + "-T" + threadNumber
+                                    + "-S" + mongoUri
+                                    + "-";
 
-                            // We launch the chart creation
-                            initComparaisonChart(chart, highchartsCategories, highchartsData);
-                        }
-                    },
-                    function (err) {
-                        ToastService.showToast(err.data, "error");
-                    }
-                );
+                                var idFile = filename.replace(replaceFixedRegex, "$3");
+                                var currentCategory = replaceFixedRegex.exec(filename)[2];
+                                filename = filename.substr(0, filename.length - 1) + ".json";
+                                var index = highchartsCategories.indexOf(currentCategory);
+
+                                Evaluations.getResults(filename).then(function (response) {
+                                        if (typeof  highchartsDataMap[idFile] === "undefined")
+                                            highchartsDataMap[idFile] = [];
+                                        highchartsDataMap[idFile][index] = response.data.results["percents"][type] - 100;
+                                        --iterations;
+                                        $log.info('[CROSS] iterations: ' + iterations);
+
+                                        if (iterations <= 0) {
+                                            initComparaisonChart(chart, highchartsCategories, highchartsDataMap);
+                                        }
+                                    },
+                                    function (err) {
+                                        ToastService.showToast(err.data, "error");
+                                    }
+                                );
+                            });
+
+                        });
+                    });
+                });
             });
         };
 

@@ -40,7 +40,7 @@ app.config(function ($routeProvider) {
             templateUrl: 'evaluation/evaluation.html',
             controller: 'EvaluationController'
         })
-        .when('/cross-evaluations/:notFixedParameter?/:iterationNumber?/:mongoUri?/:memcachedUri?/:threadNumber?/:workloads?/', {
+        .when('/cross-evaluations/:xAxisParameter?/:iterationNumber?/:mongoUri?/:memcachedUri?/:threadNumber?/:workloads?/', {
             templateUrl: 'evaluation/cross-evaluation.html',
             controller: 'CrossEvaluationController'
         })
