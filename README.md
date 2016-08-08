@@ -22,15 +22,15 @@ It supports large dataset (millions of points) and achieves view optimization to
 </p>
 
 <p align="center">
-  <img src="/doc/images/boxplot.png" />
+  <img src="/doc/images/candlestick.png" />
 </p>
 <p align="center">
-  <b>Boxplot example</b>
+  <b>Candlestick example</b>
 </p>
 
 This application currently has a full YCSB support, you can launch benchmark using YCSB parameters and make your own workload with a Web UI.
 
-For now, only XYplot and Boxplot are supported. However, implementing a new series type is very easy! See [Create your own conversion adapter](#own-conversion)
+For now, only XYplot and Candlestick are supported. However, implementing a new series type is very easy! See [Create your own conversion adapter](#own-conversion)
 
 ## Getting started
 
@@ -311,11 +311,11 @@ So, in order to make your DB scheme work with the client you will need to:
 * add a switch case to the _convertToSerieByChartType_ switch function to link the highchart type to your custom adapter
 * add your label and series type into the _$scope.labelTypeMap_ map.
 
-See the following [Boxplot Example](#boxplot-example) to understand where and how to do it.
+See the following [Candlestick Example](#candlestick-example) to understand where and how to do it.
 
-#### Example: boxplot support implementation<a name="boxplot-example"></a>
+#### Example: candlestick support implementation<a name="candlestick-example"></a>
 
-YCSB produce a single value measure which is the latency. To support boxplot, we need to handle a measure object a bit more complex which looks like the following:
+YCSB produce a single value measure which is the latency. To support candlestick, we need to handle a measure object a bit more complex which looks like the following:
 
 ``` javascript
 measure : {
@@ -410,7 +410,7 @@ The application supports only two schemes for the moment which are:
 ...
 ```
 
-* The boxplot scheme with *Highchart* "candlestick" type
+* The candlestick scheme with *Highchart* "candlestick" type
 
 ``` javascript
 {

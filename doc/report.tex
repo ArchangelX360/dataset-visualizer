@@ -559,23 +559,21 @@ tell our application how you stored you data in the storage database
 tell our application how should Highcharts understand it
 \item
 which Highcharts chart type you wish to display
-\item
-No, that's it! No more bullet point!
 \end{itemize}
 
 These three points are, in fact, trivial functions that are obvious and effortless to write. On the contrary, supporting large dataset with your custom type would be a little bit harder to do, depending on your chart type, because it would require some MongoDB aggregation understandings.
 
-\subsubsection{Boxplot example}
+\subsubsection{Candlestick example}
 
-We implemented boxplot --- candlestick --- charts support to prove our point and providing a solid example for the documentation. See Figure \ref{boxplot} to see the result!
+We implemented candlestick --- boxplot without a median --- charts support to prove our point and providing a solid example for the documentation. See Figure \ref{candlestick} to see the result!
 
 Again, for more specific details of implementation, please consult the \texttt{README.md} file of the visualization application. It has a deeply detailed explanation of how to implement it.
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.6]{images/boxplot.png}
-\caption{Example of a boxplot chart.}
-\label{boxplot}
+\includegraphics[scale=0.6]{images/candlestick.png}
+\caption{Example of a candlestick chart.}
+\label{candlestick}
 \end{center}
 \end{figure}
 
