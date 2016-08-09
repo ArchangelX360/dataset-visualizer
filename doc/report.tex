@@ -565,7 +565,7 @@ These three points are, in fact, trivial functions that are obvious and effortle
 
 \subsubsection{Candlestick example}
 
-We implemented candlestick --- boxplot without a median --- charts support to prove our point and providing a solid example for the documentation. See Figure \ref{candlestick} to see the result!
+We implemented candlestick --- boxplot without median --- charts support to prove our point and providing a solid example for the documentation. See Figure \ref{candlestick} to see the result!
 
 Again, for more specific details of implementation, please consult the \texttt{README.md} file of the visualization application. It has a deeply detailed explanation of how to implement it.
 
@@ -589,9 +589,9 @@ We will evaluate two indicators, the first one is the \textit{Throughput} of YCS
 
 \bigskip
 
-This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will not compare results between a remote and a local benchmarked database as we are doing a comparison between two YCSB measurement types. Indeed, the process involved by this parameter change is identical in the two measurement types and refer to a YCSB specific behavior. 
+This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will \textbf{not} compare results between different operation proportions --- different workloads (A,B,C,etc.) --- as the process involved by this parameter change is identical in the two measurement types and refer to a YCSB specific behavior. 
 
-However, we will compare the influence of a remote or local \textbf{storage} database as it will obviously influence the execution time of the extension module measurement type.
+However, we will compare the influence of remote or local state of both storage and benchmarked databases and the difference between a single and multi threaded YCSB. 
 
 We will also compare a major factor for the extension module measurement type: the number of points in the benchmark. We want to remind you that our module is made for large benchmarks and we do not expect it to work efficiently for small benchmarks.
 
@@ -706,9 +706,6 @@ Our YCSB extension module alongside with our visualizer application are made to
 \bibliography{report}
 
 \clearpage
-
-%python -m grip README.md --export README.html
-
 
 \newpage
 

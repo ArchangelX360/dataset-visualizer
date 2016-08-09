@@ -449,3 +449,12 @@ You could rebuild the entire NodeJS MongoDB API to make it work with another DB 
 Highcharts library is a proprietary software, it is allowed to use it for a personal website, a school site or a non-profit organisation which suited our case. However, it is a strong limitation for our application users. 
 
 As charts are handled by an AngularJS directive, we could plug another chart library by creating another directive to overcome this limitation. This new library would need functions to create, delete or modify series after a chart generation in order to work with our implementation.
+
+## What to do next?
+ 
+We are aware that improvements could be done such as:
+
+* Better current window average
+* Use objects instead of arrays for Highcharts series' data which would improve the chart type support drastically
+* Removal of Highcharts library by softer licence library
+* Simplify the aggregation process of MongoDB to make it more flexible
