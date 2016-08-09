@@ -2,16 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <title>YCSB Visualisation</title>
+
     <link rel="icon" type="image/jpg" href="icons/presentation.svg"/>
     <link rel="stylesheet" href="node_modules/angular-material/angular-material.min.css">
     <link rel="stylesheet" href="css/app.css">
-    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
     <script src="node_modules/socket.io-client/socket.io.js"></script>
 </head>
-<body ng-app="visualisationYCSB" flex>
 
+<body ng-app="visualisationYCSB" flex>
 <div layout="column" flex>
     <md-toolbar id="main-nav">
         <div class="md-toolbar-tools">
@@ -27,7 +30,6 @@
     <div class="main-nav-placeholder"></div>
     <div ng-class="classView" ng-view class="view-container"></div>
 </div>
-
 </body>
 
 <!-- Librairies -->
@@ -40,9 +42,11 @@
 <script src="node_modules/angular-socket-io/socket.min.js"></script>
 <script src="node_modules/highcharts/adapters/standalone-framework.js"></script>
 <script src="node_modules/highcharts/highstock.src.js"></script>
+<script src="node_modules/highcharts/highcharts-more.js"></script>
 <script src="node_modules/highcharts/modules/exporting.js"></script>
 <script src="node_modules/highcharts/modules/offline-exporting.js"></script>
 <script src="lib/export-csv-custom.js"></script>
+<script src="lib/simple-statistics-sample.js"></script>
 
 <!-- Angular controllers -->
 <script src="stats/stats.controller.js"></script>

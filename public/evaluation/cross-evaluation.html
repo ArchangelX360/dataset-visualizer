@@ -41,11 +41,13 @@
     </div>
 
     <div ng-if="generationMode" layout="column" layout-align="center center">
-            <hc-comparaison-chart title="Average Load Efficiency Evolution" type="average_load"
+            <hc-comparaison-chart title="Average Load Efficiency Evolution" type="load" charttype="line" seriestype=""
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
-            <hc-comparaison-chart title="Average Run Efficiency Evolution" type="average_run"
+            <hc-comparaison-chart title="Average Run Efficiency Evolution" type="run" charttype="boxplot" seriestype=""
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
-            <hc-comparaison-chart title="Execution Time Efficiency Evolution" type="execution_time"
+        <hc-comparaison-chart title="Average Run Efficiency Evolution" type="run" charttype="line" seriestype="column"
+                              initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
+            <hc-comparaison-chart title="Execution Time Efficiency Evolution" type="execution_time" charttype="line" seriestype="spline"
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
     </div>
 </div>

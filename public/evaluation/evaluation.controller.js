@@ -190,19 +190,22 @@ angular.module('evaluationController', [])
                 title: '@',
                 initfunc: '=',
                 type: '@',
+                charttype: '@',
+                seriestype: '@'
             },
             link: function (scope, element) {
                 Highcharts.setOptions(Highcharts.theme);
-                Highcharts.chart(element[0], {
+                var chartObject = {
                     chart: {
                         width: 1080,
                         height: 800,
                         events: {
                             load: function () {
                                 var chart = this;
-                                scope.initfunc(chart, scope.type);
+                                scope.initfunc(chart, scope.type, scope.charttype, scope.seriestype);
                             }
-                        }
+                        },
+                        type: scope.charttype
                     },
                     title: {
                         text: scope.title
@@ -214,7 +217,7 @@ angular.module('evaluationController', [])
                         plotLines: [{
                             value: 0,
                             color: 'black',
-                            width: 2,
+                            width: 2
                         }]
                     },
                     legend: {
@@ -225,7 +228,8 @@ angular.module('evaluationController', [])
                         shared: true
                     },
                     series: []
-                });
+                };
+                Highcharts.chart(element[0], chartObject);
             }
         };
     })
@@ -233,7 +237,8 @@ angular.module('evaluationController', [])
 
         /**
          * Sort a workload filenames array by number of points with the following format:
-         * <letter_of_workload><number_of_points>k
+         * <number_of_points><letter_of_workload>
+         *     Example: 1000a, 10000b, etc.
          *
          * NOTE: this is a very specific function, you might want to override it
          *
@@ -242,7 +247,7 @@ angular.module('evaluationController', [])
          * @returns {number}
          */
         function sortWorkloadFilenames(a, b) {
-            return parseInt(a.substr(1).split('k')[0]) - parseInt(b.substr(1).split('k')[0]);
+            return parseInt(a) - parseInt(b);
         }
 
         /**
@@ -251,28 +256,84 @@ angular.module('evaluationController', [])
          * @param chart the highcharts object
          * @param highchartsCategories the x-axis categories
          * @param highchartsData the y-axis data (ordered the same way as categories) // FIXME
+         * @param chartType the chart type (boxplot or other)
+         * @param seriesType the series type (line or column are the more relevant here)
          */
-        function initComparaisonChart(chart, highchartsCategories, highchartsData) {
+        function initComparaisonChart(chart, highchartsCategories, highchartsData, chartType, seriesType) {
+            // TODO: refactor !
             $log.info('[CROSS] Initializing chart');
             if ($scope.fixedScale) {
                 //chart.yAxis[0].setExtremes(-100, 100, true);
             }
-            chart.xAxis[0].setCategories(highchartsCategories);
+            var scaleXAxis = isParamXAxis("workloads");
+            var xAxisData;
+            if (scaleXAxis) {
+                xAxisData = highchartsCategories.map(function (workloadStr) {
+                    var numberOfPoints = parseInt(workloadStr);
+                    if (isNaN(numberOfPoints)) {
+                        scaleXAxis = false;
+                        return workloadStr;
+                    } else {
+                        return numberOfPoints;
+                    }
+                });
+            }
+            if (!scaleXAxis) { // CAREFUL: should not be placed before previous if block
+                chart.xAxis[0].setCategories(highchartsCategories);
+            }
 
             for (var fileId in highchartsData) {
                 if (highchartsData.hasOwnProperty(fileId)) {
-                    /*chart.addSeries({
-                     id: fileId,
-                     name: fileId,
-                     type: "column",
-                     data: highchartsData[fileId]
-                     });*/
-                    chart.addSeries({
-                        id: fileId + "-spline",
-                        name: fileId + "-spline",
-                        type: "spline",
-                        data: highchartsData[fileId]
-                    });
+
+                    if (chartType === "boxplot") {
+
+                        var dataBoxplot = highchartsData[fileId];
+                        var dataMedian = [];
+                        if (scaleXAxis) {
+                            dataBoxplot = [];
+                            highchartsData[fileId].forEach(function (measure, index) {
+                                dataBoxplot.push([xAxisData[index]].concat(measure));
+                            });
+                        }
+                        highchartsData[fileId].forEach(function (measure, index) {
+                            if (scaleXAxis) {
+                                dataMedian.push([xAxisData[index], measure[2]]);
+                            } else {
+                                dataMedian.push(measure[2]);
+                            }
+                        });
+
+
+                        chart.addSeries({
+                            id: fileId + "-boxplot",
+                            name: fileId + "-boxplot",
+                            data: dataBoxplot
+                        });
+                        chart.addSeries({
+                            id: fileId + "-median",
+                            name: fileId + "-median",
+                            type: "spline",
+                            data: dataMedian
+                        });
+
+                        chart.get(fileId + "-median").hide();
+
+                    } else {
+                        var dataOther = highchartsData[fileId];
+                        if (scaleXAxis) {
+                            dataOther = [];
+                            highchartsData[fileId].forEach(function (measure, index) {
+                                dataOther.push([xAxisData[index], measure]);
+                            });
+                        }
+
+                        chart.addSeries({
+                            id: fileId + "-" + seriesType,
+                            name: fileId + "-" + seriesType,
+                            type: seriesType,
+                            data: dataOther
+                        });
+                    }
                 }
             }
             $scope.loading = false;
@@ -410,7 +471,7 @@ angular.module('evaluationController', [])
             }
         };
 
-        $scope.initComparaisonChartRoutine = function (chart, type) {
+        $scope.initComparaisonChartRoutine = function (chart, type, chartType, seriesType) {
             $scope.loading = true;
             var xAxisParam;
             var highchartsDataMap = {};
@@ -454,12 +515,12 @@ angular.module('evaluationController', [])
                                 Evaluations.getResults(filename).then(function (response) {
                                         if (typeof  highchartsDataMap[idFile] === "undefined")
                                             highchartsDataMap[idFile] = [];
-                                        highchartsDataMap[idFile][index] = response.data.results["percents"][type] - 100;
+                                        highchartsDataMap[idFile][index] = getResult(response, type, chartType);
                                         --iterations;
-                                        $log.info('[CROSS] iterations: ' + iterations);
 
                                         if (iterations <= 0) {
-                                            initComparaisonChart(chart, highchartsCategories, highchartsDataMap);
+                                            initComparaisonChart(chart, highchartsCategories, highchartsDataMap,
+                                                chartType, seriesType);
                                         }
                                     },
                                     function (err) {
@@ -473,6 +534,63 @@ angular.module('evaluationController', [])
                 });
             });
         };
+
+        function evaluationTypeToArray(response, type) {
+            // TODO: refactor !
+            var measures = response.data.data;
+
+            var raw = measures.filter(function (measure) {
+                return (measure.type === "raw");
+                // BE CAREFUL: if other measurement are supported, this needs to change
+            }).sort(function (a, b) {
+                return a.iteration - b.iteration;
+            });
+
+            var frontend = measures.filter(function (measure) {
+                return (measure.type === "frontend");
+            }).sort(function (a, b) {
+                return a.iteration - b.iteration;
+            });
+
+            if (raw.length !== frontend.length) {
+                throw "Internal error in evaluation script, " +
+                "both measurement types should have the same amount of measures."
+            } else {
+                var resultArray = [];
+                for (var i = 0; i < raw.length; ++i) {
+                    var percent;
+                    var frontendValue = frontend[i][type];
+                    var rawValue = raw[i][type];
+                    percent = frontendValue * 100 / rawValue;
+                    resultArray.push(percent - 100);
+                }
+                return resultArray;
+            }
+        }
+
+        function getResult(response, type, chartType) {
+            // TODO: refactor !
+            if (chartType === "boxplot") {
+                if (type === "execution_time") {
+                    throw "No boxplot for execution time chart!"
+                }
+
+                var array = evaluationTypeToArray(response, type);
+                return [
+                    Math.min.apply(null, array),
+                    quantile(array, 0.25),
+                    quantile(array, 0.5),
+                    quantile(array, 0.75),
+                    Math.max.apply(null, array)
+                ];
+            } else {
+                if (type === "execution_time") {
+                    return response.data.results["percents"][type] - 100;
+                }
+
+                return quantile(evaluationTypeToArray(response, type), 0.5);
+            }
+        }
 
         $scope.loading = true;
         $scope.fixedScale = true;
