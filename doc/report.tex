@@ -140,9 +140,9 @@
 
 \chapter*{Abstract}
 
-Benchmark softwares often produce text results that are hard to read. Developers usually create parsing tools and chart generator to generate chart based on end results when dealing with their evaluation phase.
+Benchmark softwares often produce hard to read text results. When dealing with their evaluation phase, developers usually create parsing tools and chart generators to make chart based on these results.
 
-This document presents a web visualizer originally made for Yahoo! Cloud Serving Benchmark but extensible to any software. It generates charts in pseudo real-time based on results of ongoing benchmarks stored on-the-fly in a storage database. \todo{reformulate..}
+This document presents a web visualizer originally made for Yahoo! Cloud Serving Benchmark but usable with any software that can communicate with a MongoDB database. It generates charts in pseudo real-time based on ongoing benchmarks' results stored on-the-fly in a storage MongoDB database. 
 
 \tableofcontents
 
@@ -163,9 +163,9 @@ Finally, I would like to thank Ms. \auteur{Emy}{Sicard-Delage} for spell checkin
 
 \chapter*{Introduction}
 
-Yahoo! Cloud Serving Benchmark --- YCSB in a shorten form intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are often used to make an architectural decision by commonly answering the following question: which specific database should we use for this particular use case?
+Yahoo! Cloud Serving Benchmark --- YCSB in its shorten form, intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are often used to make an architectural decision by commonly answering the following question: which specific database should we use for this particular use case?
 
-The Chair of Systems Engineering at The Technische Universität Dresden is using this software in their research. They want to make longer benchmark than the high majority of people who use this software. YCSB is producing results or output at the end of the benchmark phase and this is not convenient as a single benchmark phase could last days in our scenario.
+The Chair of Systems Engineering at The Technische Universität Dresden is using this software for research purpose. They want to make longer benchmarks than the high majority of people who use this software. YCSB is producing results or output at the end of the benchmark phase and this is not convenient as a single benchmark phase could last days in our scenario.
 
 First, we decided to implement an extension module of YCSB to include a pseudo real-time display of the results. The major challenge was not to slow down the processing speed of YCSB neither influence the benchmark results. 
 
@@ -263,7 +263,7 @@ The workstation provided by the university was perfect, I had strong personal ma
 
 \section{Internship benefits}
 
-As I pointed out in chapter \ref{partnership}, this internship did help me discover the research environment. It was interesting to realize that a PhD. student work was not quite as expected before working there. It is more a time management work to handle lecture exercises, side work like chair projects and last but not least your actual research work.
+This internship helped me discover the research environment. It was interesting to realize that a PhD. student work was not quite as expected before working there. It is more a time management work divided into handle lecture exercises, side work like chair projects and last but not least your actual research work.
 
 I think it would be an interesting place to work as it is different from a company working atmosphere. Despite a colorful and pleasant environment, I wish to continue my career by some company years before. 
 
@@ -277,7 +277,7 @@ I'm still interested in a PhD. but I think I lack of company experiences at the 
 
 \subsection{Team}
 
-My supervisor --- Robert Krahn --- was the only person I actually work with. Nonetheless, people from the chair were also there to discuss ideas as I said in \ref{working_environment}. His inputs were valuable and he assisted me for decisive choices. He also guided me through the realization of this project as he will be one of its first user.
+My supervisor --- Robert Krahn --- was the only person I actually work with. Nonetheless, people from the chair were also there to discuss ideas as I said in \ref{working_environment}. His inputs were crucial and he assisted me for decisive choices. He also guided me through the realization of this project as he will be one of its first user.
 
 Robert presented me the purpose of the application and features I needed to implement as an extension module of Yahoo! Cloud Serving Benchmark code base. We refined these specifications over the development to make it suits future users needs.
 
@@ -303,7 +303,7 @@ The user defines a custom workload --- set of parameters which define how the be
 
 YCSB work is to store each CRUD operation execution time --- called \texttt{latency}. It provides measurement results --- \texttt{latencies} --- of the operations made during both \texttt{load} and \texttt{run} phase at the end of each phase.
 
-YCSB has different way of displaying results, the most simple way is the RAW measurement type made by Google\footnote{Google RAW measurement type source code: \url{https://github.com/brianfrankcooper/YCSB/blob/master/core/src/main/java/com/yahoo/ycsb/measurements/OneMeasurementRaw.java}} as it simply displays a list of operations alongside with timestamps and latency results for each operation. Other measurement types exist and provide more information like quantiles or reducing precision to make results easier to read as timeseries average.
+YCSB has different way of displaying results, the most simple way is the RAW measurement type made by Google\footnote{Google RAW measurement type source code: \url{https://github.com/brianfrankcooper/YCSB/blob/master/core/src/main/java/com/yahoo/ycsb/measurements/OneMeasurementRaw.java}} as it simply displays a list of operations alongside with timestamps and latency results for each operation. Other measurement types exist and provide more information like quantiles or reducing precision to make results easier to read as timeseries' average buckets.
 
 \subsubsection{What is the goal of our module and application?}
 
@@ -329,7 +329,7 @@ Our web visualization is fetching the storage database measures and processing i
 
 \chapter{Technical details}\label{techical_chapter}
 
-Before the beginning of this chapter, we would like to inform you that two \texttt{README.md} files are available for both the visualization application and the YCSB extension module. They have a lot of valuable information about application parameters, tweaks and so on. We deeply encourage you to consult these files at the end of this chapter if you want more details as some parts will not be presented in this report.
+Before the beginning of this chapter, we would like to inform you that two \texttt{README.md} files are available for both the visualization application and the YCSB extension module. They have valuable information about application parameters, tweaks and so on. We deeply encourage you to consult these files at the end of this chapter if you want more details as some parts will not be presented in this report.
 
 \section{Application architecture}\label{app_archi_section}
 
@@ -343,15 +343,15 @@ The proposed solution architecture is made of two major parts that could operate
 \end{center}
 \end{figure}
 
-You can see on Figure \ref{app_archi_fig} the different application module and the technology that we used, AngularJS, NodeJS, MongoDB, etc. We will elaborate on our technology choices when describing each module in section \ref{technical_description}. 
+You can see on Figure \ref{app_archi_fig} the different application modules and technologies that we used, AngularJS, NodeJS, MongoDB, etc. We will elaborate on our technology choices when describing each module in section \ref{technical_description}. 
 
 \subsection{Architectural choices}
 
-At first, we wished to expose a RestAPI directly from the YCSB Java application with technologies like Hazelcast. Sadly, it was drastically slowing the warm-up phase of YCSB so we tried a lightweight solution with ActiveJDBC and Spark Java --- not to be confused with Apache Spark and even this lightweight solution was slowing YCSB too much. 
+At first, we wished to expose a RestAPI directly from the YCSB Java application with technologies like Hazelcast. Sadly, it was drastically slowing the warm-up phase of YCSB so we tried a lightweight solution with ActiveJDBC and Spark Java --- not to be confused with Apache Spark --- and even this lightweight solution was slowing YCSB too much. 
 
 Moreover, it forces the user to let YCSB running in the back even if no benchmark was launch thus the application modularity was not good enough for the maintainability of the solution. 
 
-We realized that the performance reduction was inherent to the solution we proposed, we tried to bundle our solution too much. So we finally decided to let a MongoDB storage database be our "API" between the YCSB application and our web server. The database connection is quicker thus has a reduced impact on the warm-up phase compared to the former solutions. Also, the modularity provided by the storage DB allows my client/server application to communicate with \textit{every software capable of storing data into a MongoDB database}.
+We realized that the performance reduction was inherent to the solution we proposed, we tried to bundle our solution too much. So we finally decided to let a MongoDB storage database be our "API" between the YCSB application and our web server. The database connection is quicker thus has a reduced impact on the warm-up phase compared to the former solutions. Also, the modularity provided by the storage DB allows our client/server application to communicate with \textit{every software capable of storing data into a MongoDB database}.
 
 \section{Solution features}\label{technical_description}
 
@@ -359,11 +359,11 @@ We realized that the performance reduction was inherent to the solution we propo
 
 As mention in section \ref{app_archi_section}, the software module has to store the software measures into the storage database. In our case, our software was YCSB so we needed to extend YCSB functionalities to achieve a real-time storage of its measurements. 
 
-Here, we will explain how the fetching process works and how does it store measures into the storage database.
+Here, we will explain how the fetching process works and how does it stores measures into the storage database.
 
-\subsubsection{Frontend MeasurementType} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need the concurrent aspect.
+\subsubsection{Frontend MeasurementType} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need that concurrent aspect.
 
-\paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database. Do not worry, we have made a cool diagram (Figure \ref{concurrent_map_scheme}) for you to summarize all this.
+\paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database. Do not worry, we have made a cool diagram (Figure \ref{concurrent_map_scheme}) to summarize all this for you.
 
 \subsubsection{Fetching method}
 
@@ -390,7 +390,7 @@ We summarized the fetching process with an example that shows the \texttt{Concur
 
 \subsubsection{Communication with the storage database}
 
-A single connection is issued with our MongoDB storage database in the executor thread. We used the native driver of MongoDB and unordered BULK writes for efficiency in insertion.
+Only one connection is established with our MongoDB storage database in the executor thread. We used the native driver of MongoDB and unordered BULK writes for efficiency in insertion.
 
 Indeed, as we had a large amount of measures to store at the same time on only one collection, we could use the performance advantage of a BULK write. Also, as we used a number to identify the order of our documents, we did not need to store them in an ordered fashion. This is much more efficient as MongoDB has full control on the insertions and makes the right performance choice regarding order. 
 
@@ -410,13 +410,13 @@ Here, we will elaborate on the purpose of each of our architecture module and ex
 
 \paragraph{Chart features}
 
-Charts are automatically and periodically updating their points based on the storage database content. You only have to define which operation and type of chart you want to show and the chart will be initialized and updated over the time. We organize our views by benchmark identified by an unique name.
+Charts are automatically and periodically updating their points based on the storage database content. You only have to define which operation and type of chart you want to show and the chart will be initialized and updated over the time. We organize our views by benchmark --- identified by an unique name.
 
 On top of this, Highcharts library \cite{highcharts:website} provides us a large set of interesting features. 
 The navigator is useful to zoom and get a precise view of our dataset as you can see on Figure \ref{chart_not_zoomed_zoomed}. 
 Moreover, chart axes are automatically adjusting regarding of the data it displays which is convenient. 
 
-Charts are exportable into SVG image, CSV file of the whole series by a database dump or CSV file of the currently displayed series --- including averages.It can be useful to include results into documents as you can see on Figure \ref{chart_exportation}.
+Charts are exportable into SVG image, CSV file of the whole series by a database dump or CSV file of the currently displayed series --- including averages. It can be useful to include results into documents as you can see on Figure \ref{chart_exportation}.
 
 The chart view generates two average series each based on:
 \begin{itemize}
@@ -446,7 +446,7 @@ These lines are available for line charts only and can be disabled in the code w
 \clearpage
 \subparagraph{YCSB warm-up phase suppressor}
 
-During our experimentation, we noticed YCSB warm-up phase is drastically altering the average as the first operation latency measure includes the warm-up phase duration. We recommend that YCSB users remove the first point of their results if they want an cleaned average. The chart navigator can be used to do so by shrinking the window to remove the first point. The second average line will indicate an adjusted average that reflects the overall latency of the benchmark better.
+During our experimentation, we noticed YCSB warm-up phase was drastically altering the average as the first operation latency measure includes the warm-up phase duration. We recommend that YCSB users remove the first point of their results if they want an cleaned average. The chart navigator can be used to do so by shrinking the window to remove the first point. The current window average line will then indicate an adjusted average that reflects the overall latency of the benchmark better.
 
 \paragraph{Better than a simple visualizer for YCSB}
 
@@ -462,7 +462,7 @@ We implemented a benchmark launcher view to easily start YCSB benchmark from our
 \end{center}
 \end{figure}
 
-We provide a standard output/error feedback (Figure \ref{cli_feedback}) thus the user interface launcher will not alter former users' experience as they will still have YCSB console output information like they used to have.
+We provide a standard output/error feedback (Figure \ref{cli_feedback}) thus the user interface launcher will not alter former users' experience as they will have YCSB console output information like they used to have.
 
 \begin{figure}[ht]
 \begin{center}
@@ -476,7 +476,7 @@ We provide a standard output/error feedback (Figure \ref{cli_feedback}) thus the
 
 This interface is \textit{totally optional} and you can obviously use YCSB with its command line interface. The latter will work just as good as our launcher view with our visualizer.
 
-This interface is specific to YCSB and does not support other benchmark software.
+This interface is specific to YCSB and does \textbf{not} support other benchmark software.
 
 \subparagraph{Workload editor}
 
@@ -484,17 +484,15 @@ We also implemented a simple workload editor that save yourself wasting time by 
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=1\linewidth]{images/workload_editor.png}
+\includegraphics[width=0.8\linewidth]{images/workload_editor.png}
 \caption{Simple workload editor.}
 \label{workload_editor}
 \end{center}
 \end{figure}
-
-\afterpage{\clearpage}
-
+\clearpage
 \paragraph{Server role}
 
-The main role of our server is to retrieve measures from the storage database and deliver them to the client. Furthermore, it handles the YCSB benchmark launch, provide the CLI feedback and execute file operations asked by the workload editor. 
+The main role of our server is to retrieve measures from the storage database and deliver them to the client. Furthermore, it handles the YCSB benchmark launch, provides the CLI feedback and executes file operations asked by the workload editor. 
 
 \subsubsection{Server side technology choices}
 
@@ -510,15 +508,17 @@ Our server is capable of handling multi-millions points benchmarks. We used Mong
 
 When handling large datasets, NodeJS asks MongoDB to use aggregations to group measures by making averages thus optimize the view fluidity. This grouping process reduces measurements' precision. This loss is illustrated by the example on Figure \ref{mongo_agg}. In this example, you would get 3 average measures --- buckets --- each based on 3 successive values instead of getting 9 plain measures.
 
-The limit between a large and small dataset is fixed by a user parameter called \texttt{MAX\_POINTS}. The better your computer and browser are, the higher you can set the value and the smaller the average buckets will be thus you will have a more precise dataset. Again, please consult the \texttt{README.md} file for more information.
+The limit between a large and small dataset is fixed by an user parameter called \texttt{MAX\_POINTS}. The better your computer and browser are, the higher you can set the value and the smaller the average buckets will be thus you will have a more precise dataset. Again, please consult the \texttt{README.md} file for more information.
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.4]{images/mongodb-agg.png}
+\includegraphics[scale=0.35]{images/mongodb-agg.png}
 \caption{Simple illustration of MongoDB aggregation process.}
 \label{mongo_agg}
 \end{center}
 \end{figure}
+
+\clearpage
 
 \subsubsection{Client side technology choices}
 
@@ -532,7 +532,7 @@ These tasks check the current size of the benchmark to decide if a MongoDB aggre
 
 \paragraph{Highcharts library: data grouping}\label{data_grouping} There is plenty of chart libraries for web applications but Highcharts most valuable asset is its DataGrouping and that is why we chose it.
 
-Indeed, Highcharts automatically groups points based on there proximity --- pixel wise --- and if you zoom in you will get your precision back as the chart will be repopulated by missing points. It makes charts look great and readable as well as keeping the original precision.
+Indeed, Highcharts automatically groups points based on there proximity --- pixel wise --- and if you zoom in you will get your precision back as the chart will be repopulated by former missing points. It makes charts look great and readable as well as keeping the original precision.
 
 We have then two optimizations for large dataset, Highcharts client side data grouping that reduces the number of points display on charts without loosing information and MongoDB server side aggregation process for larger benchmark that reduces precision of measurements a bit.
 
@@ -561,7 +561,7 @@ tell our application how should Highcharts understand it
 which Highcharts chart type you wish to display
 \end{itemize}
 
-These three points are, in fact, trivial functions that are obvious and effortless to write. On the contrary, supporting large dataset with your custom type would be a little bit harder to do, depending on your chart type, because it would require some MongoDB aggregation understandings.
+These three points are, in fact, trivial functions that are obvious and effortless to write. On the contrary, supporting large dataset with your custom type would be \textbf{a little bit harder} to do, depending on your chart type, because it would require some MongoDB aggregation understandings.
 
 \subsubsection{Candlestick example}
 
@@ -571,7 +571,7 @@ Again, for more specific details of implementation, please consult the \texttt{R
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.6]{images/candlestick.png}
+\includegraphics[scale=0.45]{images/candlestick.png}
 \caption{Example of a candlestick chart.}
 \label{candlestick}
 \end{center}
@@ -697,7 +697,11 @@ $$\Longleftrightarrow bucketSize = \frac{benchmarkLength}{fixedUserConstant} $$
 
 \chapter*{Conclusion}
 
-Our YCSB extension module alongside with our visualizer application are made to
+This internship was for me the first time that I had a real dataset size concerns. Optimizing code and building our solution around these issues were the most interesting parts of this project. Every single mechanism could become a bottleneck when dealing with this amount of data, database aggregation, HTTP communications, Angular page rendering, etc. I regret not to have time to go further on the optimization of the communications between NodeJS and AngularJS with binary compressed data transfer for example but for most of the use cases it would have been "overkill".
+
+Speaking of optimization, the hardest part was to know where to stop. Indeed, each optimization must be done after answering the following question: \textit{"Isn't it too much?"}. When I was trying to redesign some of my module to make it fit the size issue, I tend to try all kind of optimizations I could think of. It was obviously a mistake but fortunately I realized it soon enough. This internship help me understand the basis of how to evaluate the value of an optimization.
+
+The journey abroad reinforce my will to deal with large scale application in depth thus with "Ingénierie du Cloud Computing" option at the EISTI. I wish to discover more of the company's life and working methods on my next internship.
 
 \todo{CV A LA FIN}
 \clearpage
