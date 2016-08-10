@@ -197,7 +197,7 @@ angular.module('evaluationController', [])
                 Highcharts.setOptions(Highcharts.theme);
                 var chartObject = {
                     chart: {
-                        width: 1080,
+                        width: 1900,
                         height: 800,
                         events: {
                             load: function () {
