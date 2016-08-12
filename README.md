@@ -261,25 +261,25 @@ Indeed, it slows down YCSB to much in this case.
 We did not want to force YCSB users to wait because our module was slow on tiny benchmarks. 
 So we made an import module on the web interface!
 
-YCSB users can launch their tiny benchmark without using our measurement type (inserting results into a file) and then visualize charts by importing their files into our web application!
+YCSB users can launch their tiny benchmarks without using our measurement type. This means launching YCSB the old way with a file insertion at the end. Then, they can visualize charts by importing their files into our web application!
 
 For that, you need to place the files you want to import at the location specified by the *importFileFolder* variable in the _config/system.js_ file.
-Our web interface will then provide you an HTML select to chose which file you want to import (go to #/stats/ route).
+Our web interface will then provide you an HTML select to chose which file you want to import (go to *#/stats/* route).
 
 ### File Parsers
 
-You will notice a second select when arriving on the #/stats/ route. 
+You will notice a second select when arriving on the *#/stats/* route. 
 For now, the only measurement type that is supported by our import module is the RAW measurement type.
 
 However, it is simple to implement new parsers! 
-Take a look at the _app/routes/import.js_ file for more informations.
+Take a look at the _app/routes/import.js_ file for more information.
 
 ### Limitations
 
 The import module is not persistent! You will need to import your file each time you want to visualize them as they are not stored into the MongoDB database.
 Also, it does obviously not support real-time updates.
 
-## Using another software ? No problem!
+## I want real-time... but not YCSB!
 
 At first, our vizualizer was made for YCSB, but during the development we thought it would be great for it to support any kind of benchmarking software or more generally every software that output data into a MongoDB database.
 
@@ -474,6 +474,8 @@ The precision reduction grow linearly when your benchmark points are increasing.
 ### Almost stuck with MongoDB
 
 You could rebuild the entire NodeJS MongoDB API to make it work with another DB but it wasn't our goal to achieve this compatibility.
+
+However, you could use our import module if you really don't want to deal with MongoDB.
 
 ### Highcharts library
 
