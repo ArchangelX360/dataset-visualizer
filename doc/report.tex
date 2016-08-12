@@ -542,6 +542,29 @@ Moreover, this library provides easily "tweakable" graphs and that handles updat
 
 \section{Increasing support}
 
+\subsection{File import module}
+
+We realized during the development of our extension module for YCSB that it was not made for tiny benchmark --- around 1k to 10k points. Indeed, it slows down YCSB to much in this case --- SPOILER ALERT... too late, sorry! We did not want to force YCSB users to wait because our module was slow on tiny benchmarks. So we made an import module on the web interface!
+
+\paragraph{How does it work?}
+
+YCSB users launch their tiny benchmarks without using our measurement type, for example they could use the RAW measurement type. This means launching YCSB the old way with a file insertion at the end. Then, they can visualize charts by importing their files into our web application (See Figure \ref{import_module})!
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=0.35]{images/import_module.png}
+\caption{Import module location.}
+\label{import_module}
+\end{center}
+\end{figure}
+
+\paragraph{Limitations}
+
+For now, the only measurement type that is supported by our import module is the RAW measurement type. However, it is simple to implement new parsers! For more information consult the \texttt{README.md} file of the visualization application.
+
+The import module is not persistent! You will need to import your file each time you want to visualize them as they are not stored into the MongoDB database.
+Also, it does obviously not support real-time updates.
+
 \subsection{Other software than YCSB}
 
 At first, the main idea was to provide a visualization web interface for YCSB benchmarks. Nonetheless, we realized that as we build this modular solution, we could support any software that could store data into a MongoDB database.
@@ -585,13 +608,13 @@ YCSB speed is based on the operation it can achieve by seconds --- ops/sec or \t
 
 This evaluation will be comparing the RAW measurement type of Google and our custom measurement type that stores values into the storage database.
 
-We will evaluate two indicators, the first one is the \textit{Throughput} of YCSB and the second one is the overall execution time of a benchmark phase. Indeed, this second parameter appears like a interesting comparison indicator of our module as our measurement type requires a database connexion and an additional thread.
+We will evaluate two indicators, the first one is the YCSB's \textit{Throughput} of a benchmark phase and the second one is the overall execution time of a benchmark phase. Indeed, this second parameter appears like an interesting comparison indicator of our module as our measurement type requires a database connexion and an additional thread.
 
 \bigskip
 
-This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will \textbf{not} compare results between different operation proportions --- different workloads (A,B,C,etc.) --- as the process involved by this parameter change is identical in the two measurement types and refer to a YCSB specific behavior. 
+This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will \textbf{not} compare results between different operation proportions --- different workloads (A, B, C, etc.) --- as the process involved by this parameter change is identical in the two measurement types thus refer to a YCSB specific behavior. 
 
-However, we will compare the influence of remote or local state of both storage and benchmarked databases and the difference between a single and multi threaded YCSB. 
+However, we will compare the influence of remote or local state of both storage and benchmarked databases and the difference between a single and multi threaded YCSB benchmarking process. 
 
 We will also compare a major factor for the extension module measurement type: the number of points in the benchmark. We want to remind you that our module is made for large benchmarks and we do not expect it to work efficiently for small benchmarks.
 
@@ -603,7 +626,15 @@ As intended, the more points the benchmark has, the closer the execution time of
 
 \todo{schema}
 
-\subsubsection{Remote storage database}
+\subsubsection{Remote/Local storage database}
+
+\todo{continuer}
+
+\subsubsection{Remote/Local benchmarked database}
+
+\todo{continuer}
+
+\subsubsection{Single/Multi threaded environment}
 
 \todo{continuer}
 
@@ -624,7 +655,7 @@ a local benchmarked database
 \item
 a local storage database
 \item
-1 client threads
+single threaded environment (1 client thread)
 \end{itemize}
 
 \begin{figure}[ht]
@@ -639,7 +670,7 @@ The execution time efficiency is quasi identical when we tweak parameters like c
 
 \bigskip
 
-As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. The latter could be assimilated as the writing of the results into file made in the RAW measurement and may not influence the execution time difference too much.
+As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. However, the latter could be assimilated as the writing of the results into file made in the RAW measurement and may not influence the execution time difference too much.
 
 \clearpage
 
@@ -673,6 +704,8 @@ Our visualizer will work regardless of the number of points the benchmark has. H
 \subsubsection{Storage database}
 
 You could rebuild the entire NodeJS MongoDB API to make it work with another DB but it wasn't our goal to achieve this compatibility.
+
+However, you could use our import module if you really don't want to deal with MongoDB database.
 
 \subsubsection{Display: linear loss of accuracy}
 
