@@ -249,7 +249,7 @@ Then go to <http://localhost:5555> !
 
 **NOTE:** adapt the _max-old-space-size_ relying on your machine performances.
 
-## Don't want to deal with a storage DB?
+## Import raw files to display their results
 
 This section is about importing raw files into our visualizer to display them instead of using the YCSB frontend measurement type.
 
