@@ -1,3 +1,9 @@
+<style>
+    md-input-container {
+        width: 290px;
+    }
+</style>
+
 <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="!loading"></md-progress-linear>
 
 <div class="benchmark-nav-container">
@@ -7,9 +13,28 @@
     </md-nav-bar>
 </div>
 
-
-<div ng-if="!benchmarkName" flex layout="row" layout-align="center center">
+<div ng-if="!benchmarkName" flex layout="column" layout-align="center center">
     <h1 class="md-display-1">Select a benchmark in the navbar to watch its results in real time !</h1>
+    <p>-- OR --</p>
+    <form name="importForm" layout="column">
+        <md-input-container>
+            <label for="filename-select">Import a YCSB dump file</label>
+            <md-select id="filename-select" ng-model="importParams.filename" required">
+                <md-option ng-value="f" ng-repeat="f in importFiles">{{f}}</md-option>
+            </md-select>
+        </md-input-container>
+        <md-input-container>
+            <label for="parser-select">File parser</label>
+            <md-select id="parser-select" ng-model="importParams.fileParser" required>
+                <md-option ng-value="p" ng-repeat="p in supportedImportMeasurementType">{{p}}</md-option>
+            </md-select>
+        </md-input-container>
+    </form>
+    <md-button class="md-raised md-accent md-primary md-button md-ink-ripple"
+               aria-label="Observe measures"
+               ng-href="#/stats/{{importParams.filename}}/{{importParams.fileParser}}">
+        Observe Imported file results
+    </md-button>
 </div>
 <div ng-if="benchmarkName">
 
@@ -24,6 +49,8 @@
                             seriestype="{{seriesType}}"
                             updatefunc="updateRoutine"
                             initfunc="initRoutine"
+                            importfunc="initWithFile"
+                            fileparser="fileParser"
                             updateinterval="intervals[customlabel]"
                             ng-repeat="(customlabel, seriesType) in labelTypeMap"></hc-operation-chart>
     </div>

@@ -28,6 +28,6 @@ angular.module('benchmarkService', [])
             },
             generateRawDBDump: function (benchmarkName, label) {
                 return $http.get('/api/dump/' + benchmarkName + '/' + label);
-            },
+            }
         }
     }]);

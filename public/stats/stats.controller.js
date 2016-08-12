@@ -57,7 +57,9 @@ angular.module('stats', [])
                 seriestype: '@',
                 updatefunc: '=',
                 initfunc: '=',
-                updateinterval: '='
+                updateinterval: '=',
+                fileparser: '=',
+                importfunc: '='
             },
             link: function (scope, element) {
                 element.on('$destroy', function () {
@@ -72,11 +74,17 @@ angular.module('stats', [])
                             load: function () {
                                 // set up the updating of the chart each second
                                 var chart = this;
-                                scope.initfunc(chart, scope.customlabel);
-                                scope.updateinterval = setInterval(function () {
-                                    var extremesObject = chart.get(scope.customlabel + '_xaxis').getExtremes();
-                                    scope.updatefunc(chart, scope.customlabel, Math.round(extremesObject.dataMax));
-                                }, 1500);
+                                if (!scope.fileparser) { // Update if not imported file
+                                    scope.initfunc(chart, scope.customlabel);
+                                    scope.updateinterval = setInterval(function () {
+                                        var extremesObject = chart.get(scope.customlabel + '_xaxis')
+                                            .getExtremes();
+                                        scope.updatefunc(chart, scope.customlabel,
+                                            Math.round(extremesObject.dataMax));
+                                    }, 1500);
+                                } else {
+                                    scope.importfunc(chart, scope.customlabel);
+                                }
                             }
                         }
                     },
@@ -245,9 +253,11 @@ angular.module('stats', [])
         };
     })
     // inject the Benchmark service factory into our controller
-    .controller('StatController', ['$scope', '$rootScope', '$http', 'Benchmarks', '$routeParams', '$mdDialog',
-        '$mdToast', '$location', 'ToastService', '$log', function ($scope, $rootScope, $http, Benchmarks, $routeParams,
-                                                                   $mdDialog, $mdToast, $location, ToastService, $log) {
+    .controller('StatController', ['$scope', '$rootScope', '$http',
+        'Benchmarks', 'ImportFiles', '$routeParams', '$mdDialog',
+        '$mdToast', '$location', 'ToastService', '$log',
+        function ($scope, $rootScope, $http, Benchmarks, ImportFiles, $routeParams,
+                  $mdDialog, $mdToast, $location, ToastService, $log) {
 
             /** CONFIGURATION VARIABLES **/
             $scope.MAX_POINTS = 20000;
@@ -266,11 +276,21 @@ angular.module('stats', [])
                 //"DELETE" : "line",
                 //"AAPL Stock Price": "candlestick"
             };
+            $scope.supportedImportMeasurementType = ['raw'];
+            /* The measurement types supported by the NodeJS server, if you create new parser you need to
+             * add them here :) */
 
             /* VARIABLE INITIALIZATION */
 
             $scope.intervals = {};
             getBenchmarkList();
+            getImportFiles();
+            $scope.fileParser = $routeParams.fileParser;
+            $scope.importParams = {
+                filename: "",
+                fileParser: $scope.supportedImportMeasurementType[0]
+            };
+
             $scope.benchmarkName = $routeParams.benchmarkName;
             $rootScope.pageTitle = ($scope.benchmarkName) ? 'Benchmark results' : 'Select a benchmark';
             $scope.currentNavItem = 'nav-' + $scope.benchmarkName;
@@ -557,6 +577,24 @@ angular.module('stats', [])
             };
 
             /**
+             * Initialization with imported file
+             * @param chart the object chart
+             * @param label the label
+             */
+            $scope.initWithFile = function (chart, label) {
+                ImportFiles.getImportFileContent($scope.benchmarkName, label, $scope.fileParser).then(function (content) {
+                    initSeries(chart, label, content.data, 1);
+                }, function (err) {
+                    if (err.data.hasOwnProperty('code')) {
+                        console.log(err);
+                        ToastService.showToast(ToastService.parseFsError(err.data), 'error');
+                    } else {
+                        ToastService.showToast(err.data, 'error');
+                    }
+                });
+            };
+
+            /**
              * Clears all chart update intervals
              */
             $scope.clearUpdateIntervals = function () {
@@ -616,7 +654,7 @@ angular.module('stats', [])
                 });
             };
 
-            /* NAV FUNCTIONS */
+            /* CONTENT/NAV FUNCTIONS */
 
             /**
              * Get benchmark name list to fill the nav
@@ -627,6 +665,21 @@ angular.module('stats', [])
                 }, function (err) {
                     ToastService.showToast(err.data, 'error');
                 })
+            }
+
+            /**
+             * Get import file names to fill the import select
+             */
+            function getImportFiles() {
+                ImportFiles.getImportFileNames().then(function (result) {
+                    $scope.importFiles = result.data;
+                }, function (err) {
+                    if (err.data.hasOwnProperty('code')) {
+                        ToastService.showToast(ToastService.parseFsError(err.data), 'error');
+                    } else {
+                        ToastService.showToast(err.data, 'error');
+                    }
+                });
             }
 
         }

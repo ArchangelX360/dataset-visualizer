@@ -9,6 +9,7 @@ var app = angular.module('visualisationYCSB', [
     'workloadsController',
     'evaluationController',
     'benchmarkService',
+    'importFileService',
     'workloadService',
     'databasesService',
     'toastService',
@@ -33,7 +34,7 @@ app.config(function ($mdThemingProvider) {
 
 app.config(function ($routeProvider) {
     $routeProvider.when('/', {templateUrl: 'frontpage/frontpage.html', controller: 'FrontpageController'})
-        .when('/stats/:benchmarkName?', {templateUrl: 'stats/stats.html', controller: 'StatController'})
+        .when('/stats/:benchmarkName?/:fileParser?', {templateUrl: 'stats/stats.html', controller: 'StatController'})
         .when('/cmd', {templateUrl: 'cmd/cmd.html', controller: 'CmdController'})
         .when('/workloads', {templateUrl: 'workloads/workloads.html', controller: 'WorkloadsController'})
         .when('/evaluations/:evaluationName?', {

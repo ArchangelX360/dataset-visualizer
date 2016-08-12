@@ -119,18 +119,18 @@ module.exports = {
 Some more configuration are available in the  _config/system.js_ file.
 
 ``` javascript
-var ycsbRoot = "/home/titouan/Documents/ycsb-web-app/ycsb-0.11.0-custom-release/";
+var homeFolder = "/home/titouan/Documents/ycsb-web-app/";
+var ycsbRoot = homeFolder + "ycsb-0.11.1-custom-release/"; // FrontendConcurrencyMap version
 
 module.exports = {
     countersCollectionName: 'counters',
-
     ycsbExecutable: ycsbRoot + 'bin/ycsb',
+    useBindingFile: false,
     ycsbPythonExecutable: ycsbRoot + 'bin/ycsb',
-    useBindingFile: true,
     ycsbBindingsFile: ycsbRoot + 'bin/bindings.properties',
     workloadFolder: ycsbRoot + 'workloads/',
-    dbDumpsFolder: '/home/titouan/Documents/ycsb-web-app/public/dumps/'
-    evaluationsLocation: '/home/titouan/Documents/ycsb-web-app/public/evaluations/'
+    importFileFolder: ycsbRoot + 'imports/',
+    dbDumpsFolder: homeFolder + 'public/dumps/',
 };
 ```
 
@@ -218,6 +218,7 @@ $scope.labelTypeMap = {
     "CLEANUP" : "line",
     "SCAN" : "line",
 };
+... 
 ```
 
 ## Deployment
@@ -248,9 +249,39 @@ Then go to <http://localhost:5555> !
 
 **NOTE:** adapt the _max-old-space-size_ relying on your machine performances.
 
-## What about not using YCSB ?
+## Don't want to deal with a storage DB?
 
-At first, our vizualizer was made for YCSB, but during the development we thought it would be great for it to support any kind of benchmarking software or more generally every software that output data.
+This section is about importing raw files into our visualizer to display them instead of using the YCSB frontend measurement type.
+
+### Explainations
+
+Our extension module of YCSB is not made for tiny benchmark (~1-5k points).
+Indeed, it slows down YCSB to much in this case.
+
+We did not want to force YCSB users to wait because our module was slow on tiny benchmarks. 
+So we made an import module on the web interface!
+
+YCSB users can launch their tiny benchmark without using our measurement type (inserting results into a file) and then visualize charts by importing their files into our web application!
+
+For that, you need to place the files you want to import at the location specified by the *importFileFolder* variable in the _config/system.js_ file.
+Our web interface will then provide you an HTML select to chose which file you want to import (go to #/stats/ route).
+
+### File Parsers
+
+You will notice a second select when arriving on the #/stats/ route. 
+For now, the only measurement type that is supported by our import module is the RAW measurement type.
+
+However, it is simple to implement new parsers! 
+Take a look at the _app/routes/import.js_ file for more informations.
+
+### Limitations
+
+The import module is not persistent! You will need to import your file each time you want to visualize them as they are not stored into the MongoDB database.
+Also, it does obviously not support real-time updates.
+
+## Using another software ? No problem!
+
+At first, our vizualizer was made for YCSB, but during the development we thought it would be great for it to support any kind of benchmarking software or more generally every software that output data into a MongoDB database.
 
 These following points explain how to use our visualizer without YCSB.
 

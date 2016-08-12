@@ -262,10 +262,9 @@ angular.module('evaluationController', [])
         function initComparaisonChart(chart, highchartsCategories, highchartsData, chartType, seriesType) {
             // TODO: refactor !
             $log.info('[CROSS] Initializing chart');
-            if ($scope.fixedScale) {
-                //chart.yAxis[0].setExtremes(-100, 100, true);
-            }
-            var scaleXAxis = isParamXAxis("workloads");
+            //chart.yAxis[0].setExtremes(-100, 100, true);
+
+            var scaleXAxis = isParamXAxis("workloads") && !$scope.forceCategoriesOnXAxis;
             var xAxisData;
             if (scaleXAxis) {
                 xAxisData = highchartsCategories.map(function (workloadStr) {
@@ -316,7 +315,7 @@ angular.module('evaluationController', [])
                             data: dataMedian
                         });
 
-                        chart.get(fileId + "-median").hide();
+                        chart.get(fileId + "-boxplot").hide();
 
                     } else {
                         var dataOther = highchartsData[fileId];
@@ -558,11 +557,9 @@ angular.module('evaluationController', [])
             } else {
                 var resultArray = [];
                 for (var i = 0; i < raw.length; ++i) {
-                    var percent;
                     var frontendValue = frontend[i][type];
                     var rawValue = raw[i][type];
-                    percent = frontendValue * 100 / rawValue;
-                    resultArray.push(percent - 100);
+                    resultArray.push((frontendValue * 100 / rawValue) - 100);
                 }
                 return resultArray;
             }
@@ -585,7 +582,7 @@ angular.module('evaluationController', [])
                 ];
             } else {
                 if (type === "execution_time") {
-                    return response.data.results["percents"][type] - 100;
+                    return response.data.results["percents"][type];
                 }
 
                 return quantile(evaluationTypeToArray(response, type), 0.5);
@@ -593,7 +590,7 @@ angular.module('evaluationController', [])
         }
 
         $scope.loading = true;
-        $scope.fixedScale = true;
+        $scope.forceCategoriesOnXAxis = false;
         $rootScope.pageTitle = "Select a parameter you want to compare";
         initController();
     });

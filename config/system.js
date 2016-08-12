@@ -1,4 +1,5 @@
-var ycsbRoot = "/home/titouan/Documents/ycsb-web-app/ycsb-0.11.1-custom-release/"; // FrontendConcurrencyMap version
+var homeFolder = "/home/archangel/Documents/ycsb-web-app/";
+var ycsbRoot = homeFolder + "ycsb-0.11.1-custom-release/"; // FrontendConcurrencyMap version
 
 module.exports = {
     countersCollectionName: 'counters',
@@ -15,9 +16,11 @@ module.exports = {
     /* Absolute path to the binding.properties file (only needed if useBindingFile set to true) */
     workloadFolder: ycsbRoot + 'workloads/',
     /* Absolute path to the workloads folder */
-    dbDumpsFolder: '/home/titouan/Documents/ycsb-web-app/public/dumps/',
+    importFileFolder: ycsbRoot + 'imports/',
+    /* Absolute path to the import files folder */
+    dbDumpsFolder: homeFolder + 'public/dumps/',
     /* Absolute path to the db dumps folder */
 
     /* FOR EVALUATION ONLY */
-    evaluationsLocation: '/home/titouan/Documents/ycsb-web-app/public/evaluations/'
+    evaluationsLocation: homeFolder + 'public/evaluations/'
 };
