@@ -43,10 +43,12 @@ module.exports = function (router) {
     router.get('/api/infos/evaluations/', function (req, res) {
         fs.readdir(systemConfig.evaluationsLocation, function (err, files) {
             var availableParams = {};
-            files.forEach(function (filename) {
-                parseFileName(availableParams, filename);
-            });
-            utilities.sendResult(res, null, availableParams);
+            if (files) {
+                files.forEach(function (filename) {
+                    parseFileName(availableParams, filename);
+                });
+            }
+            utilities.sendResult(res, err, availableParams);
         });
     });
 
