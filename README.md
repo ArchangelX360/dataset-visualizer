@@ -2,7 +2,7 @@
 
 ## Presentation
 
-Originally design for Yahoo! Cloud Serving Benchmark, this web application displays measures stored in a MongoDB database. It could be used for any kind of data and series type but is mostly used for benchmark measures visualization.
+Originally design for Yahoo! Cloud Serving Benchmark, this web application displays measures stored in a MongoDB database or imported from a raw file. It could be used for any kind of data and series type but is mostly used for benchmark measures visualization.
 
 <p align="center">
   <img src="/doc/images/archi-app.png" />
