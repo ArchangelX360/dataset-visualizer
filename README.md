@@ -4,29 +4,19 @@
 
 Originally design for Yahoo! Cloud Serving Benchmark, this web application displays measures stored in a MongoDB database or imported from a raw file. It could be used for any kind of data and series type but is mostly used for benchmark measures visualization.
 
-<p align="center">
-  <img src="/doc/images/archi-app.png" />
-</p>
-<p align="center">
-  <b>Place in the overall project architecture</b>
-</p>
+![Architecture photo with Client, Server and Storage DB selected.](/doc/images/archi-app.png "Place in the overall project architecture") 
 
+**Place in the overall project architecture**
 
 It supports large dataset (millions of points) and achieves view optimization to display them efficiently. Here's some chart examples:
 
-<p align="center">
-  <img src="/doc/images/xy.png" />
-</p>
-<p align="center">
-  <b>XY chart example</b>
-</p>
+![XY chart example.](/doc/images/xy.png "XY chart example")
 
-<p align="center">
-  <img src="/doc/images/candlestick.png" />
-</p>
-<p align="center">
-  <b>Candlestick example</b>
-</p>
+**XY chart example**
+
+![Candlestick chart example.](/doc/images/xy.png "Candlestick chart example")
+
+**Candlestick chart example**
 
 This application currently has a full YCSB support, you can launch benchmark using YCSB parameters and make your own workload with a Web UI.
 
@@ -148,12 +138,9 @@ If you want to make a large number of measure, our client won't be able to displ
 
 MongoDB is grouping value and making averages to optimise the view and make NodeJS serve results faster. This grouping process reduces measurements' precision. For example, you would get 3 buckets of average each based on 3 successive values instead of getting 9 measures:
 
-<p align="center">
-  <img src="/doc/images/mongodb-agg.png" />
-</p>
-<p align="center">
-  <b>Simple illustration of MongoDB aggregation process</b>
-</p>
+![Simple illustration of MongoDB aggregation process.](/doc/images/mongodb-agg.png "Simple illustration of MongoDB aggregation process")
+
+**Simple illustration of MongoDB aggregation process**
 
  The better your computer and browser are, the higher you can set the _MAX\_POINTS_ value and the smaller these buckets will be. You will have a more precise dataset.
 
@@ -464,12 +451,9 @@ As we see in [MongoDB Aggregation Explaination Section](#aggregation-explainatio
 
 The precision reduction grow linearly when your benchmark points are increasing. The coefficient of this linear reduction is the value the user sets based on his computer performances. We have the following equation:
 
-<p align="center">
-  <img src="/doc/images/bucket-eq.png" />
-</p>
-<p align="center">
-  <b>Bucket size precision equation</b>
-</p>
+![Bucket size precision equation.](/doc/images/bucket-eq.png "Bucket size precision equation")
+
+**Bucket size precision equation**
 
 ### Almost stuck with MongoDB
 
