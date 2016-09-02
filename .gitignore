@@ -50,3 +50,4 @@ boxplotExample
 *.lof
 
 public/evaluations/*
+doc/images/cv.pdf
