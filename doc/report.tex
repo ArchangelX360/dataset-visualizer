@@ -19,6 +19,8 @@
 \usepackage{pdfpages}
 \usepackage{afterpage}
 
+\usepackage{pdfpages}
+
 
 
 % --- Package specifiques ------------------------------------------------------
@@ -361,7 +363,7 @@ As mention in section \ref{app_archi_section}, the software module has to store 
 
 Here, we will explain how the fetching process works and how does it stores measures into the storage database.
 
-\subsubsection{Frontend MeasurementType} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need that concurrent aspect.
+\subsubsection{Frontend MeasurementType}\label{concurrent_map_explainations} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need that concurrent aspect.
 
 \paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database. Do not worry, we have made a cool diagram (Figure \ref{concurrent_map_scheme}) to summarize all this for you.
 
@@ -612,65 +614,308 @@ We will evaluate two indicators, the first one is the YCSB's \textit{Throughput}
 
 \bigskip
 
-This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will \textbf{not} compare results between different operation proportions --- different workloads (A, B, C, etc.) --- as the process involved by this parameter change is identical in the two measurement types thus refer to a YCSB specific behavior. 
+This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will \textbf{not} compare results between different operation proportions --- different workloads (A, B, C, etc.) --- as the process involved by this parameter change is identical in the two measurement types thus refer to a YCSB specific behavior.
 
 However, we will compare the influence of remote or local state of both storage and benchmarked databases and the difference between a single and multi threaded YCSB benchmarking process. 
 
-We will also compare a major factor for the extension module measurement type: the number of points in the benchmark. We want to remind you that our module is made for large benchmarks and we do not expect it to work efficiently for small benchmarks.
+We will compare a major factor for the extension module measurement type: the number of points in the benchmark. We want to remind you that our module is made for large benchmarks and we do not expect it to work efficiently for small benchmarks.
+
+\subsection{Before getting started}
+
+\subsubsection{\textit{Throughput} efficiency evaluation point range reduction}
+
+From 1k to 10k operations in the benchmark--- the size of our Concurrent Map lists, explained in \ref{concurrent_map_explainations} --- we observe unpredictable results because the fetch of the points will always occur at the end of the benchmark. This is really not a problem as our extension module is not made for small benchmarks. Nonetheless, users should keep in mind that they won't be able to predict the efficiency of our module when dealing with small benchmarks.
+
+From 15k to 90k operations in the benchmark, we observe less but still dispersed results. It must be due to the fact that the benchmark is done right after the first iteration of our fetching process.
+
+In both cases, initialization time is influenced by the Operating System of the YCSB host machine and is hard to grasp.
+
+\textit{Throughput} efficiency evaluation will then not consider results below 90k points.
+
+\subsubsection{How to understand our evaluation charts}
+
+\paragraph{Y-Axis}
+
+All the following charts have an "Efficiency" Y-Axis, it represents the influence of our measurement type on the efficiency of the RAW measurement type. For example, an efficiency of -2\% means that our measurement type for the same experiment --- same parameters --- is 2\% \textbf{slower} than the RAW measurement.
+
+\paragraph{Legend} You will observe weird series names while watching our graphs. This notation is a convenient to know exactly the parameters of the series we are watching. Let us introduce you to this trivial notation:
+
+\begin{itemize}
+\item
+I means \textit{Iterations}, \texttt{I20} means that the result have been obtained after $20*2$ iterations of couple of load and run phases of each configuration --- 20 iterations with the custom measurement type and 20 with the RAW measurement type
+\item
+M means \textit{Memcached}, \texttt{M10.0.0.3:11211} is a remote address of our \textbf{benchmarked} database, you will also see the famous \texttt{M127.0.0.1:11211} which is the local address obviously
+\item
+S means \textit{Storage}, \texttt{M10.0.0.3:27017} is a remote address of our \textbf{storage} database, you will also see the famous \texttt{S127.0.0.1:27017} which is the local address obviously
+\item
+T means \textit{Threads}, \texttt{T1} means that a single client thread is used.
+\item
+Sometimes you will see \texttt{median}, \texttt{average} or \texttt{boxplot} at the end, which indicates the series type ; this can be convenient when dealing with both average and median
+\end{itemize}
 
 \subsection{\textit{Throughput} efficiency}
 
-\subsubsection{Comparison by number of points}
-
-As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. The latter could be assimilated as the writing of the results into file made in the RAW measurement and may not influence the execution time difference too much.
-
-\todo{schema}
-
 \subsubsection{Remote/Local storage database}
 
-\todo{continuer}
+\paragraph{Fixed parameters}
+\begin{itemize}
+\item
+Range: 90k to 1M
+\item
+Remote benchmarked database
+\item
+Single threaded environment (1 client thread to limit side effects)
+\end{itemize}
 
-\subsubsection{Remote/Local benchmarked database}
+\paragraph{Results}
 
-\todo{continuer}
+The following results of Figures \ref{storage-T1-Mremote-load}  \& \ref{storage-T1-Mremote-run} and Table \ref{storage-table} have been obtained after $20*2$ iterations of couple of load and run phases of each configuration --- 20 iterations with the custom measurement type and 20 with the RAW measurement type.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/storage-T1-Mremote-load.png}
+\caption{Storage database location comparison: load efficiency.}
+\label{storage-T1-Mremote-load}
+\end{center}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/storage-T1-Mremote-run.png}
+\caption{Storage database location comparison: run efficiency.}
+\label{storage-T1-Mremote-run}
+\end{center}
+\end{figure}
+
+\begin{table}[ht]
+\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		  & Local storage DB & Remote storage DB \\
+		\hline
+	   	LOAD phase & 0.5\% - 1\% slower & 1\% - 1.75\% slower \\
+	   	RUN phase & 0.5\% - 1\% slower & 1\% - 1.75\% slower \\
+	    \hline
+	\end{tabular}
+	\caption{Storage database location comparison.}
+\label{storage-table}
+\end{center}
+\end{table}
+
+
+\paragraph{Conclusion}
+
+Having a remote storage database is more efficient according to the median because it uses less resources of the YCSB host machine. However, the location of the storage is not influencing the efficiency significantly as we have at most a difference of 1\%.
+
+\clearpage
+
+\subsubsection{Remote/Local benchmarked database}\label{memcached_evaluation}
+
+\paragraph{Fixed parameters}
+\begin{itemize}
+\item
+Range: 90k to 1M
+\item
+Remote storage database (results are quasi identical with a local one)
+\item
+Single threaded environment (1 client thread to limit side effects)
+\end{itemize}
+
+
+\paragraph{Results}
+
+The following results of Figures \ref{benchmarked-T1-Sremote-load}  \& \ref{benchmarked-T1-Sremote-run} and Table \ref{benchmarked-table} have been obtained after $20*2$ iterations of couple of load and run phases of each configuration --- 20 iterations with the custom measurement type and 20 with the RAW measurement type.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/benchmarked-T1-Sremote-load.png}
+\caption{Benchmarked database location comparison: load efficiency.}
+\label{benchmarked-T1-Sremote-load}
+\end{center}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/benchmarked-T1-Sremote-run.png}
+\caption{Benchmarked database location comparison: run efficiency.}
+\label{benchmarked-T1-Sremote-run}
+\end{center}
+\end{figure}
+
+\begin{table}[ht]
+\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		  & Local benchmarked DB & Remote benchmarked DB \\
+		\hline
+	   	LOAD phase & 4\% - 10\% slower & 0.5\% - 1.5\% slower \\
+	   	RUN phase & 3.25\% - 7.5\% slower & 0.5\% - 1.5\% slower \\
+	    \hline
+	\end{tabular}
+	\caption{Benchmarked database location comparison.}
+\label{benchmarked-table}
+\end{center}
+\end{table}
+
+\paragraph{Conclusion}
+
+We observe a huge difference in global efficiency. As you can see on the Figures \ref{benchmarked-T1-Sremote-load} \& \ref{benchmarked-T1-Sremote-run}, YCSB is slower when using a local benchmarked database than a remote one. YCSB is almost 9 time slower at worst (4 time slower at best) during LOAD phase and  7.5 time slower at worst (3 time slower at best) during RUN phase. 
+
+In fact, having a remote benchmarked database is more efficient because it uses less resources of the YCSB host machine. Unlike the storage database, a benchmarked database is overused during a YCSB process \textbf{We invite users to use a remote benchmarked database for their benchmarks}. Moreover, this overload impact the stability in the result of local database, the local curve has a wider range than the remote one.
+
+\clearpage
 
 \subsubsection{Single/Multi threaded environment}
 
-\todo{continuer}
+We need to be careful in conclusions in this section. Indeed, changing the number of client threads is a change that occurs on our measurement type but also in the RAW measurement type! Until now, modified parameters were only affected our measurement type. Here, we did not evaluate the advantage of using a single or multi threaded environment but we compare \textbf{how much our measurement type reduce the performance of both environment independently}.
 
-\subsection{Execution time efficiency}
 
-The following Figure \ref{execution_50_local_local_1t} has been drawn after $50*2$ iterations of couple of load and run phases --- 50 iterations with the custom measurement type and 50 with the RAW measurement type.
-
-The variable parameter is:
+\paragraph{Fixed parameters}
 \begin{itemize}
 \item
-the number of points
+Range: 105k to 1M
+\item
+Remote storage database
+\item
+Remote benchmarked database
 \end{itemize}
 
-The fixed parameters are:
+
+\paragraph{Results}
+
+The following results of Figures \ref{thread-SMremote-load}  \& \ref{thread-SMremote-run} and Table \ref{thread-table} have been obtained after $20*2$ iterations of couple of load and run phases of each configuration --- 20 iterations with the custom measurement type and 20 with the RAW measurement type.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/thread-SMremote-load.png}
+\caption{Influence of our measurement type on the efficiency regarding client thread number: LOAD phase.}
+\label{thread-SMremote-load}
+\end{center}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/thread-SMremote-run.png}
+\caption{Influence of our measurement type on the efficiency regarding client thread number: RUN phase.}
+\label{thread-SMremote-run}
+\end{center}
+\end{figure}
+
+\begin{table}[ht]
+\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		  & 1 Client Threads DB & 4 Client Threads \\
+		\hline
+	   	LOAD phase & 0.5\% - 1.5\% slower & 2\% - 4.5\% slower \\
+	   	RUN phase & 0\% - 1.5\% slower & 2.3\% - 3.8\% slower \\
+	    \hline
+	\end{tabular}
+	\caption{Influence of the measurement type on the efficiency regarding client thread number.}
+\label{benchmarked-table}
+\end{center}
+\end{table}
+
+The behavior for 10, 20 or even 30 threads is quite different. The more client threads the more dispersion we observe in results. This dispersion is not always negative as for 30 threads in Figure \ref{thread30-SMremote-load} and \ref{thread30-SMremote-run} but still quite unpredictable. This figures have been obtained after $25*2$ iterations.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/thread30-SMremote-load.png}
+\caption{One and thirty client threads dispersion comparison: LOAD phase.}
+\label{thread30-SMremote-load}
+\end{center}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/thread30-SMremote-run.png}
+\caption{One and thirty client threads dispersion comparison: RUN phase.}
+\label{thread30-SMremote-run}
+\end{center}
+\end{figure}
+
+\paragraph{Conclusion} Our measurement type will influence more YCBS efficiency in a multi threaded environment than in a single threaded environment. \textit{BE CAREFUL: this does not mean that a multi threaded environment is less efficient}, in fact this is a YCSB problem, here, we compare the \textit{influence} of our measurement in both configurations. 
+
+For example, let's say that using RAW measurement type with a single thread and multiple threads  we achieve respectively 5000 and 7000 throughputs and using our measurement type with a single thread and multiple threads we achieve respectively 4500 and 5000 throughputs --- these numbers are for the sake of the example and do not refer to actual values. We have a better efficiency when using multiple client threads BUT our measurement type has a huge influence on the multi threaded environment reducing by 2000 throughputs against 500 for the single threaded environment.
+
+As stated before, our measurement type is using another thread to store measures. Threads should have some OS conflict that slows down the entire process --- context switches, data lookups between threads. The more threads, the more potential conflicts you have, that is why we observe this dispersion. This unpredictable conflicts should also be the source of the larger fluctuations of the multi threaded environment line.
+Moreover, measure function in YCSB is synchronized and our measurement type has a little bit more operation to do in this function --- we instantiate our BSON Document there --- thus threads are hanging for more time and this must decreasing the overall efficiency of our measurement type.
+
+\clearpage
+
+\subsubsection{Global tendency by number of points}
+
+As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one in most cases. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. 
+
+\bigskip
+
+A local benchmarked database is drastically reducing performance --- see \ref{memcached_evaluation} --- thus we chose not to compare results with local benchmarked database. Moreover, a local benchmarked database is a rare YCSB user case. We can see on Figures \ref{global-withoutMlocal-load} \&  \ref{global-withoutMlocal-run} the global tendency of our extension module.
+
+Using medians of 20 iterations in the range from 15k points benchmark to 1M points benchmark we are :
+
 \begin{itemize}
 \item
-a local benchmarked database
+never under 6\% slower for the both LOAD and RUN phase
 \item
-a local storage database
+never under 1\% slower for the both LOAD and RUN phase with remote storage (most common use case)
+\end{itemize}
+
+Using minimum values of 20 iterations in the range from 30k points benchmark to 1M points benchmark we are :
+
+\begin{itemize}
 \item
-single threaded environment (1 client thread)
+never under 10\% slower for the LOAD phase
+\item
+never under 12\% slower for the RUN phase
 \end{itemize}
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.6\linewidth]{images/execution_50_local_local_1t.png}
-\caption{Execution time efficiency evolution comparison chart.}
-\label{execution_50_local_local_1t}
+\includegraphics[width=1\linewidth]{images/evaluation/global-withoutMlocal-load.png}
+\caption{Global tendency: LOAD phase median.}
+\label{global-withoutMlocal-load}
 \end{center}
 \end{figure}
 
-The execution time efficiency is quasi identical when we tweak parameters like client thread number and local/remote storage database. We are around 75-85\% \textbf{slower} than YCSB on a 1000 points benchmark and this percentage is decreasing to 10-15\% around 50k points to finally be close to 0\% after 100k.
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/global-withoutMlocal-run.png}
+\caption{Global tendency: RUN phase median.}
+\label{global-withoutMlocal-run}
+\end{center}
+\end{figure}
 
-\bigskip
+\clearpage
 
-As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch at the end. However, the latter could be assimilated as the writing of the results into file made in the RAW measurement and may not influence the execution time difference too much.
+\subsection{Execution time efficiency}
+
+The following Figure \ref{execution_time} has been drawn after $20*2$ iterations of couple of load and run phases --- 20 iterations with the custom measurement type and 20 with the RAW measurement type.
+
+\paragraph{Fixed parameters}
+\begin{itemize}
+\item
+Remote benchmarked database
+\item
+Remote storage database
+\item
+single threaded environment (1 client thread)
+\end{itemize}
+
+\paragraph{Results}
+
+The execution time efficiency is quasi identical when we tweak parameters like client thread number and local/remote storage database. As you can see on Figure \ref{execution_time}, we are around 7.5 times \textbf{slower} than YCSB on a 1k points benchmark and this is decreasing and then stabilizing around 45k to reach the same execution time as the RAW measurement type.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\linewidth]{images/evaluation/execution_time.png}
+\caption{Execution time efficiency evolution comparison chart.}
+\label{execution_time}
+\end{center}
+\end{figure}
+
+\paragraph{Conclusion}
+
+As intended, the more points the benchmark has, the closer the execution time of our module is close to the original one. Indeed, this difference comes from the storage database connection initialization, executor thread creation and the last points fetch process at the end.
 
 \clearpage
 
@@ -736,13 +981,14 @@ Speaking of optimization, the hardest part was to know where to stop. Indeed, ea
 
 The journey abroad reinforce my will to deal with large scale application in depth thus with "Ingénierie du Cloud Computing" option at the EISTI. I wish to discover more of the company's life and working methods on my next internship.
 
-\todo{CV A LA FIN}
 \clearpage
 
 \bibliographystyle{ieeetr}
 \bibliography{report}
 
 \clearpage
+
+\includepdf[pages=-, offset=75 -75]{images/cv.pdf}
 
 \newpage
 
