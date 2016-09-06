@@ -1,4 +1,4 @@
-var homeFolder = "/home/archangel/Documents/ycsb-web-app/";
+var homeFolder = "/home/titouan/Documents/ycsb-web-app/";
 var ycsbRoot = homeFolder + "ycsb-0.11.1-custom-release/"; // FrontendConcurrencyMap version
 
 module.exports = {

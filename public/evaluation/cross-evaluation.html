@@ -3,6 +3,11 @@
         margin: 10px;
         width: 200px;
     }
+
+    .checkbox-list {
+        height: 300px;
+        overflow-y: auto;
+    }
 </style>
 
 <md-progress-linear class="md-accent" md-mode="indeterminate" ng-disabled="!loading"
@@ -23,12 +28,13 @@
 
             <div ng-repeat="(label, parameter) in params" ng-if="xAxisParameter">
                 <md-subheader>{{parameter.name}}<span ng-if="parameter.isXAxis()">(X-Axis)</span></md-subheader>
-
-                <md-input-container ng-repeat="item in parameter.collection" layout="column">
-                    <md-checkbox ng-checked="exists(item, parameter.selectedValues)"
-                                 ng-click="toggle(item, parameter.selectedValues)">{{ item }}
-                    </md-checkbox>
-                </md-input-container>
+                <div class="checkbox-list">
+                    <md-input-container ng-repeat="item in parameter.collection" layout="column">
+                        <md-checkbox ng-checked="exists(item, parameter.selectedValues)"
+                                     ng-click="toggle(item, parameter.selectedValues)">{{ item }}
+                        </md-checkbox>
+                    </md-input-container>
+                </div>
             </div>
         </div>
 
@@ -45,8 +51,9 @@
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
             <hc-comparaison-chart title="Run Efficiency Evolution" type="run" charttype="boxplot" seriestype=""
                                   initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
-            <hc-comparaison-chart title="Execution Time Efficiency Evolution" type="execution_time" charttype="line" seriestype="column"
-                                  initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
+        <hc-comparaison-chart title="Execution Time Difference Evolution" type="execution_time" charttype="line"
+                              seriestype="column"
+                              initfunc="initComparaisonChartRoutine"></hc-comparaison-chart>
     </div>
 </div>
 

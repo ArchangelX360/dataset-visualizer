@@ -194,11 +194,19 @@ angular.module('evaluationController', [])
                 seriestype: '@'
             },
             link: function (scope, element) {
-                Highcharts.setOptions(Highcharts.theme);
+                /*Highcharts.theme = {
+                 colors: ["#70DB93",
+                 "#B5A642", "#5F9F9F", "#B87333", "#2F4F2F", "#9932CD", "#871F78", "#855E42", "#545454",
+                 "#8E2323", "#F5CCB0", "#238E23", "#CD7F32", "#DBDB70", "#C0C0C0", "#527F76", "#9F9F5F",
+                 "#8E236B", "#2F2F4F", "#EBC79E", "#CFB53B", "#FF7F00", "#DB70DB", "#D9D9F3", "#5959AB",
+                 "#8C1717", "#238E68", "#6B4226", "#8E6B23", "#007FFF", "#00FF7F", "#236B8E", "#38B0DE",
+                 "#DB9370", "#ADEAEA", "#5C4033", "#4F2F4F", "#CC3299", "#99CC32"]
+                 };
+                 Highcharts.setOptions(Highcharts.theme);*/
                 var chartObject = {
                     chart: {
-                        width: 1900,
-                        height: 800,
+                        width: 900,
+                        height: 500,
                         events: {
                             load: function () {
                                 var chart = this;
@@ -218,13 +226,16 @@ angular.module('evaluationController', [])
                             value: 0,
                             color: 'black',
                             width: 2
-                        }]
+                        }],
+                        tickInterval: 0.5
                     },
                     legend: {
                         layout: "vertical",
-                        useHTML: true
+                        //align: 'right',
+                        useHTML: true,
                     },
                     tooltip: {
+                        crosshairs: true,
                         shared: true
                     },
                     series: []
@@ -308,14 +319,15 @@ angular.module('evaluationController', [])
                             name: fileId + "-boxplot",
                             data: dataBoxplot
                         });
-                        chart.addSeries({
+                        //chart.get(fileId + "-boxplot").hide();
+                        /*chart.addSeries({
                             id: fileId + "-median",
                             name: fileId + "-median",
                             type: "spline",
                             data: dataMedian
                         });
-
-                        chart.get(fileId + "-boxplot").hide();
+                         chart.get(fileId + "-median").hide();
+                         */
 
                     } else {
                         var dataOther = highchartsData[fileId];
