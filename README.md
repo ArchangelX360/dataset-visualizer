@@ -26,11 +26,9 @@ For now, only XYplot and Candlestick are supported. However, implementing a new 
 
 ### Core programs
 
-**WARNING: We assume that nodejs and npm are already installed on your machine**
+You will need Java >=8 and MongoDB >=2.6.10 and Node.js to use this application :
 
-You will need Java >=8 and MongoDB >=2.6.10 to use this application :
-
-    sudo apt-get install openjdk-8-jre mongodb
+    sudo apt-get install openjdk-8-jre mongodb nodejs npm
 
 ### YCSB specific requirements
 
