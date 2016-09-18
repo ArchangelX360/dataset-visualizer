@@ -28,7 +28,7 @@ For now, only XYplot and Candlestick are supported. However, implementing a new 
 
 You will need Java >=8 and MongoDB >=2.6.10 and Node.js to use this application :
 
-    sudo apt-get install openjdk-8-jre mongodb nodejs-legacy npm
+    sudo apt-get install openjdk-8-jre mongodb nodejs nodejs-legacy npm
 
 ### YCSB specific requirements
 
