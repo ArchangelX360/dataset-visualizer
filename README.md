@@ -26,7 +26,7 @@ For now, only XYplot and Candlestick are supported. However, implementing a new 
 
 ### Core programs
 
-Install Node.js and NPM with the official website instructions: [Install Node.js via package manager](https://nodejs.org/en/download/package-manager/)
+Install Node.js v4.5 with the official website instructions: [Install Node.js via package manager](https://nodejs.org/en/download/package-manager/)
 
 You will also need Java >=8 and MongoDB >=2.6.10 to fully use this application :
 
