@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YCSB Visualization Presentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+        @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+        @import url(https://fonts.googleapis.com/css?family=Roboto:400,700,400italic);
+        @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Yanone Kaffeesatz';
+            font-weight: normal;
+        }
+
+        .remark-code, .remark-inline-code {
+            font-family: 'Ubuntu Mono';
+        }
+
+        .inverse {
+            background: #272822;
+            color: #777872;
+            text-shadow: 0 0 20px #333;
+        }
+
+        .inverse h1, .inverse h2 {
+            color: #f3f3f3;
+            line-height: 0.8em;
+        }
+
+	img {
+	max-width: 100%;
+	}
+    </style>
+</head>
+<body>
+<textarea id="source">
+
+class: center, middle, inverse
+
+# YCSB Web Interface Visualization
+
+A new way of making benchmarks
+
+???
+I know that some will blame me for this American style title but anyway, I'm loving it!
+
+---
+
+# Agenda
+
+1. Introduction
+2. Architecture
+3. How data are stored?
+4. Beautiful UI
+5. Handling millions of points
+6. Chart types & Software support
+7. Evaluation
+8. Limitations
+
+---
+
+# Introduction
+
+This is a test
+
+???
+This is some notes
+
+---
+
+# Architecture
+
+* Two major parts
+* Four modules
+
+.center[![Architecture representation](../report/images/archi_small_complete.png "Architecture representation")]
+
+???
+
+* Image without modules
+* Image with module YCSB
+* Image with both
+
+- Modular structure
+- everything is independent and communicate with APIs
+- two major parts :
+    * YCSB extension module that...
+    * Visualization Application that...
+
+</textarea>
+<script src="javascript/remark-latest.min.js">
+</script>
+<script>
+    var slideshow = remark.create({
+        // Set the slideshow display ratio
+        // Default: '4:3'
+        // Alternatives: '16:9', ...
+        ratio: '4:3',
+
+        // Navigation options
+        navigation: {
+            // Enable or disable navigating using scroll
+            // Default: true
+            // Alternatives: false
+            scroll: true,
+
+            // Enable or disable navigation using touch
+            // Default: true
+            // Alternatives: false
+            touch: true,
+
+            // Enable or disable navigation using click
+            // Default: false
+            // Alternatives: true
+            click: false
+        },
+        // Enable or disable counting of incremental slides in the slide counting
+        countIncrementalSlides: true
+    });
+</script>
+</body>
+</html>
