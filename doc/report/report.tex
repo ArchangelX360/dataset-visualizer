@@ -142,10 +142,11 @@
 
 \chapter*{Abstract}
 
-Benchmark softwares often produce hard to read text results. When dealing with their evaluation phase, developers usually create parsing tools and chart generators to make chart based on these results.
+Benchmark softwares often output results in hard to read text files. Developers and researchers usually create parsing tools and chart generators to exploit these results.
 
-This document presents a web visualizer originally made for Yahoo! Cloud Serving Benchmark but usable with any software that can communicate with a MongoDB database. It generates charts in pseudo real-time based on ongoing benchmarks' results stored on the fly in a storage MongoDB database. 
-It can also be used as a classic chart generator by importing raw files.
+This document presents a web application, originally made for Yahoo! Cloud Serving Benchmark, to visualize benchmark results. It generates charts in pseudo real-time while the benchmark is running and this on the fly generation is available for any software that can store data in a MongoDB database. 
+
+Alternatively, it can also be used as a classic chart generator by importing raw output files.
 
 \tableofcontents
 
@@ -166,13 +167,14 @@ Finally, I would like to thank Ms. \auteur{Emy}{Sicard-Delage} for spell checkin
 
 \chapter*{Introduction}
 
-Yahoo! Cloud Serving Benchmark --- YCSB in its shorten form, intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are often used to make an architectural decision by commonly answering the following question: which specific database should we use for this particular use case?
+Yahoo! Cloud Serving Benchmark --- YCSB in its shorten form, intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are often used to make architectural decisions by commonly answering the following question: which specific database should we use for this particular use case?
 
-The Chair of Systems Engineering at The Technische Universität Dresden is using this software for research purpose. They want to make longer benchmarks than the high majority of people who use this software. YCSB is producing results or output at the end of the benchmark phase and this is not convenient as a single benchmark phase could last days in our scenario.
+The Chair of Systems Engineering at The Technische Universität Dresden is using this software for research purpose. Their workloads feature a huge amount of operations and can last for days in some scenarii. They cannot make assumptions --- or study a specific behavior of the ongoing benchmark --- before the end of the benchmark as YCSB only outputs results at the end.
+YCSB can provides periodic status but these are not specific enough.
 
-First, we decided to implement an extension module of YCSB to include a pseudo real-time output of the results. The major challenge was not to slow down the processing speed of YCSB neither influence the benchmark results. 
+We first decided to implement an extension module of YCSB to include a pseudo real-time output of results. The major challenge was not to slow down the processing speed of YCSB neither influence the benchmark results. 
 
-Then, we wanted to implement a web interface able to display these results by generating and updating pretty charts on the fly.
+Then, we wanted to implement a web interface able to display these results by generating and updating charts on the fly to provide enough information for the researchers.
 
 \bigskip
 
@@ -274,7 +276,7 @@ I'm still interested in a PhD. but I think I lack of company experiences at the 
 
 \clearpage
 
-\chapter{YCSB Web Interface visualization}
+\chapter{Overview and Specifications}
 
 \section{Project organization}
 
