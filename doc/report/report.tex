@@ -144,7 +144,7 @@
 
 Benchmark softwares often output results in hard to read text files. Developers and researchers usually create parsing tools and chart generators to exploit these results.
 
-This document presents a web application, originally made for Yahoo! Cloud Serving Benchmark, to visualize benchmark results. It generates charts in pseudo real-time while the benchmark is running and this on the fly generation is available for any software that can store data in a MongoDB database. 
+This document presents a web application, originally made for Yahoo! Cloud Serving Benchmark, to visualize benchmark results. It generates charts in pseudo real-time while the benchmark is running and this 'on the fly generation' is available for any software that can store data in a MongoDB database. 
 
 Alternatively, it can also be used as a classic chart generator by importing raw output files.
 
@@ -157,9 +157,9 @@ Alternatively, it can also be used as a classic chart generator by importing raw
 \newpage
 \chapter*{Acknowledgements}
 
-I am highly indebted to Mr. \auteur{Robert}{Krahn} for his precious help and support for all this internship as well as his understanding and soft management that allowed me to go further and faster than expected.
+I am highly indebted to Mr. \auteur{Robert}{Krahn} for his precious help and support for the whole internship as well as his understanding and soft management that allowed me to go further and faster than expected.
 
-I would like to thank Mr. \auteur{Peio}{Loubière} for his availability and advices regarding report writing.
+I would like to thank Mr. \auteur{Peio}{Loubière} for his availability and advice regarding report writing.
 
 I also would like to express my special gratitude and thanks to Mr. \auteur{Franz}{Gregor} for his valuable inputs on specific aspect of the solution and his cheerfulness.
 
@@ -170,7 +170,7 @@ Finally, I would like to thank Ms. \auteur{Emy}{Sicard-Delage} for spell checkin
 Yahoo! Cloud Serving Benchmark --- YCSB in its shorten form, intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are often used to make architectural decisions by commonly answering the following question: which specific database should we use for this particular use case?
 
 The Chair of Systems Engineering at The Technische Universität Dresden is using this software for research purpose. Their workloads feature a huge amount of operations and can last for days in some scenarii. They cannot make assumptions --- or study a specific behavior of the ongoing benchmark --- before the end of the benchmark as YCSB only outputs results at the end.
-YCSB can provides periodic status but these are not specific enough.
+YCSB can provide periodic status but these are not specific enough.
 
 We first decided to implement an extension module of YCSB to include a pseudo real-time output of results. The major challenge was not to slow down the processing speed of YCSB neither influence the benchmark results. 
 
@@ -178,11 +178,11 @@ Then, we wanted to implement a web interface able to display these results by ge
 
 \bigskip
 
-This project was conduct as part of an internship based on a partnership between The Technische Universität Dresden and the École Internationale des Sciences du Traitement de l'Information --- EISTI --- thus will begin by a small Human Resources chapter. People external to this internship context are invited to skip this chapter.
+This project was conducted as part of an internship based on a partnership between The Technische Universität Dresden and the École Internationale des Sciences du Traitement de l'Information --- EISTI --- thus it will begin by a small Human Resources chapter. People external to this internship context are invited to skip this chapter.
 
 We will then describe the project organization and elaborate on the application specifications to clarify the context of our work.
 
-After that, a complete technical overview of the application will develop on  the implementation and technologies choices of the solution alongside with some optimizations explanations.
+After that, implementation and technologies choices of the solution alongside with some optimization explanations will be developped in a complete technical overview of the application.
 
 Finally, we will report on the evaluation of both our extension module of YCSB and our web visualizer. We will discuss the performances and the limitations of our solution for our use case and more.
 
@@ -196,13 +196,13 @@ The EISTI offers us to have three internships during our studies and I seized th
 
 \bigskip
 
-I decided to use the EISTI partnership to achieve an internship at the Technische Universität Dresden in Germany. I chose this particular university because I heard positive feedbacks from acquaintances that studied there. I have been able to discover a research environment and discuss with doctors or PhD. students which nourished my thoughts and helped me make a choice for the next step of my career.
+I decided to use the EISTI partnership to achieve an internship at the Technische Universität Dresden in Germany. I chose this particular university because I heard positive feedbacks from acquaintances that studied there. I have been able to discover a research environment and discuss with doctors or PhD. students which nourished my thoughts and helped me make choices for the next step of my career.
 
 \section{Internship environment}
 
 \subsection{The Technische Universität Dresden: global overview}
 
-The Technische Universität Dresden has a wide campus separate into buildings. I was in the Andreas-Pfitzmann-Bau, the Faculty of Computer Science building (See Figure \ref{informatik_bau}).
+The Technische Universität Dresden has a wide campus separated into buildings. I was in the Andreas-Pfitzmann-Bau, the Faculty of Computer Science building (See Figure \ref{informatik_bau}).
 
 I would not make a better technical description of this university than its own website \cite{tud:website}:
 
@@ -222,7 +222,7 @@ About 36.000 students are enrolled at TUD – more than three times as many as i
 
 \subsection{Institute of Systems Architecture: Chair of Systems Engineering}
 
-I was working in the Faculty of Computer Science under the Chair of Systems Engineering at the Institute of Systems Architecture. The following sections gives you more details about this chair.
+I was working in the Faculty of Computer Science under the Chair of Systems Engineering at the Institute of Systems Architecture. The following sections give you more details about this chair.
 
 \subsubsection{Head of the chair: Prof. Dr. Christof Fetzer}
 
@@ -268,11 +268,11 @@ The workstation provided by the university was perfect, I had strong personal ma
 
 \section{Internship benefits}
 
-This internship helped me discover the research environment. It was interesting to realize that a PhD. student work was not quite as expected before working there. It is more a time management work divided into handle lecture exercises, side work like chair projects and last but not least your actual research work.
+This internship helped me discover the research environment. It was interesting to realize that a PhD. student work was not quite as I expected before working there. It is more a time management work divided into handle lecture exercises, side work like chair projects and last but not least your actual research work.
 
-I think it would be an interesting place to work as it is different from a company working atmosphere. Despite a colorful and pleasant environment, I wish to continue my career by some company years before. 
+I think it would be an interesting place to work at as it is different from a company working atmosphere. Despite a colorful and pleasant environment, I wish to continue my career working in a company. 
 
-I'm still interested in a PhD. but I think I lack of company experiences at the moment and I spend too much years of my life in school and universities. We all need some changes at a given moment.
+I am still interested in a PhD. but I think I lack of company experience at the moment and I spent too many years of my life in school and universities. We all need some change at a given moment.
 
 \clearpage
 
@@ -282,9 +282,9 @@ I'm still interested in a PhD. but I think I lack of company experiences at the 
 
 \subsection{Team}
 
-My supervisor --- Robert Krahn --- was the only person I actually work with. Nonetheless, people from the chair were also there to discuss ideas as I said in \ref{working_environment}. His inputs were crucial and he assisted me for decisive choices. He also guided me through the realization of this project as he will be one of its first user.
+My supervisor --- Robert Krahn --- was the only person I actually worked with. Nonetheless, people from the chair were also there to discuss ideas as I said in \ref{working_environment}. His inputs were crucial and he assisted me for decisive choices. He also guided me through the realization of this project as he will be one of its first users.
 
-Robert presented me the purpose of the application and features I needed to implement as an extension module of Yahoo! Cloud Serving Benchmark code base. We refined these specifications over the development to make it suits future users needs.
+Robert presented me the purpose of the application and features I needed to implement as an extension module of Yahoo! Cloud Serving Benchmark code base. We refined these specifications over the development to make it suits future users' needs.
 
 \subsection{Working method}\label{working_method}
 
@@ -302,13 +302,13 @@ The aim of this section is not to cover technical details but to explain in an a
 
 \subsubsection{Yahoo! Cloud Serving Benchmark}\label{ycsb}
 
-As introduce beforehand, Yahoo! Cloud Serving Benchmark is used to evaluate performance of "key-value" and "cloud" serving stores. But how does it actually work?
+As introduced beforehand, Yahoo! Cloud Serving Benchmark is used to evaluate performance of "key-value" and "cloud" serving stores. But how does it actually work?
 
-The user defines a custom workload --- set of parameters which define how the benchmark will be executed --- or chose to use an existing one. Then, he starts the database he wants to benchmark and first launches YCSB \texttt{load} phase to fill the database with values --- INSERT operations. Finally he launches the \texttt{run} phase that executes operations --- READ, UPDATE, etc. operations --- on the previously inserted values. All settings regarding proportions and quantity of these operations are defined in the workload file.
+The user defines a custom workload --- set of parameters which defines how the benchmark will be executed --- or chose to use an existing one. Then, he starts the database he wants to benchmark and first launches YCSB \texttt{load} phase to fill the database with values --- INSERT operations. Finally he launches the \texttt{run} phase that executes operations --- READ, UPDATE, etc. operations --- on the previously inserted values. All settings regarding proportions and quantity of these operations are defined in the workload file.
 
 YCSB work is to store each CRUD operation execution time --- called \texttt{latency}. It provides measurement results --- \texttt{latencies} --- of the operations made during both \texttt{load} and \texttt{run} phase at the end of each phase.
 
-YCSB has different way of displaying results, the most simple way is the RAW measurement type made by Google\footnote{Google RAW measurement type source code: \url{https://github.com/brianfrankcooper/YCSB/blob/master/core/src/main/java/com/yahoo/ycsb/measurements/OneMeasurementRaw.java}} as it simply displays a list of operations alongside with timestamps and latency results for each operation. Other measurement types exist and provide more information like quantiles or reducing precision to make results easier to read as timeseries' average buckets.
+YCSB has different ways of displaying results, the most simple way is the RAW measurement type made by Google\footnote{Google RAW measurement type source code: \url{https://github.com/brianfrankcooper/YCSB/blob/master/core/src/main/java/com/yahoo/ycsb/measurements/OneMeasurementRaw.java}} as it simply displays a list of operations alongside with timestamps and latency results for each operation. Other measurement types exist and provide more information like quantiles or reducing precision to make results easier to read as timeseries' average buckets.
 
 \subsubsection{What is the goal of our module and application?}
 
@@ -334,7 +334,7 @@ Our visualizer application is fetching the storage database measures and process
 
 \chapter{Technical details}\label{techical_chapter}
 
-Before the beginning of this chapter, we would like to inform you that two \texttt{README.md} files are available for both the visualization application and the YCSB extension module. They have valuable information about application parameters, tweaks and so on. We deeply encourage you to consult these files at the end of this chapter if you want more details as some parts will not be presented in this report.
+Before the beginning of this chapter, we would like to inform you that two \texttt{README.md} files are available for both the visualization application and the YCSB extension module. They have valuable information about application parameters, tweaks and so on. We deeply encourage you to consult these files at the end of this chapter if you want more details, as some parts will not be presented in this report.
 
 \section{Application architecture}\label{app_archi_section}
 
@@ -362,17 +362,17 @@ We realized that the performance reduction was inherent to the solution we propo
 
 \subsection{Software Module}
 
-As mention in section \ref{app_archi_section}, the software module has to store the software measures into the storage database. In our case, our software was YCSB so we needed to extend YCSB functionalities to achieve a real-time storage of its measurements. 
+As mentioned in section \ref{app_archi_section}, the software module has to store the software measures into the storage database. In our case, our software was YCSB so we needed to extend YCSB functionalities to achieve a real-time storage of its measurements. 
 
-Here, we will explain how the fetching process works and how does it stores measures into the storage database.
+Here, we will explain how the fetching process works and how it does store measures into the storage database.
 
 \subsubsection{Frontend MeasurementType}\label{concurrent_map_explainations} To achieve a better fetch of measures, we created a specific measurement type in YCSB. It is close to the raw measurement type --- explained in \ref{ycsb} --- as it stores all data without any processing before or after the storage. Our collection where we temporary stores values is an extended \texttt{ConcurrentMap}. Indeed, the YCSB client threads will write into the collection at the same time that we read it to fetch measures so we need that concurrent aspect.
 
-\paragraph{How does this measurement type works ?}  Our \texttt{ConcurrentMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database. Do not worry, we have made a cool diagram (Figure \ref{concurrent_map_scheme}) to summarize all of this for you.
+\paragraph{How does this measurement type work ?}  Our \texttt{ConcurrentMap} is a map of fixed size lists of BSON Documents as we are working with a MongoDB storage database. When a new value needs to be stored, the map stores it into the current list, if this list is full it creates a new list and the latter becomes the current one. We have two integers that stores the id of the currently filled list and the last inserted list into the storage database. Do not worry, we have made a cool diagram (Figure \ref{concurrent_map_scheme}) to summarize all of this for you.
 
 \subsubsection{Fetching method}
 
-We created a new thread into YCSB, indeed this is the most efficient way not to slow down YCSB too much. We used a scheduled thread pool executor of Java with only one thread. This scheduled executor thread periodically check the two integers of each \texttt{ConcurrentMap} --- one by client thread by operation type due to YCSB way of handling measures. These indicates which lists are available --- full and not designated as the current list --- without scanning the whole or even a part of our collection. See Figure \ref{threads_report}.
+We created a new thread into YCSB, indeed this is the most efficient way not to slow down YCSB too much. We used a scheduled thread pool executor of Java with only one thread. This scheduled executor thread periodically checks the two integers of each \texttt{ConcurrentMap} --- one by client thread by operation type due to YCSB way of handling measures. These indicates which lists are available --- full and not designated as the current list --- without scanning the whole or even a part of our collection. See Figure \ref{threads_report}.
 
 \begin{figure}[ht]
 \begin{center}
@@ -387,7 +387,7 @@ Then, all available lists are processed into the executor thread to be stored in
 
 \paragraph{Fail-safe system}
 
-There is two identical tasks that handles this fetching process and relaunch themselves after finishing their fetch. If one task fails, there is a fail-safe process that periodically relaunches a task if less than two fetching tasks are in the queue or running (See Figure \ref{queue_management_report}). At the end of the benchmark, all tasks are interrupted and a final task is run to fetch all remaining points --- even in the current list as the benchmark is done.
+There are two identical tasks that handle this fetching process and relaunch themselves after finishing their fetch. If one task fails, there is a fail-safe process that periodically relaunches a task if less than two fetching tasks are in the queue or running (See Figure \ref{queue_management_report}). At the end of the benchmark, all tasks are interrupted and a final task is run to fetch all remaining points --- even in the current list as the benchmark is done.
 
 \begin{figure}[ht]
 \begin{center}
@@ -524,7 +524,7 @@ We chose NodeJS because we needed a lightweight and easy to deploy server. NodeJ
 
 \paragraph{Communication with Storage DB}\label{server:mongo}
 
-We used the native NodeJS driver made by the MongoDB developers. We could have use the well known Mongoose ODM but our queries and server was so simple that we did not need to add this layer. Moreover, Mongoose is reducing performance as it add some logic layers between the code and the actual query execution or result \cite{mongo}.
+We used the native NodeJS driver made by the MongoDB developers. We could haved use the well known Mongoose ODM but our queries and server were so simple that we did not need to add this layer. Moreover, Mongoose is reducing performance as it adds some logic layers between the code and the actual query execution or result \cite{mongo}.
 
 \paragraph{Handling large datasets}\label{server:handling_large_dataset}
 
@@ -536,7 +536,7 @@ The limit between a large and small dataset is fixed by an user parameter called
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.35]{images/mongodb-agg.png}
+\includegraphics[scale=0.6]{images/mongodb-agg.png}
 \caption{Simple illustration of MongoDB aggregation process.}
 \label{mongo_agg}
 \end{center}
@@ -556,7 +556,7 @@ These tasks check the current size of the benchmark to decide if a MongoDB aggre
 
 \paragraph{Highcharts library: data grouping}\label{data_grouping} There is plenty of chart libraries for web applications but Highcharts most valuable asset is its DataGrouping and that is why we chose it.
 
-Indeed, Highcharts automatically groups points based on there proximity --- pixel wise --- and if you zoom in you will get your precision back as the chart will be repopulated by former missing points. It makes charts look great and readable as well as keeping the original precision.
+Indeed, Highcharts automatically groups points based on their proximity --- pixel wise --- and if you zoom in you will get your precision back as the chart will be repopulated by former missing points. It makes charts look great and readable as well as keeping the original precision.
 
 We have then two optimizations for large dataset, Highcharts client side data grouping that reduces the number of points displayed on charts without loosing information and MongoDB server side aggregation process for larger benchmark that reduces precision of measurements a bit.
 
@@ -595,7 +595,7 @@ At first, the main idea was to provide a visualization web interface for YCSB be
 
 If you want to use a different software than YCSB, you need to respect the way we insert data into our storage database and our application would be automatically display your results. For more information consult the \texttt{README.md} file of the visualization application.
 
-As an alternative, the file import functionality give you the opportunity to output your other software results into a file, create your parser and then use our web application to visualize these results.
+As an alternative, the file import functionality gives you the opportunity to output your other software results into a file, create your parser and then use our web application to visualize these results.
 
 \subsection{Multiple chart types}
 
@@ -638,7 +638,7 @@ We will evaluate two indicators, the first one is the YCSB's \textit{Throughput}
 
 \bigskip
 
-This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will \textbf{not} compare results between different operation proportions --- different workloads (A, B, C, etc.) --- as the process involved by this parameter change is identical in the two measurement types thus refer to a YCSB specific behavior.
+This evaluation only purpose is to evaluate our extension module performances and not YCSB performances. We will \textbf{not} compare results between different operation proportions --- different workloads (A, B, C, etc.) --- as the process involved by this parameter change is identical in the two measurement types thus refers to a YCSB specific behavior.
 
 However, we will compare the influence of remote or local state of both storage and benchmarked databases and the difference between a single and multi threaded YCSB benchmarking process. 
 
@@ -666,7 +666,7 @@ All the following charts have an "Efficiency" Y-Axis, it represents the influenc
 
 \begin{itemize}
 \item
-I means \textit{Iterations}, \texttt{I20} means that the result have been obtained after $20*2$ iterations of couple of load and run phases of each configuration --- 20 iterations with the custom measurement type and 20 with the RAW measurement type
+I means \textit{Iterations}, \texttt{I20} means that the result has been obtained after $20*2$ iterations of couple of load and run phases of each configuration --- 20 iterations with the custom measurement type and 20 with the RAW measurement type
 \item
 M means \textit{Memcached}, \texttt{M10.0.0.3:11211} is a remote address of our \textbf{benchmarked} database, you will also see the famous \texttt{M127.0.0.1:11211} which is the local address obviously
 \item
@@ -791,7 +791,7 @@ In fact, having a remote benchmarked database is more efficient because it uses 
 
 \subsubsection{Single/Multi threaded environment}
 
-We need to be careful in conclusions in this section. Indeed, changing the number of client threads is a change that occurs on our measurement type but also in the RAW measurement type! Until now, modified parameters were only affected our measurement type. Here, we did not evaluate the advantage of using a single or multi threaded environment but we compare \textbf{how much our measurement type reduce the performance of both environment independently}.
+We need to be careful in conclusions in this section. Indeed, changing the number of client threads is a change that occurs on our measurement type but also in the RAW measurement type! Until now, modified parameters were only affecting our measurement type. Here, we did not evaluate the advantage of using a single or multi threaded environment but we compare \textbf{how much our measurement type reduce the performance of both environment independently}.
 
 
 \paragraph{Fixed parameters}
@@ -862,7 +862,7 @@ The behavior for 10, 20 or even 30 threads is quite different. The more client t
 
 For example, let's say that using RAW measurement type with a single thread and multiple threads  we achieve respectively 5000 and 7000 throughputs and using our measurement type with a single thread and multiple threads we achieve respectively 4500 and 5000 throughputs --- these numbers are for the sake of the example and do not refer to actual values. We have a better efficiency when using multiple client threads BUT our measurement type has a huge influence on the multi threaded environment reducing by 2000 throughputs against 500 for the single threaded environment.
 
-As stated before, our measurement type is using another thread to store measures. Threads should have OS conflicts that slows down the entire process --- context switches, data lookups between threads. The more threads, the more potential conflicts you have, that is why we observe this dispersion. This unpredictable conflicts should also be the source of the larger fluctuations of the multi threaded environment line.
+As stated before, our measurement type is using another thread to store measures. Threads should have OS conflicts that slow down the entire process --- context switches, data lookups between threads. The more threads, the more potential conflicts you have, that is why we observe this dispersion. This unpredictable conflicts should also be the source of the larger fluctuations of the multi threaded environment line.
 Moreover, measure function in YCSB is synchronized and our measurement type has a little bit more operations to do in this function --- we instantiate our BSON Document there --- thus threads are hanging for more time and this must decreasing the overall efficiency of our measurement type.
 
 \clearpage
@@ -976,7 +976,7 @@ However, you could use our import module if you really don't want to deal with M
 
 As we see in \ref{server:handling_large_dataset}, our application uses an aggregating process to handle millions of values. This aggregation process is reducing the precision of our displayed charts.
 
-The precision reduction grow linearly when the number of points in your benchmark is increasing. The coefficient of this linear reduction is the constant the user sets based on his computer performances --- the better your machine is, the higher points you can display\footnote{Please consult the README.md file of the visualization application for more information}. 
+The precision reduction grows linearly when the number of points in your benchmark is increasing. The coefficient of this linear reduction is the constant the user sets based on his computer performances --- the better your machine is, the higher points you can display\footnote{Please consult the README.md file of the visualization application for more information}. 
 
 We have then the following trivial equation where: 
 \begin{itemize}
@@ -999,7 +999,7 @@ This internship was for me the first time that I had a real dataset size concern
 
 Speaking of optimization, the hardest part was to know where to stop. Indeed, each optimization must be done after answering the following question: \textit{"Isn't it too much?"}. When I was trying to redesign some of my module to make it fit the size issue, I tend to try all kind of optimizations I could think of. It was obviously a mistake but fortunately I realized it soon enough. This internship help me understand the basis of how to evaluate the value of an optimization.
 
-The journey abroad reinforce my will to deal with large scale application in depth thus with "Ingénierie du Cloud Computing" option at the EISTI. I wish to discover more of the company's life and working methods on my next internship.
+The journey abroad reinforced my will to deal with large scale application in depth thus with "Ingénierie du Cloud Computing" option at the EISTI. I wish to discover more of the company's life and working methods on my next internship.
 
 \clearpage
 
