@@ -144,7 +144,7 @@
 
 Benchmark softwares often output results in hard to read text files. Developers and researchers usually create parsing tools and chart generators to exploit these results.
 
-This document presents a web application, originally made for Yahoo! Cloud Serving Benchmark, to visualize benchmark results. It generates charts in pseudo real-time while the benchmark is running and this 'on the fly generation' is available for any software that can store data in a MongoDB database. 
+This document presents a web application, originally made for Yahoo! Cloud Serving Benchmark, to visualize benchmark results. It generates charts in pseudo real-time while the benchmark is running. This 'on the fly generation' is available for any software that can store data in a MongoDB database. 
 
 Alternatively, it can also be used as a classic chart generator by importing raw output files.
 
@@ -167,7 +167,7 @@ Finally, I would like to thank Ms. \auteur{Emy}{Sicard-Delage} for spell checkin
 
 \chapter*{Introduction}
 
-Yahoo! Cloud Serving Benchmark --- YCSB in its shorten form, intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are often used to make architectural decisions by commonly answering the following question: which specific database should we use for this particular use case?
+Yahoo! Cloud Serving Benchmark --- YCSB in its shorten form, intensively used in this report --- is a software made by Brian F. Cooper \cite{ycsb:repo} used by thousands to evaluate "key-value" and "cloud" serving stores. These benchmarks are, for example, used to make architectural decisions by commonly answering the following question: which specific database should we use for this particular use case?
 
 The Chair of Systems Engineering at The Technische Universität Dresden is using this software for research purpose. Their workloads feature a huge amount of operations and can last for days in some scenarii. They cannot make assumptions --- or study a specific behavior of the ongoing benchmark --- before the end of the benchmark as YCSB only outputs results at the end.
 YCSB can provide periodic status but these are not specific enough.
@@ -182,7 +182,7 @@ This project was conducted as part of an internship based on a partnership betwe
 
 We will then describe the project organization and elaborate on the application specifications to clarify the context of our work.
 
-After that, implementation and technologies choices of the solution alongside with some optimization explanations will be developped in a complete technical overview of the application.
+After that, implementation and technologies choices of the solution alongside with features and optimizations explanations will be developed in a complete technical overview of the application.
 
 Finally, we will report on the evaluation of both our extension module of YCSB and our web visualizer. We will discuss the performances and the limitations of our solution for our use case and more.
 
@@ -192,17 +192,17 @@ Finally, we will report on the evaluation of both our extension module of YCSB a
 
 \section{Why did I choose this kind of internship?}
 
-The EISTI offers us to have three internships during our studies and I seized this opportunity to discover as many working possibilities as my field of study can offer. As I was considering a PhD. after my engineering school, I needed to know if this possibility would have suited me.
+The EISTI offers us to have three internships during our studies and I seized this opportunity to discover as many working possibilities as my field of study can offer. I needed to know if a PhD. would have suited me, as I was considering the possibility after my engineering school.
 
 \bigskip
 
-I decided to use the EISTI partnership to achieve an internship at the Technische Universität Dresden in Germany. I chose this particular university because I heard positive feedbacks from acquaintances that studied there. I have been able to discover a research environment and discuss with doctors or PhD. students which nourished my thoughts and helped me make choices for the next step of my career.
+I decided to use the EISTI partnership to achieve an internship at the Technische Universität Dresden in Germany. I chose this particular university because I heard positive feedbacks from acquaintances that studied there. I have been able to discover a research environment and discuss with doctors and PhD. students which nourished my thoughts and helped me make choices for the next step of my career.
 
 \section{Internship environment}
 
 \subsection{The Technische Universität Dresden: global overview}
 
-The Technische Universität Dresden has a wide campus separated into buildings. I was in the Andreas-Pfitzmann-Bau, the Faculty of Computer Science building (See Figure \ref{informatik_bau}).
+The Technische Universität Dresden has a wide campus separated into multiple buildings. I was in the Andreas-Pfitzmann-Bau, the Faculty of Computer Science building (See Figure \ref{informatik_bau}).
 
 I would not make a better technical description of this university than its own website \cite{tud:website}:
 
@@ -222,11 +222,11 @@ About 36.000 students are enrolled at TUD – more than three times as many as i
 
 \subsection{Institute of Systems Architecture: Chair of Systems Engineering}
 
-I was working in the Faculty of Computer Science under the Chair of Systems Engineering at the Institute of Systems Architecture. The following sections give you more details about this chair.
+I was working in the Faculty of Computer Science under the Chair of Systems Engineering at the Institute of Systems Architecture. The following subsections give you more details about this chair.
 
 \subsubsection{Head of the chair: Prof. Dr. Christof Fetzer}
 
-The head of the chair is Prof. Dr. Christof Fetzer, as for the university I will not paraphrase so here is a quote from the university website \cite{tud:chair:head} regarding his background:
+The head of the chair is Prof. Dr. Christof Fetzer, as for the university I will not paraphrase a description of this work so here is a quote from the university website \cite{tud:chair:head} regarding his background:
 
 \blockquote{Christof Fetzer received his Ph.D. from UC San Diego (1997). 
 As a student he received a two-year scholarship from the DAAD and won two best student paper awards (SRDS and DSN). 
@@ -251,7 +251,8 @@ Stream Processing
 Parallel and distributed systems in general
 \end{itemize}
 
-I will follow an Engineering of Cloud Computing specialization for my third and last engineering year, so I was glad to be able to discover a few notions in advance like cluster computing systems as Apache Spark.
+
+I will follow an Engineering of Cloud Computing specialization for my third and last engineering year, so I was glad to be able to discover a few notions in advance like cluster computing systems as Apache Spark. I also had the opportunity to attend student's defenses on security aspects of Systems Architecture which provided me a deeper understanding of problems faced when using Cloud processing. For example, I heard more about secure enclave of Intel's SGX technology.
 
 \subsubsection{What do they do?}
 
@@ -263,7 +264,7 @@ They also do research on fields like Fault Tolerance \cite{tud:chair:papers:faul
 
 People that I encountered were welcoming and interested in the work I did there. They did not hesitate to help me through my work by discussing some dark points even if they were not part of my team. Their feedbacks on features and inputs on some of my problems were essential.
 
-The workstation provided by the university was perfect, I had strong personal machines that I could use without any restriction. This "liberal" working environment is crucial for me when developing applications. For example, system administration restrictions could be a large obstacle to quick development and progress.
+The workstation provided by the university was perfect, I had strong personal machines that I could use without restrictions. This "liberal" working environment was crucial for me. Indeed, system administration restrictions could be a large obstacle to quick development and progress.
 
 
 \section{Internship benefits}
@@ -286,17 +287,17 @@ My supervisor --- Robert Krahn --- was the only person I actually worked with. N
 
 Robert presented me the purpose of the application and features I needed to implement as an extension module of Yahoo! Cloud Serving Benchmark code base. We refined these specifications over the development to make it suits future users' needs.
 
-\subsection{Working method}\label{working_method}
+\subsection{Working methods}\label{working_method}
 
 We used an AGILE like method to develop this project. As I was working alone on the implementation side, I needed to confront my features quickly to future users in order to get feedbacks.
-The development cycle was simple. I began with a strong implementation phase followed by a testing and debugging phase. Then we used our tools to evaluate the solution and judge if it was suitable according to the expectations and use cases.
+The development cycle was simple. I began with a strong implementation phase followed by a testing and debugging phase. Then we used our tools to evaluate the solution and judge if it was suitable according to expectations and use cases.
 
 For example, at the end of the first cycle, our application was working great for small datasets but was crashing both on server and client side when it needed to handle thousands of points.
-So, we made a complete review of the code to find bottlenecks and fixed them one by one like MongoDB aggregation, removal of useless layers, etc. We will elaborate on these optimizations in \ref{techical_chapter}.
+So, we made a complete review of the code to find bottlenecks and fixed them one by one like MongoDB aggregation, removal of useless layers, etc. We will elaborate on these optimizations in Chapter \ref{techical_chapter}.
 
 \section{Application specifications}
 
-The aim of this section is not to cover technical details but to explain in an accessible way what our application is offering. For more technical details, please go to \ref{techical_chapter}.
+The aim of this section is not to cover technical details but to explain in an accessible way what our application is offering. For more technical details, please go to Chapter \ref{techical_chapter}.
 
 \subsection{Purpose of the application}
 
@@ -304,7 +305,7 @@ The aim of this section is not to cover technical details but to explain in an a
 
 As introduced beforehand, Yahoo! Cloud Serving Benchmark is used to evaluate performance of "key-value" and "cloud" serving stores. But how does it actually work?
 
-The user defines a custom workload --- set of parameters which defines how the benchmark will be executed --- or chose to use an existing one. Then, he starts the database he wants to benchmark and first launches YCSB \texttt{load} phase to fill the database with values --- INSERT operations. Finally he launches the \texttt{run} phase that executes operations --- READ, UPDATE, etc. operations --- on the previously inserted values. All settings regarding proportions and quantity of these operations are defined in the workload file.
+The user defines a custom workload or chose to use an existing one --- a workload is a set of parameters which defines how the benchmark will be executed. Then, he starts the database he wants to benchmark and first launches YCSB \texttt{load} phase to fill the database with values --- INSERT operations. Finally he launches the \texttt{run} phase that executes more operations --- READ, UPDATE, etc. operations --- on the previously inserted values. All settings regarding proportions and quantity of these operations are defined in the workload file.
 
 YCSB work is to store each CRUD operation execution time --- called \texttt{latency}. It provides measurement results --- \texttt{latencies} --- of the operations made during both \texttt{load} and \texttt{run} phase at the end of each phase.
 
@@ -316,7 +317,7 @@ As you might have understood, YCSB is only producing results at the end of the e
 
 \bigskip
 
-Our work was to make results available in a pseudo real-time --- low latency --- fashion without slowing YCSB performance. This last part is crucial: we must not slow YCSB in a non-acceptable manner.
+Our work consisted in making results available in a pseudo real-time --- low latency --- fashion without slowing YCSB performance. This last part is crucial: we must not slow YCSB in a non-acceptable manner.
 
 There is no point of making a low latency result provider if there is no tool to visualize it. So we needed to implement a visualizer and we chose to implement a cool web interface that has pretty and convenient charts.
 
@@ -324,7 +325,7 @@ There is no point of making a low latency result provider if there is no tool to
 
 \subsubsection{YCSB extension module}
 
-Providing low latency results to the user is achieved by storing measurements periodically into a storage database. This is the job of our YCSB extension module. The fetch of measures must be efficient and not disturbing for YCSB ongoing measurements.
+Providing low latency results to the user is achieved by storing measurements periodically into a storage database. This is the job of our YCSB extension module. The fetch of measures must be efficient and not alter YCSB ongoing measurements.
 
 \subsubsection{Visualizer application}
 
