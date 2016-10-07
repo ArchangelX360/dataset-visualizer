@@ -1,5 +1,5 @@
-var homeFolder = "/home/titouan/Documents/ycsb-web-app/";
-var ycsbRoot = homeFolder + "ycsb-0.11.1-custom-release/"; // FrontendConcurrencyMap version
+var homeFolder = "/home/test/Documents/dataset-visualizer-master/";
+var ycsbRoot = homeFolder + "ycsb-0.10.0-visualization-release/"; // FrontendConcurrencyMap version
 
 module.exports = {
     countersCollectionName: 'counters',
