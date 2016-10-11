@@ -1,4 +1,4 @@
-var homeFolder = "/home/<my_user>/Documents/dataset-visualizer-0.1-release/";
+var homeFolder = "/home/<your_user>/Documents/dataset-visualizer-0.1-release/";
 var ycsbRoot = homeFolder + "ycsb-0.10.0-visualization-release/"; // FrontendConcurrencyMap version
 
 module.exports = {

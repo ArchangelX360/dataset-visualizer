@@ -7,14 +7,12 @@ var app = angular.module('visualisationYCSB', [
     'cmdController',
     'frontpageController',
     'workloadsController',
-    'evaluationController',
     'benchmarkService',
     'importFileService',
     'workloadService',
     'databasesService',
     'toastService',
     'cmdService',
-    'evaluationService',
     'stats',
     'btford.socket-io'
 ]);
