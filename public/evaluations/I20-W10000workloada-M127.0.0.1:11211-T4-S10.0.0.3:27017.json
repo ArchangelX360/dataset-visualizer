@@ -1,0 +1,263 @@
+{
+    "data": [
+        {
+            "iteration": 1,
+            "type": "frontend",
+            "load": 9009.009009009009,
+            "run": 6968.641114982578
+        },
+        {
+            "iteration": 2,
+            "type": "frontend",
+            "load": 8583.690987124464,
+            "run": 7616.146230007616
+        },
+        {
+            "iteration": 3,
+            "type": "frontend",
+            "load": 10020.040080160321,
+            "run": 7457.121551081283
+        },
+        {
+            "iteration": 4,
+            "type": "frontend",
+            "load": 9756.09756097561,
+            "run": 7598.784194528876
+        },
+        {
+            "iteration": 5,
+            "type": "frontend",
+            "load": 9661.835748792271,
+            "run": 7283.3211944646755
+        },
+        {
+            "iteration": 6,
+            "type": "frontend",
+            "load": 10288.0658436214,
+            "run": 7604.5627376425855
+        },
+        {
+            "iteration": 7,
+            "type": "frontend",
+            "load": 10309.278350515464,
+            "run": 7949.12559618442
+        },
+        {
+            "iteration": 8,
+            "type": "frontend",
+            "load": 7518.796992481203,
+            "run": 6802.721088435374
+        },
+        {
+            "iteration": 9,
+            "type": "frontend",
+            "load": 8176.6148814390845,
+            "run": 8305.647840531561
+        },
+        {
+            "iteration": 10,
+            "type": "frontend",
+            "load": 9960.1593625498,
+            "run": 7462.686567164179
+        },
+        {
+            "iteration": 11,
+            "type": "frontend",
+            "load": 9074.410163339382,
+            "run": 7923.9302694136295
+        },
+        {
+            "iteration": 12,
+            "type": "frontend",
+            "load": 9775.171065493647,
+            "run": 8525.149190110827
+        },
+        {
+            "iteration": 13,
+            "type": "frontend",
+            "load": 8635.578583765113,
+            "run": 8525.149190110827
+        },
+        {
+            "iteration": 14,
+            "type": "frontend",
+            "load": 9416.195856873823,
+            "run": 6775.067750677506
+        },
+        {
+            "iteration": 15,
+            "type": "frontend",
+            "load": 7347.538574577517,
+            "run": 7342.143906020558
+        },
+        {
+            "iteration": 16,
+            "type": "frontend",
+            "load": 10384.215991692627,
+            "run": 8628.127696289905
+        },
+        {
+            "iteration": 17,
+            "type": "frontend",
+            "load": 9823.182711198428,
+            "run": 8568.98029134533
+        },
+        {
+            "iteration": 18,
+            "type": "frontend",
+            "load": 9505.703422053231,
+            "run": 8474.57627118644
+        },
+        {
+            "iteration": 19,
+            "type": "frontend",
+            "load": 9940.357852882704,
+            "run": 8071.0250201775625
+        },
+        {
+            "iteration": 20,
+            "type": "frontend",
+            "load": 8312.551953449709,
+            "run": 8291.873963515754
+        },
+        {
+            "iteration": 10,
+            "type": "raw",
+            "load": 10427.528675703858,
+            "run": 8291.873963515754
+        },
+        {
+            "iteration": 11,
+            "type": "raw",
+            "load": 9569.377990430621,
+            "run": 8375.209380234506
+        },
+        {
+            "iteration": 11,
+            "type": "raw",
+            "load": 8857.395925597873,
+            "run": 7593.014426727411
+        },
+        {
+            "iteration": 12,
+            "type": "raw",
+            "load": 9775.171065493647,
+            "run": 7610.350076103501
+        },
+        {
+            "iteration": 12,
+            "type": "raw",
+            "load": 10050.251256281406,
+            "run": 8688.097306689835
+        },
+        {
+            "iteration": 13,
+            "type": "raw",
+            "load": 8190.00819000819,
+            "run": 8000.0
+        },
+        {
+            "iteration": 13,
+            "type": "raw",
+            "load": 8771.929824561403,
+            "run": 6816.632583503749
+        },
+        {
+            "iteration": 14,
+            "type": "raw",
+            "load": 9132.4200913242,
+            "run": 7806.4012490242
+        },
+        {
+            "iteration": 14,
+            "type": "raw",
+            "load": 8488.964346349745,
+            "run": 7757.9519006982155
+        },
+        {
+            "iteration": 15,
+            "type": "raw",
+            "load": 9596.928982725527,
+            "run": 7288.62973760933
+        },
+        {
+            "iteration": 15,
+            "type": "raw",
+            "load": 9460.73793755913,
+            "run": 8084.074373484236
+        },
+        {
+            "iteration": 16,
+            "type": "raw",
+            "load": 8733.624454148472,
+            "run": 8517.887563884156
+        },
+        {
+            "iteration": 16,
+            "type": "raw",
+            "load": 8984.72596585804,
+            "run": 6743.088334457181
+        },
+        {
+            "iteration": 17,
+            "type": "raw",
+            "load": 9940.357852882704,
+            "run": 8163.265306122449
+        },
+        {
+            "iteration": 17,
+            "type": "raw",
+            "load": 9337.068160597571,
+            "run": 7558.578987150416
+        },
+        {
+            "iteration": 18,
+            "type": "raw",
+            "load": 9505.703422053231,
+            "run": 8361.204013377926
+        },
+        {
+            "iteration": 18,
+            "type": "raw",
+            "load": 8176.6148814390845,
+            "run": 7936.507936507936
+        },
+        {
+            "iteration": 19,
+            "type": "raw",
+            "load": 9765.625,
+            "run": 7042.2535211267605
+        },
+        {
+            "iteration": 19,
+            "type": "raw",
+            "load": 8928.57142857143,
+            "run": 8097.165991902834
+        },
+        {
+            "iteration": 20,
+            "type": "raw",
+            "load": 8156.606851549755,
+            "run": 7686.395080707149
+        }
+    ],
+    "results": {
+        "averages_load": {
+            "raw": 9192,
+            "frontend": 9274
+        },
+        "averages_run": {
+            "raw": 7820,
+            "frontend": 7808
+        },
+        "execution_time": {
+            "raw": 3.289595438,
+            "frontend": 10.671397746
+        },
+        "percents": {
+            "average_load": 100,
+            "average_run": 99,
+            "execution_time": 324
+        }
+    }
+}
