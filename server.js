@@ -31,7 +31,6 @@ MongoClient.connect(databaseConfig.url, function (err, database) {
     require('./app/routes/cmds.js')(app, io);
     require('./app/routes/benchmarks.js')(app, db);
     require('./app/routes/databases.js')(app);
-    require('./app/routes/evaluation.js')(app);
     require('./app/routes/import.js')(app);
 
     // listen (start app with node server.js)

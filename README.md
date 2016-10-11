@@ -4,17 +4,17 @@
 
 Originally design for Yahoo! Cloud Serving Benchmark, this web application displays measures stored in a MongoDB database or imported from a raw file. It could be used for any kind of data and series type but is mostly used for benchmark measures visualization.
 
-![Architecture photo with Client, Server and Storage DB selected.](/doc/report/images/archi-app.png "Place in the overall project architecture") 
+![Architecture photo with Client, Server and Storage DB selected.](/images/archi-app.png "Place in the overall project architecture") 
 
 **Place in the overall project architecture**
 
 It supports large dataset (millions of points) and achieves view optimization to display them efficiently. Here's some chart examples:
 
-![XY chart example.](/doc/report/images/xy.png "XY chart example")
+![XY chart example.](/images/xy.png "XY chart example")
 
 **XY chart example**
 
-![Candlestick chart example.](/doc/report/images/xy.png "Candlestick chart example")
+![Candlestick chart example.](/images/xy.png "Candlestick chart example")
 
 **Candlestick chart example**
 
@@ -174,7 +174,7 @@ If you want to make a large number of measure, our client won't be able to displ
 
 MongoDB is grouping value and making averages to optimise the view and make NodeJS serve results faster. This grouping process reduces measurements' precision. For example, you would get 3 buckets of average each based on 3 successive values instead of getting 9 measures:
 
-![Simple illustration of MongoDB aggregation process.](/doc/report/images/mongodb-agg.png "Simple illustration of MongoDB aggregation process")
+![Simple illustration of MongoDB aggregation process.](/images/mongodb-agg.png "Simple illustration of MongoDB aggregation process")
 
 **Simple illustration of MongoDB aggregation process**
 
@@ -459,7 +459,7 @@ As we see in [MongoDB Aggregation Explaination Section](#aggregation-explainatio
 
 The precision reduction grow linearly when your benchmark points are increasing. The coefficient of this linear reduction is the value the user sets based on his computer performances. We have the following equation:
 
-![Bucket size precision equation.](/doc/report/images/bucket-eq.png "Bucket size precision equation")
+![Bucket size precision equation.](/images/bucket-eq.png "Bucket size precision equation")
 
 **Bucket size precision equation**
 
