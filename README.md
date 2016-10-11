@@ -24,28 +24,64 @@ For now, only XYplot and Candlestick are supported. However, implementing a new 
 
 ## Getting started
 
-### Core programs
+### Automatic installation (Ubuntu 16.04 only)
+
+Download the [first release](https://github.com/ArchangelX360/dataset-visualizer/releases/tag/v0.1) sources or archive and execute the following commmand: 
+
+    ./install.sh
+
+BE CAREFUL: this automatic installation is meant to quickly test YCSB visualization. Thus it will download the [latest release of YCSB visualization](https://github.com/ArchangelX360/ycsb-visualization/releases/latest) and install a memcached client! If you don't want this you can either modify the _install.sh_ script or make a manual installation. 
+
+### Manual installation
+
+#### Core programs
 
 Install Node.js v4.5 with the official website instructions: [Install Node.js via package manager](https://nodejs.org/en/download/package-manager/)
 
 You will also need Java >=8 and MongoDB >=2.6.10 to fully use this application :
 
     sudo apt-get install openjdk-8-jre mongodb
+    
+    
+#### NodeJS server modules installation
 
-### YCSB specific requirements
+Go to the root folder of the application where the file _package.json_ is located and execute:
 
-#### DB program
+    npm install
+
+#### Client modules installation
+
+Go to the _public_ folder where the file _package.json_ is located and execute:
+
+    npm install
+
+#### YCSB specific requirements
+
+##### DB program
 
 You will need a DB to benchmark, we are going to use memcached :
 
     sudo apt-get install memcached
 
-#### YCSB supported version
+##### YCSB supported version
 
-You will also need YCSB "visualisation" version.
+You will also need [YCSB "visualisation" version](https://github.com/ArchangelX360/ycsb-visualization/releases/tag/0.10.0-visualisation).
 
-For now, the custom release will be included in
-this repo. In the future, we hope YCSB will accept our pull-request.
+##### Execution rights
+
+Be sure to have execution rights on the app folder otherwise launching benchmarks won't work!
+
+## Launch it !
+
+You need to start the NodeJS server:
+
+    node --max-old-space-size=16384 server.js
+
+Then go to <http://localhost:5555> !
+
+**NOTE:** don't forget to check the configuration section before trying to use YCSB.
+
+**NOTE2:** adapt the _max-old-space-size_ relying on your machine performances.
 
 ## Configuration
 
@@ -207,34 +243,6 @@ $scope.labelTypeMap = {
 };
 ... 
 ```
-
-## Deployment
-
-### NodeJS server modules installation
-
-Go to the root folder of the application where the file _package.json_ is located and execute:
-
-    npm install
-
-### Client modules installation
-
-Go to the _public_ folder where the file _package.json_ is located and execute:
-
-    npm install
-
-### Execution rights
-
-Be sure to have execution rights on the app folder otherwise launching benchmarks won't work!
-  
-### Launch it !
-
-You need to start the NodeJS server:
-
-    node --max-old-space-size=16384 server.js
-
-Then go to <http://localhost:5555> !
-
-**NOTE:** adapt the _max-old-space-size_ relying on your machine performances.
 
 ## Import raw files to display their results
 
