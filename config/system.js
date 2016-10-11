@@ -20,4 +20,7 @@ module.exports = {
     /* Absolute path to the import files folder */
     dbDumpsFolder: homeFolder + 'public/dumps/',
     /* Absolute path to the db dumps folder */
+
+    /* FOR EVALUATION ONLY */
+    evaluationsLocation: homeFolder + 'public/evaluations/'
 };

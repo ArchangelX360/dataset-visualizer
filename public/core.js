@@ -7,12 +7,14 @@ var app = angular.module('visualisationYCSB', [
     'cmdController',
     'frontpageController',
     'workloadsController',
+    'evaluationController',
     'benchmarkService',
     'importFileService',
     'workloadService',
     'databasesService',
     'toastService',
     'cmdService',
+    'evaluationService',
     'stats',
     'btford.socket-io'
 ]);
@@ -34,7 +36,16 @@ app.config(function ($routeProvider) {
     $routeProvider.when('/', {templateUrl: 'frontpage/frontpage.html', controller: 'FrontpageController'})
         .when('/stats/:benchmarkName?/:fileParser?', {templateUrl: 'stats/stats.html', controller: 'StatController'})
         .when('/cmd', {templateUrl: 'cmd/cmd.html', controller: 'CmdController'})
-        .when('/workloads', {templateUrl: 'workloads/workloads.html', controller: 'WorkloadsController'});
+        .when('/workloads', {templateUrl: 'workloads/workloads.html', controller: 'WorkloadsController'})
+        .when('/evaluations/:evaluationName?', {
+            templateUrl: 'evaluation/evaluation.html',
+            controller: 'EvaluationController'
+        })
+        .when('/cross-evaluations/:xAxisParameter?/:iterationNumber?/:mongoUri?/:memcachedUri?/:threadNumber?/:workloads?/', {
+            templateUrl: 'evaluation/cross-evaluation.html',
+            controller: 'CrossEvaluationController'
+        })
+    ;
 });
 
 app.factory('socket', function (socketFactory) {
